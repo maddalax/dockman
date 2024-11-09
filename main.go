@@ -5,43 +5,53 @@ import (
 	"github.com/maddalax/htmgo/framework/config"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
+	"github.com/nats-io/nats.go"
 	"io/fs"
 	"net/http"
 	"paas/__htmgo"
-	"paas/nats"
+	"paas/caddy"
+	"paas/kv"
 )
 
 func main() {
 	locator := service.NewLocator()
 	cfg := config.Get()
 
-	_, err := nats.StartServer()
+	_, err := kv.StartServer()
 
 	if err != nil {
 		panic(err)
 	}
 
-	client, err := nats.Connect(nats.Options{
+	natsClient, err := kv.Connect(kv.Options{
 		Port: 4222,
 	})
 	if err != nil {
 		panic(err)
 	}
-	bucket, err := client.GetBucket("test")
-	if err != nil {
-		panic(err)
-	}
 
-	d, err := bucket.Get("test")
+	natsClient.CreateBuildLogStream()
 
-	if d != nil {
-		fmt.Println(d.Value())
-	}
+	natsClient.SubscribeAndReplayAll(kv.BuildLogStreamSubject, func(msg *nats.Msg) {
+		fmt.Println(string(msg.Data))
+	})
 
-	_, err = bucket.Put("test", []byte("hello"))
-	if err != nil {
-		panic(err)
-	}
+	go caddy.Run()
+
+	//go func() {
+	//	client, err := docker.Connect()
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//
+	//	outputStream := natsClient.NewNatsWriter(kv.BuildLogStreamSubject)
+	//	err = client.Build(outputStream, ".", types.ImageBuildOptions{
+	//		Dockerfile: "Dockerfile",
+	//	})
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//}()
 
 	h.Start(h.AppOpts{
 		ServiceLocator: locator,

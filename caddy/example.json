@@ -1,12 +1,4 @@
-package caddy
-
-import (
-	"encoding/json"
-	caddy2 "github.com/caddyserver/caddy/v2"
-	"paas/httpjson"
-)
-
-var RawConfig = `{
+{
   "apps": {
     "http": {
       "servers": {
@@ -49,26 +41,4 @@ var RawConfig = `{
       }
     }
   }
-}`
-
-func BuildConfig() *Config {
-	var config Config
-	err := json.Unmarshal([]byte(RawConfig), &config)
-	if err != nil {
-		panic(err)
-	}
-	return &config
-}
-
-func GetConfig() (*Config, error) {
-	config, err := httpjson.Get[Config]("http://localhost:2019/config/")
-	if err != nil {
-		return nil, err
-	}
-	return config, nil
-}
-
-func ApplyConfig(config *Config) error {
-	serialized, _ := json.Marshal(config)
-	return caddy2.Load(serialized, true)
 }

@@ -1,4 +1,4 @@
-package nats
+package kv
 
 import (
 	"errors"
@@ -19,8 +19,9 @@ func (c *Client) Publish(subject string, data []byte) error {
 	return c.nc.Publish(subject, data)
 }
 
-func (c *Client) Subscribe(subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
-	sub, err := c.nc.Subscribe(subject, handler)
+// SubscribeAndReplayAll subscribes to a subject and replays all messages
+func (c *Client) SubscribeAndReplayAll(subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+	sub, err := c.js.Subscribe(subject, handler, nats.DeliverAll())
 	if err != nil {
 		return nil, err
 	}
