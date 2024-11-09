@@ -1,0 +1,4 @@
+http://htmgo.dev {
+  tls internal
+  reverse_proxy :3000
+}
