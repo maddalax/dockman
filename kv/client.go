@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nats-io/nats.go"
+	"time"
 )
 
 type Options struct {
@@ -22,6 +23,14 @@ func (c *Client) Publish(subject string, data []byte) error {
 // SubscribeAndReplayAll subscribes to a subject and replays all messages
 func (c *Client) SubscribeAndReplayAll(subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
 	sub, err := c.js.Subscribe(subject, handler, nats.DeliverAll())
+	if err != nil {
+		return nil, err
+	}
+	return sub, nil
+}
+
+func (c *Client) Subscribe(subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+	sub, err := c.js.Subscribe(subject, handler, nats.StartTime(time.Now()))
 	if err != nil {
 		return nil, err
 	}

@@ -21,9 +21,11 @@ func (c *Client) NewNatsWriter(subject string) *NatsWriter {
 func (nw *NatsWriter) Write(p []byte) (n int, err error) {
 	// Publish the data to the NATS JetStream subject
 	_, err = nw.js.Publish(nw.subject, p)
+
 	if err != nil {
 		return 0, err
 	}
+
 	// Return the length of the written data
 	return len(p), nil
 }

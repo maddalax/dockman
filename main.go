@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/maddalax/htmgo/extensions/websocket"
+	ws2 "github.com/maddalax/htmgo/extensions/websocket/opts"
+	"github.com/maddalax/htmgo/extensions/websocket/session"
 	"github.com/maddalax/htmgo/framework/config"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
-	"github.com/nats-io/nats.go"
 	"io/fs"
 	"net/http"
 	"paas/__htmgo"
@@ -22,19 +24,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	natsClient, err := kv.Connect(kv.Options{
-		Port: 4222,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	natsClient.CreateBuildLogStream()
-
-	natsClient.SubscribeAndReplayAll(kv.BuildLogStreamSubject, func(msg *nats.Msg) {
-		fmt.Println(string(msg.Data))
-	})
 
 	go caddy.Run()
 
@@ -57,6 +46,21 @@ func main() {
 		ServiceLocator: locator,
 		LiveReload:     true,
 		Register: func(app *h.App) {
+
+			app.Use(func(ctx *h.RequestContext) {
+				session.CreateSession(ctx)
+			})
+
+			websocket.EnableExtension(app, ws2.ExtensionOpts{
+				WsPath: "/ws",
+				RoomName: func(ctx *h.RequestContext) string {
+					return "all"
+				},
+				SessionId: func(ctx *h.RequestContext) string {
+					return ctx.QueryParam("sessionId")
+				},
+			})
+
 			sub, err := fs.Sub(GetStaticAssets(), "assets/dist")
 
 			if err != nil {
