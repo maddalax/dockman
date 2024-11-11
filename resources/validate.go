@@ -1,0 +1,122 @@
+package resources
+
+import (
+	"errors"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5/storage/memory"
+	"os"
+	"path/filepath"
+)
+
+type Validator interface {
+	Validate() error
+}
+
+type BuildMetaValidator struct {
+	meta any
+}
+
+func (v BuildMetaValidator) Validate() error {
+	var validators []Validator
+
+	switch m := v.meta.(type) {
+	case DockerBuildMeta:
+		validators = []Validator{
+			GithubRepositoryValidator{
+				RepositoryUrl: m.RepositoryUrl,
+				AccessToken:   m.GithubAccessToken,
+				Dockerfile:    m.Dockerfile,
+			},
+		}
+	}
+
+	for _, validator := range validators {
+		err := validator.Validate()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type GithubRepositoryValidator struct {
+	RepositoryUrl string
+	AccessToken   string
+	Dockerfile    string
+}
+
+func (v GithubRepositoryValidator) Validate() error {
+	if v.RepositoryUrl == "" {
+		return errors.New("git repository url is required")
+	}
+
+	rem := git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{v.RepositoryUrl},
+	})
+
+	opts := &git.ListOptions{}
+
+	if v.AccessToken != "" {
+		opts.Auth = &http.BasicAuth{
+			Username: "paas",
+			Password: v.AccessToken,
+		}
+	}
+
+	_, err := rem.List(opts)
+
+	if err != nil {
+		if err.Error() == "authentication required" {
+			return errors.New("repository is not accessible, please ensure you have provided a personal access token with 'Contents' permission")
+		}
+		if err.Error() == "repository not found" {
+			return errors.New("repository not found, please ensure the url is correct")
+		}
+		return err
+	}
+
+	if v.Dockerfile != "" {
+		tempDir, err := os.MkdirTemp("", "repo-clone-*")
+
+		if err != nil {
+			return err
+		}
+
+		os.Chmod(tempDir, 0700)
+
+		_, err = git.PlainClone(tempDir, false, &git.CloneOptions{
+			URL:      v.RepositoryUrl,
+			Auth:     opts.Auth,
+			Progress: os.Stdout,
+			Depth:    1,
+		})
+
+		validator := ValidDockerFileValidator{
+			Dockerfile:    v.Dockerfile,
+			RepositoryDir: tempDir,
+		}
+		return validator.Validate()
+	}
+
+	return nil
+}
+
+type ValidDockerFileValidator struct {
+	Dockerfile    string
+	RepositoryDir string
+}
+
+func (v ValidDockerFileValidator) Validate() error {
+	dockerfilePath := filepath.Join(v.RepositoryDir, v.Dockerfile)
+	_, err := os.Lstat(dockerfilePath)
+
+	if err != nil {
+		return errors.New("dockerfile not found, please ensure the path is correct and is relative from the repository root")
+	}
+
+	return nil
+}

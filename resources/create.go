@@ -17,7 +17,21 @@ type CreateOptions struct {
 	Env         map[string]string `json:"env"`
 }
 
-func Create(locator *service.Locator, options CreateOptions) error {
+func Create(locator *service.Locator, options CreateOptions) (string, error) {
+
+	validators := []Validator{
+		BuildMetaValidator{
+			meta: options.BuildMeta,
+		},
+	}
+
+	for _, validator := range validators {
+		err := validator.Validate()
+		if err != nil {
+			return "", err
+		}
+	}
+
 	client := service.Get[kv.Client](locator)
 	id := uuid.NewString()
 	resourceBucketKey := fmt.Sprintf("resources-%s", id)
@@ -25,19 +39,19 @@ func Create(locator *service.Locator, options CreateOptions) error {
 	bucket, err := client.GetBucket("resources")
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	_, err = bucket.Create(resourceBucketKey, []byte{})
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	resourceBucket, err := client.GetBucket(resourceBucketKey)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = kv.AtomicPutMany(resourceBucket, func(m map[string]any) error {
@@ -53,7 +67,7 @@ func Create(locator *service.Locator, options CreateOptions) error {
 	})
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	history.LogChange(locator, subject.ResourceCreated, map[string]any{
@@ -62,5 +76,5 @@ func Create(locator *service.Locator, options CreateOptions) error {
 		"name":        options.Name,
 	})
 
-	return nil
+	return id, nil
 }

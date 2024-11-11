@@ -8,6 +8,8 @@ const (
 	RunTypeDockerRegistry
 )
 
+type EmptyBuildMeta struct{}
+
 type DockerBuildMeta struct {
 	RepositoryUrl     string   `json:"repository_url"`
 	Dockerfile        string   `json:"dockerfile"`

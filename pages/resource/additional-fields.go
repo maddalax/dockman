@@ -14,10 +14,13 @@ func AdditionalCreateResourceFields(ctx *h.RequestContext) *h.Partial {
 			h.Id("additional-create-resource-fields"),
 			AdditionalFieldsForDeploymentType(ctx, deploymentType),
 			EnvironmentVariables(ctx),
-			ui.PrimaryButton(ui.ButtonProps{
-				Text:  "Create Resource",
-				Type:  "submit",
-				Class: "mt-4 w-full",
+			h.Div(
+				h.Id("submit-error"),
+			),
+			ui.SubmitButton(ui.SubmitButtonProps{
+				Text:           "Create Resource",
+				SubmittingText: "Validating...",
+				Class:          "mt-4 w-full",
 			}),
 		),
 	)

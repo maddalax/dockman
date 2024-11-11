@@ -19,14 +19,12 @@ func EnvironmentVariables(ctx *h.RequestContext) *h.Element {
 				Id:          "key",
 				Label:       h.Ternary(index == 0, "Name", ""),
 				Name:        fmt.Sprintf("env-key-%d", index),
-				Required:    true,
 				Placeholder: "ENV",
 			}),
 			ui.Input(ui.InputProps{
 				Id:          "value",
 				Label:       h.Ternary(index == 0, "Value", ""),
 				Name:        fmt.Sprintf("env-value-%d", index),
-				Required:    true,
 				Placeholder: "production",
 			}),
 		)
@@ -118,6 +116,7 @@ func AdditionalFieldsForDeploymentType(ctx *h.RequestContext, deploymentType str
 				Label:       "Dockerfile Path",
 				Name:        "dockerfile",
 				Placeholder: "./app/Dockerfile",
+				Required:    true,
 				HelpText:    h.Pf("The path to the Dockerfile relative to the root of the repository"),
 			}),
 		)
