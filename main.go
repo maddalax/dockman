@@ -19,6 +19,16 @@ func main() {
 	locator := service.NewLocator()
 	cfg := config.Get()
 
+	service.Set[kv.Client](locator, service.Singleton, func() *kv.Client {
+		client, err := kv.Connect(kv.Options{
+			Port: 4222,
+		})
+		if err != nil {
+			panic(err)
+		}
+		return client
+	})
+
 	_, err := kv.StartServer()
 
 	if err != nil {
@@ -41,6 +51,30 @@ func main() {
 	//		panic(err)
 	//	}
 	//}()
+
+	//err = resources.Create(locator, resources.CreateOptions{
+	//	Name:        "htmgo-" + uuid.NewString()[0:4],
+	//	Environment: "dev",
+	//	RunType:     resources.RunTypeDockerBuild,
+	//	BuildMeta: resources.DockerBuildMeta{
+	//		Dockerfile: "Dockerfile",
+	//		Tags:       []string{"test", "test2"},
+	//	},
+	//	Env: []resources.Env{
+	//		{
+	//			Key:   "TEST",
+	//			Value: "test",
+	//		},
+	//		{
+	//			Key:   "TEST2",
+	//			Value: "test2",
+	//		},
+	//	},
+	//})
+	//
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	h.Start(h.AppOpts{
 		ServiceLocator: locator,

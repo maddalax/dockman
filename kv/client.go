@@ -3,7 +3,10 @@ package kv
 import (
 	"errors"
 	"fmt"
+	"github.com/maddalax/htmgo/framework/h"
+	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
+	"paas/kv/subject"
 	"time"
 )
 
@@ -16,13 +19,54 @@ type Client struct {
 	js nats.JetStreamContext
 }
 
+func GetClientFromCtx(ctx *h.RequestContext) *Client {
+	client := service.Get[Client](ctx.ServiceLocator())
+	return client
+}
+
+func (c *Client) DeleteStream(stream string) error {
+	return c.js.DeleteStream(stream)
+}
+
 func (c *Client) Publish(subject string, data []byte) error {
 	return c.nc.Publish(subject, data)
 }
 
+func (c *Client) DeleteBucket(bucket string) error {
+	return c.js.DeleteKeyValue(bucket)
+}
+
 // SubscribeAndReplayAll subscribes to a subject and replays all messages
-func (c *Client) SubscribeAndReplayAll(subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
-	sub, err := c.js.Subscribe(subject, handler, nats.DeliverAll())
+func (c *Client) SubscribeAndReplayAll(subject subject.Subject, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+	sub, err := c.js.Subscribe(string(subject), handler, nats.DeliverAll())
+	if err != nil {
+		return nil, err
+	}
+	return sub, nil
+}
+
+// SubscribeUntilTimeout subscribes to a subject and replays all messages, closing the subscription after no messages are received for the specified timeout
+func (c *Client) SubscribeUntilTimeout(subject subject.Subject, timeout time.Duration, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+	lastMessageTime := time.Now()
+	var sub *nats.Subscription
+
+	handle := func(msg *nats.Msg) {
+		handler(msg)
+		lastMessageTime = time.Now()
+		sub = msg.Sub
+	}
+
+	go func() {
+		for {
+			time.Sleep(time.Second)
+			if time.Since(lastMessageTime) > timeout && sub != nil {
+				_ = sub.Unsubscribe()
+				return
+			}
+		}
+	}()
+
+	sub, err := c.js.Subscribe(string(subject), handle, nats.DeliverAll())
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +92,29 @@ func (c *Client) GetBucketWithConfig(config *nats.KeyValueConfig) (nats.KeyValue
 			return b, nil
 		}
 	}
-	return b, nil
+	return b, err
+}
+
+func (c *Client) GetStreams() []*nats.StreamInfo {
+	stores := c.js.Streams()
+	streams := make([]*nats.StreamInfo, 0)
+	for store := range stores {
+		streams = append(streams, store)
+	}
+	return streams
+}
+
+func (c *Client) GetBuckets() []nats.KeyValueStatus {
+	stores := c.js.KeyValueStores()
+	buckets := make([]nats.KeyValueStatus, 0)
+	for store := range stores {
+		buckets = append(buckets, store)
+	}
+	return buckets
+}
+
+func (c *Client) GetStream(bucket string) (*nats.StreamInfo, error) {
+	return c.js.StreamInfo(bucket)
 }
 
 func (c *Client) GetBucket(bucket string) (nats.KeyValue, error) {

@@ -1,10 +1,10 @@
 package caddy
 
 type Config struct {
-	Apps Apps `json:"apps"`
+	Resources Resources `json:"resources"`
 }
 
-type Apps struct {
+type Resources struct {
 	HTTP HTTP `json:"http"`
 }
 

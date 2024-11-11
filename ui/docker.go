@@ -4,13 +4,15 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
-	"github.com/maddalax/htmgo/framework/js"
 	"github.com/nats-io/nats.go"
 	"paas/docker"
 	"paas/kv"
+	"paas/kv/subject"
+	"time"
 )
 
 func DockerBuildTest(ctx *h.RequestContext) *h.Element {
+	// todo make singleton client
 	natsClient, err := kv.Connect(kv.Options{
 		Port: 4222,
 	})
@@ -18,18 +20,18 @@ func DockerBuildTest(ctx *h.RequestContext) *h.Element {
 		panic(err)
 	}
 
-	natsClient.CreateBuildLogStream()
+	ws.Every(ctx, time.Second, func() bool {
+		now := time.Now()
+		natsClient.Publish(string(subject.BuildLog), []byte(now.Format(time.Stamp)))
+		return true
+	})
 
 	ws.Once(ctx, func() {
-		natsClient.SubscribeAndReplayAll(kv.BuildLogStreamSubject, func(msg *nats.Msg) {
+		// todo move this to app entry
+		natsClient.CreateBuildLogStream()
+		natsClient.SubscribeAndReplayAll(subject.BuildLog, func(msg *nats.Msg) {
 			data := string(msg.Data)
-			ws.PushElementCtx(ctx, h.Div(
-				h.Class("bg-slate-50 p-2 rounded-md text-sm"),
-				h.Attribute("hx-swap-oob", "beforeend:#build-log"),
-				h.P(
-					h.Text(data),
-				),
-			))
+			ws.PushElementCtx(ctx, LogLine(data))
 		})
 	})
 
@@ -47,37 +49,12 @@ func DockerBuildTest(ctx *h.RequestContext) *h.Element {
 				if err != nil {
 					panic(err)
 				}
-				outputStream := natsClient.NewNatsWriter(kv.BuildLogStreamSubject)
+				outputStream := natsClient.NewNatsWriter(subject.BuildLog)
 				client.Build(outputStream, ".", types.ImageBuildOptions{
 					Dockerfile: "Dockerfile",
 				})
 			}),
 		),
-		h.Div(
-			h.Class("max-w-[800px] max-h-80 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg p-4 mt-6 min-w-[800px]"),
-			h.Id("build-log"),
-			// Scroll to the bottom of the div when the page loads
-			h.OnLoad(
-				// language=JavaScript
-				js.EvalJs(`
-					setTimeout(() => {
-           self.scrollTop = self.scrollHeight;       
-					}, 1000)
-				`),
-			),
-			// Scroll to the bottom of the div when the message is sent
-			// only if the user is close to the bottom of the div
-			h.OnEvent("htmx:wsAfterMessage",
-				// language=JavaScript
-				js.EvalJs(`
-					const scrollPosition = self.scrollTop + self.clientHeight;
-    			const distanceFromBottom = self.scrollHeight - scrollPosition;
-    			const scrollThreshold = 1000; // Adjust this to define how close the user should be to the bottom
-					 if (distanceFromBottom <= scrollThreshold) {
-        			self.scrollTop = self.scrollHeight;
-    			}
-				`),
-			),
-		),
+		LogBody(),
 	)
 }

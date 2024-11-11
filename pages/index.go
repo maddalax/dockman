@@ -1,21 +1,29 @@
 package pages
 
 import (
-	"fmt"
-	"github.com/maddalax/htmgo/extensions/websocket/session"
 	"github.com/maddalax/htmgo/framework/h"
 	"paas/ui"
 )
 
-func IndexPage(ctx *h.RequestContext) *h.Page {
-	sessionId := session.GetSessionId(ctx)
-
-	return RootPage(
+func Index(ctx *h.RequestContext) *h.Page {
+	return SidebarPage(
+		ctx,
 		h.Div(
-			h.Attribute("ws-connect", fmt.Sprintf("/ws?sessionId=%s", sessionId)),
-			h.TriggerChildren(),
-			h.Class("flex flex-col gap-4 items-center pt-24 min-h-screen bg-neutral-100"),
-			ui.DockerBuildTest(ctx),
+			h.Class("flex flex-col gap-2"),
+			Title("Introduction"),
+			Text(`
+				htmgo is a lightweight pure go way to build interactive websites / web applications using go & htmx.
+				We give you the utilities to build html using pure go code in a reusable way (go functions are components) while also providing htmx functions to add interactivity to your app.
+			`),
+			h.P(
+				Link("The site you are reading now", "https://github.com/maddalax/htmgo/tree/master/htmgo-site"),
+				h.Text(" was written with htmgo!"),
+			),
+			NextStep(
+				"mt-4",
+				h.Div(),
+				NextBlock("Getting Started", ui.DocPath("/installation")),
+			),
 		),
 	)
 }
