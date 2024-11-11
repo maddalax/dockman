@@ -2,8 +2,52 @@ package kv
 
 import (
 	"encoding/json"
+	"github.com/mitchellh/mapstructure"
 	"github.com/nats-io/nats.go"
 )
+
+func decode(data any, result any) error {
+	config := &mapstructure.DecoderConfig{
+		TagName:          "json",
+		WeaklyTypedInput: true,
+		Result:           &result,
+	}
+
+	config.DecodeHook = mapstructure.ComposeDecodeHookFunc(
+		mapstructure.StringToTimeDurationHookFunc(),
+		mapstructure.StringToSliceHookFunc(","),
+		mapstructure.WeaklyTypedHook,
+		mapstructure.TextUnmarshallerHookFunc(),
+	)
+
+	decoder, err := mapstructure.NewDecoder(config)
+
+	if err != nil {
+		return err
+	}
+
+	err = decoder.Decode(data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func MustMapStringToStructure[T any](data string) *T {
+	n := new(T)
+	m := make(map[string]any)
+	err := json.Unmarshal([]byte(data), &m)
+	if err != nil {
+		return nil
+	}
+	err = decode(m, &n)
+	if err != nil {
+		return nil
+	}
+	return n
+}
 
 func AtomicPutMany(bucket nats.KeyValue, cb func(m map[string]any) error) error {
 	m := make(map[string]any)
@@ -49,6 +93,32 @@ func MustMapIntoMany[T any](client *Client, buckets <-chan string, keys ...strin
 	return n, nil
 }
 
+func MustMapAllInto[T any](bucket nats.KeyValue) (*T, error) {
+	n := new(T)
+	m := make(map[string]string)
+	k, err := bucket.ListKeys()
+
+	if err != nil {
+		return nil, err
+	}
+	for key := range k.Keys() {
+		value, err := bucket.Get(key)
+		if err != nil {
+			return nil, err
+		}
+		v := string(value.Value())
+		m[key] = v
+	}
+
+	err = decode(m, &n)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return n, nil
+}
+
 // MustMapInto fills in the struct with the values from the bucket, only if all the keys passed in exist in the bucket
 func MustMapInto[T any](bucket nats.KeyValue, keys ...string) (*T, error) {
 	n := new(T)
@@ -62,13 +132,7 @@ func MustMapInto[T any](bucket nats.KeyValue, keys ...string) (*T, error) {
 		m[key] = string(v)
 	}
 
-	serialized, err := json.Marshal(m)
-
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(serialized, n)
+	err := decode(m, &n)
 
 	if err != nil {
 		return nil, err

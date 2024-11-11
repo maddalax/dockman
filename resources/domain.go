@@ -1,6 +1,6 @@
 package resources
 
-type RunType int
+type RunType = int
 
 const (
 	Unknown RunType = iota
@@ -27,6 +27,7 @@ type Env struct {
 }
 
 type Resource struct {
+	Id          string  `json:"id"`
 	Name        string  `json:"name"`
 	Environment string  `json:"environment"`
 	RunType     RunType `json:"run_type"`
