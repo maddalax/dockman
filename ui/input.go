@@ -15,6 +15,7 @@ type InputProps struct {
 	Required       bool
 	ValidationPath string
 	Error          string
+	HelpText       *h.Element
 	Children       []h.Ren
 }
 
@@ -74,6 +75,13 @@ func Input(props InputProps) *h.Element {
 		h.Div(
 			h.Id(props.Id+"-error"),
 			h.Class("text-red-500"),
+		),
+		h.If(
+			props.HelpText != nil,
+			h.Div(
+				h.Class("text-sm text-gray-500"),
+				props.HelpText,
+			),
 		),
 	)
 

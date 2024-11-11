@@ -2,7 +2,6 @@ package pages
 
 import (
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/partials"
 	"paas/ui"
 	"strings"
 )
@@ -105,6 +104,7 @@ func Link(text string, href string, additionalClasses ...string) *h.Element {
 
 func SidebarPage(ctx *h.RequestContext, children ...h.Ren) *h.Page {
 	return RootPage(
+		ctx,
 		h.Div(
 			h.Class("flex h-full"),
 			h.Aside(
@@ -113,7 +113,7 @@ func SidebarPage(ctx *h.RequestContext, children ...h.Ren) *h.Page {
 			),
 			h.Div(
 				h.Class("flex flex-col flex-1 overflow-hidden"),
-				partials.NavBar(ctx, partials.NavBarProps{
+				NavBar(ctx, NavBarProps{
 					Expanded: false,
 				}),
 				h.Main(

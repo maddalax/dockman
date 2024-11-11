@@ -1,11 +1,18 @@
 package pages
 
 import (
+	"fmt"
+	"github.com/maddalax/htmgo/extensions/websocket/session"
 	"github.com/maddalax/htmgo/framework/h"
 	"paas/__htmgo/assets"
 )
 
-func RootPage(children ...h.Ren) *h.Page {
+func WsConnect(ctx *h.RequestContext) *h.AttributeR {
+	sessionId := session.GetSessionId(ctx)
+	return h.Attribute("ws-connect", fmt.Sprintf("/ws?sessionId=%s", sessionId))
+}
+
+func RootPage(ctx *h.RequestContext, children ...h.Ren) *h.Page {
 	title := "htmgo template"
 	description := "an example of the htmgo template"
 	author := "htmgo"
@@ -38,6 +45,7 @@ func RootPage(children ...h.Ren) *h.Page {
 				h.Script(assets.HtmgoJs),
 			),
 			h.Body(
+				WsConnect(ctx),
 				h.Div(
 					h.Class("flex flex-col gap-2 bg-white h-full"),
 					h.Fragment(children...),

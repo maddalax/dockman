@@ -10,11 +10,11 @@ import (
 )
 
 type CreateOptions struct {
-	Name        string  `json:"name"`
-	Environment string  `json:"environment"`
-	RunType     RunType `json:"run_type"`
-	BuildMeta   any     `json:"build_meta"`
-	Env         []Env   `json:"env"`
+	Name        string            `json:"name"`
+	Environment string            `json:"environment"`
+	RunType     RunType           `json:"run_type"`
+	BuildMeta   any               `json:"build_meta"`
+	Env         map[string]string `json:"env"`
 }
 
 func Create(locator *service.Locator, options CreateOptions) error {
@@ -46,8 +46,8 @@ func Create(locator *service.Locator, options CreateOptions) error {
 		m["run_type"] = options.RunType
 		m["build_meta"] = options.BuildMeta
 		m["name"] = options.Name
-		for i, env := range options.Env {
-			m[fmt.Sprintf("env/%d/key", i)] = env.Key
+		for k, v := range options.Env {
+			m[fmt.Sprintf("env/%s", k)] = v
 		}
 		return nil
 	})

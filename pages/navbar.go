@@ -1,4 +1,4 @@
-package partials
+package pages
 
 import "github.com/maddalax/htmgo/framework/h"
 
@@ -11,11 +11,7 @@ type NavItem struct {
 	Url  string
 }
 
-var navItems = []NavItem{
-	{Name: "Docs", Url: "/docs"},
-	{Name: "Examples", Url: "/examples"},
-	{Name: "Convert HTML", Url: "/html-to-go"},
-}
+var navItems []NavItem
 
 func NavBar(ctx *h.RequestContext, props NavBarProps) *h.Element {
 	desktopNav := h.Nav(

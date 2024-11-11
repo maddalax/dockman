@@ -3,13 +3,16 @@ package resources
 type RunType int
 
 const (
-	RunTypeDockerBuild RunType = iota
+	Unknown RunType = iota
+	RunTypeDockerBuild
 	RunTypeDockerRegistry
 )
 
 type DockerBuildMeta struct {
-	Dockerfile string   `json:"dockerfile"`
-	Tags       []string `json:"tags"`
+	RepositoryUrl     string   `json:"repository_url"`
+	Dockerfile        string   `json:"dockerfile"`
+	GithubAccessToken string   `json:"github_access_token"`
+	Tags              []string `json:"tags"`
 }
 
 type DockerRegistryMeta struct {

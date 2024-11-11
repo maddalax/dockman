@@ -1,8 +1,6 @@
 package jetstream
 
 import (
-	"fmt"
-	"github.com/maddalax/htmgo/extensions/websocket/session"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
@@ -11,10 +9,9 @@ import (
 )
 
 func KvDebugPage(ctx *h.RequestContext) *h.Page {
-	sessionId := session.GetSessionId(ctx)
 	return pages.RootPage(
+		ctx,
 		h.Div(
-			h.Attribute("ws-connect", fmt.Sprintf("/ws?sessionId=%s", sessionId)),
 			h.Class("flex flex-row min-h-screen"),
 			BucketSidebar(ctx),
 			h.Div(
