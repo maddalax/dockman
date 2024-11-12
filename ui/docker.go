@@ -7,10 +7,12 @@ import (
 	"paas/kv"
 	"paas/kv/subject"
 	"paas/resources"
+	"paas/urls"
 )
 
 func DockerBuildLogs(ctx *h.RequestContext, resource *resources.Resource, buildId string) *h.Element {
 	natsClient := kv.GetClientFromCtx(ctx)
+
 	ws.Once(ctx, func() {
 		natsClient.SubscribeAndReplayAll(subject.BuildLogForResource(resource.Id, buildId), func(msg *nats.Msg) {
 			data := string(msg.Data)
@@ -24,6 +26,15 @@ func DockerBuildLogs(ctx *h.RequestContext, resource *resources.Resource, buildI
 			h.Text("Deployment Log"),
 			h.Class("text-xl font-bold text-center"),
 		),
-		LogBody(),
+		h.Div(
+			PrimaryButton(ButtonProps{
+				Text: "Re-run Build",
+				Href: urls.ResourceStartDeploymentPath(resource.Id, buildId),
+			}),
+		),
+		h.Div(
+			h.Class("h-[500px]"),
+			LogBody(),
+		),
 	)
 }

@@ -14,9 +14,13 @@ func (c *Client) LogBuildMessage(resourceId string, buildId string, message stri
 	_, _ = c.js.Publish(subject.BuildLogForResource(resourceId, buildId), []byte(message))
 }
 
+func (c *Client) BuildLogStreamName(resourceId string, buildId string) string {
+	return fmt.Sprintf("BUILD_LOG_STREAM-%s-%s", resourceId, buildId)
+}
+
 func (c *Client) CreateBuildLogStream(resourceId string, buildId string) error {
 	_, err := c.js.AddStream(&nats.StreamConfig{
-		Name: fmt.Sprintf("BUILD_LOG_STREAM-%s-%s", resourceId, buildId),
+		Name: c.BuildLogStreamName(resourceId, buildId),
 		// TODO should this have max age, and max msgs?
 		Subjects:  []string{subject.BuildLogForResource(resourceId, buildId)},
 		Retention: nats.LimitsPolicy, // Retain messages until storage limit is reached

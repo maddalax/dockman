@@ -8,7 +8,7 @@ import (
 	"paas/urls"
 )
 
-func NewDeployment(ctx *h.RequestContext) *h.Page {
+func Log(ctx *h.RequestContext) *h.Page {
 	id := ctx.QueryParam("id")
 	buildId := ctx.QueryParam("buildId")
 
@@ -41,7 +41,9 @@ func NewDeployment(ctx *h.RequestContext) *h.Page {
 					},
 				},
 			}),
-			ui.DockerBuildLogs(ctx, resource, buildId),
+			h.Div(
+				ui.DockerBuildLogs(ctx, resource, buildId),
+			),
 		),
 	)
 }

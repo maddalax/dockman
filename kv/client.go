@@ -24,6 +24,10 @@ func GetClientFromCtx(ctx *h.RequestContext) *Client {
 	return client
 }
 
+func (c *Client) PurgeStream(stream string) error {
+	return c.js.PurgeStream(stream)
+}
+
 func (c *Client) DeleteStream(stream string) error {
 	return c.js.DeleteStream(stream)
 }
@@ -36,9 +40,10 @@ func (c *Client) DeleteBucket(bucket string) error {
 	return c.js.DeleteKeyValue(bucket)
 }
 
-// SubscribeAndReplayAll subscribes to a subject and replays all messages
+// SubscribeAndReplayAll subscribes to a stream and replays all messages
 func (c *Client) SubscribeAndReplayAll(subject subject.Subject, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
 	sub, err := c.js.Subscribe(subject, handler, nats.DeliverAll())
+
 	if err != nil {
 		return nil, err
 	}

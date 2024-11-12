@@ -1,43 +1,13 @@
 package deployment
 
 import (
-	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/builder"
 	"paas/pages"
 	"paas/resources"
 	"paas/ui"
 	"paas/urls"
 	"time"
 )
-
-func StartDeployment(ctx *h.RequestContext) *h.Partial {
-	resourceId := ctx.QueryParam("id")
-	id := ctx.QueryParam("id")
-	buildId := uuid.NewString()
-
-	resource, err := resources.Get(ctx.ServiceLocator(), id)
-
-	// todo better error handling
-	if err != nil {
-		return h.NewPartial(
-			h.Pf("Error: %s", err.Error()),
-		)
-	}
-
-	// waiting 2 seconds so they can see the build log starting
-	err = builder.StartBuildAsync(ctx, resource, buildId, time.Second*2)
-
-	if err != nil {
-		return h.NewPartial(
-			h.Pf("Error: %s", err.Error()),
-		)
-	}
-
-	return h.RedirectPartial(
-		urls.ResourceDeploymentLogUrl(resourceId, buildId),
-	)
-}
 
 func Deployment(ctx *h.RequestContext) *h.Page {
 	id := ctx.QueryParam("id")
@@ -81,10 +51,7 @@ func Deployment(ctx *h.RequestContext) *h.Page {
 				h.Class("flex gap-2 items-center"),
 				ui.PrimaryButton(ui.ButtonProps{
 					Text: "Start Build",
-					Post: h.GetPartialPathWithQs(
-						StartDeployment,
-						h.NewQs("id", resource.Id),
-					),
+					Href: urls.ResourceStartDeploymentPath(resource.Id, ""),
 				}),
 			),
 			DeploymentList(ctx, deployments),
@@ -111,6 +78,10 @@ func DeploymentList(ctx *h.RequestContext, deployments []resources.Deployment) *
 							h.Pf(
 								"Created At: %s",
 								deployment.CreatedAt.Format(time.Stamp),
+							),
+							h.Pf(
+								"Status: %s",
+								deployment.Status,
 							),
 						),
 					),

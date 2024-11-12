@@ -2,89 +2,115 @@ package builder
 
 import (
 	"errors"
-	"github.com/docker/docker/api/types"
-	"github.com/maddalax/htmgo/framework/h"
-	"paas/docker"
+	"github.com/maddalax/htmgo/framework/service"
+	"log/slog"
 	"paas/kv"
 	"paas/kv/subject"
 	"paas/resources"
 	"time"
 )
 
-func StartBuildAsync(ctx *h.RequestContext, resource *resources.Resource, buildId string, wait time.Duration) error {
-	// just ensure we create the stream, and then start the build in the background
-	natsClient := kv.GetClientFromCtx(ctx)
-
-	err := natsClient.CreateBuildLogStream(resource.Id, buildId)
-
-	if err != nil {
-		return err
-	}
-
-	natsClient.LogBuildMessage(resource.Id, buildId, "Starting build...")
-
-	go func() {
-		time.Sleep(wait)
-		err := BuildResource(ctx, resource, buildId)
-		if err != nil {
-			natsClient.LogBuildError(resource.Id, buildId, err)
-		}
-	}()
-
-	return nil
+type ResourceBuilder struct {
+	Resource           *resources.Resource
+	BuildId            string
+	ServiceLocator     *service.Locator
+	NatsClient         *kv.Client
+	OutputStream       *kv.NatsWriter
+	LogBuildMessage    func(message string)
+	LogBuildError      func(err error)
+	UpdateDeployStatus func(status resources.DeploymentStatus)
 }
 
-func BuildResource(ctx *h.RequestContext, resource *resources.Resource, buildId string) error {
-	natsClient := kv.GetClientFromCtx(ctx)
+func NewResourceBuilder(serviceLocator *service.Locator, resource *resources.Resource, buildId string) *ResourceBuilder {
+	natsClient := service.Get[kv.Client](serviceLocator)
+	return &ResourceBuilder{
+		Resource:       resource,
+		BuildId:        buildId,
+		NatsClient:     natsClient,
+		ServiceLocator: serviceLocator,
+		LogBuildMessage: func(message string) {
+			natsClient.LogBuildMessage(resource.Id, buildId, message)
+		},
+		LogBuildError: func(err error) {
+			natsClient.LogBuildError(resource.Id, buildId, err)
+		},
+		UpdateDeployStatus: func(status resources.DeploymentStatus) {
+			err := resources.UpdateDeploymentStatus(serviceLocator, resources.UpdateDeploymentStatusRequest{
+				ResourceId: resource.Id,
+				BuildId:    buildId,
+				Status:     status,
+			})
+			if err != nil {
+				slog.Error("failed to update deployment status",
+					slog.String("resource", resource.Id),
+					slog.String("build", buildId),
+					slog.String("status", string(status)),
+					slog.String("error", err.Error()))
+			}
+		},
+	}
+}
 
-	err := natsClient.CreateBuildLogStream(resource.Id, buildId)
+func (b *ResourceBuilder) ClearLogs() {
+	err := b.NatsClient.PurgeStream(
+		b.NatsClient.BuildLogStreamName(b.Resource.Id, b.BuildId),
+	)
+	if err != nil {
+		slog.Error("failed to clear build logs",
+			slog.String("resource", b.Resource.Id),
+			slog.String("build", b.BuildId),
+			slog.String("error", err.Error()))
+	}
+}
+
+func (b *ResourceBuilder) BuildError(err error) error {
+	b.LogBuildError(err)
+	b.UpdateDeployStatus(resources.DeploymentStatusFailed)
+	return err
+}
+
+func (b *ResourceBuilder) Build() error {
+	err := b.NatsClient.CreateBuildLogStream(b.Resource.Id, b.BuildId)
 
 	if err != nil {
 		return err
 	}
 
-	outputStream := natsClient.NewNatsWriter(subject.BuildLogForResource(resource.Id, buildId))
+	b.OutputStream = b.NatsClient.NewNatsWriter(subject.BuildLogForResource(b.Resource.Id, b.BuildId))
 
-	err = resources.CreateDeployment(ctx.ServiceLocator(), resources.CreateDeploymentRequest{
-		ResourceId: resource.Id,
-		BuildId:    buildId,
+	err = resources.CreateDeployment(b.ServiceLocator, resources.CreateDeploymentRequest{
+		ResourceId: b.Resource.Id,
+		BuildId:    b.BuildId,
 	})
 
 	if err != nil {
-		return err
+		return b.BuildError(err)
 	}
 
-	outputStream.Write([]byte("Sydne is a fart\n"))
+	b.UpdateDeployStatus(resources.DeploymentStatusPending)
 
-	natsClient.LogBuildMessage(resource.Id, buildId, "Connecting to Docker...")
-
-	client, err := docker.Connect()
-
-	if err != nil {
-		return err
-	}
-
-	switch bm := resource.BuildMeta.(type) {
+	switch bm := b.Resource.BuildMeta.(type) {
 	case *resources.DockerBuildMeta:
-		return buildDocker(client, bm, outputStream)
+		return b.runDockerImageBuilder(bm)
 	default:
 		return errors.New("unknown build type")
 	}
 }
 
-func buildDocker(client *docker.Client, buildMeta *resources.DockerBuildMeta, outputStream *kv.NatsWriter) error {
-	result, err := resources.Clone(resources.CloneRequest{
-		Meta:     buildMeta,
-		Progress: outputStream,
-	})
+func (b *ResourceBuilder) StartBuildAsync(wait time.Duration) error {
+	err := b.NatsClient.CreateBuildLogStream(b.Resource.Id, b.BuildId)
+
 	if err != nil {
 		return err
 	}
-	err = client.Build(outputStream, result.Directory, types.ImageBuildOptions{
-		Dockerfile: buildMeta.Dockerfile,
-	})
-	if err != nil {
-		return err
-	}
+
+	b.LogBuildMessage("Starting build...")
+
+	go func() {
+		time.Sleep(wait)
+		// b.Build does its own error handling
+		_ = b.Build()
+	}()
+
 	return nil
 }

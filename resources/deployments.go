@@ -6,15 +6,54 @@ import (
 	"time"
 )
 
+type DeploymentStatus string
+
+const (
+	DeploymentStatusPending   DeploymentStatus = "pending"
+	DeploymentStatusRunning   DeploymentStatus = "running"
+	DeploymentStatusSucceeded DeploymentStatus = "succeeded"
+	DeploymentStatusFailed    DeploymentStatus = "failed"
+)
+
 type CreateDeploymentRequest struct {
 	ResourceId string
 	BuildId    string
+}
+
+type UpdateDeploymentStatusRequest struct {
+	ResourceId string
+	BuildId    string
+	Status     DeploymentStatus
 }
 
 type Deployment struct {
 	ResourceId string
 	CreatedAt  time.Time
 	BuildId    string
+	Status     DeploymentStatus
+}
+
+func UpdateDeploymentStatus(locator *service.Locator, request UpdateDeploymentStatusRequest) error {
+	deployment, err := GetDeployment(locator, request.ResourceId, request.BuildId)
+	if err != nil {
+		return err
+	}
+	deployment.Status = request.Status
+	return SetDeployment(locator, *deployment)
+}
+
+func SetDeployment(locator *service.Locator, deployment Deployment) error {
+	client := service.Get[kv.Client](locator)
+
+	bucket, _ := client.GetResourceDeployBucket(deployment.ResourceId)
+
+	_, err := bucket.Put(deployment.BuildId, kv.MustSerialize(deployment))
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func GetDeployments(locator *service.Locator, resourceId string) ([]Deployment, error) {
@@ -49,20 +88,30 @@ func GetDeployments(locator *service.Locator, resourceId string) ([]Deployment, 
 	return mapped, nil
 }
 
-func CreateDeployment(locator *service.Locator, request CreateDeploymentRequest) error {
+func GetDeployment(locator *service.Locator, resourceId string, buildId string) (*Deployment, error) {
 	client := service.Get[kv.Client](locator)
+	bucket, err := client.GetResourceDeployBucket(resourceId)
 
-	bucket, _ := client.GetResourceDeployBucket(request.ResourceId)
+	if err != nil {
+		return nil, err
+	}
 
-	_, err := bucket.Put(request.BuildId, kv.MustSerialize(Deployment{
+	build, err := bucket.Get(buildId)
+	if err != nil {
+		return nil, err
+	}
+
+	json := string(build.Value())
+	d := kv.MustMapStringToStructure[Deployment](json)
+
+	return d, nil
+}
+
+func CreateDeployment(locator *service.Locator, request CreateDeploymentRequest) error {
+	return SetDeployment(locator, Deployment{
 		ResourceId: request.ResourceId,
 		CreatedAt:  time.Now(),
 		BuildId:    request.BuildId,
-	}))
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+		Status:     DeploymentStatusPending,
+	})
 }
