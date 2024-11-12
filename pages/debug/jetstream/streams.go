@@ -1,13 +1,14 @@
 package jetstream
 
 import (
-	"fmt"
+	"context"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
 	"paas/kv"
 	"paas/pages"
 	"paas/ui"
+	"paas/wsutil"
 	"time"
 )
 
@@ -85,11 +86,9 @@ func StreamDetails(ctx *h.RequestContext, stream *nats.StreamInfo) *h.Element {
 
 	client := kv.GetClientFromCtx(ctx)
 
-	ws.Once(ctx, func() {
-		fmt.Printf("Subscribing to %s\n", stream.Config.Name)
-
+	wsutil.OnceWithAliveContext(ctx, func(context context.Context) {
 		for _, subject := range stream.Config.Subjects {
-			client.SubscribeStreamUntilTimeout(subject, time.Second*3, func(msg *nats.Msg) {
+			client.SubscribeStreamUntilTimeout(context, subject, time.Second*3, func(msg *nats.Msg) {
 				data := string(msg.Data)
 				ws.PushElementCtx(ctx, ui.LogLine(data))
 			})

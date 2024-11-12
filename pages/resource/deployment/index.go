@@ -3,6 +3,7 @@ package deployment
 import (
 	"github.com/maddalax/htmgo/framework/h"
 	"paas/pages"
+	resource2 "paas/pages/resource"
 	"paas/resources"
 	"paas/ui"
 	"paas/urls"
@@ -31,7 +32,7 @@ func Deployment(ctx *h.RequestContext) *h.Page {
 			h.Class("flex flex-col gap-2"),
 			pages.Title("Resource"),
 			h.Pf("Resource: %s", resource.Name),
-			TopTabs(ctx, resource),
+			resource2.TopTabs(ctx, resource),
 			h.Div(
 				h.Class("flex gap-2 items-center"),
 				ui.PrimaryButton(ui.ButtonProps{

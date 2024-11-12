@@ -5,11 +5,12 @@ go 1.23.0
 require (
 	github.com/caddyserver/caddy/v2 v2.8.4
 	github.com/docker/docker v27.3.1+incompatible
+	github.com/docker/go-connections v0.5.0
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/google/uuid v1.6.0
-	github.com/maddalax/htmgo/extensions/websocket v0.0.0-20241109180553-34e816ff7c8a
-	github.com/maddalax/htmgo/framework v1.0.3-0.20241109183230-b234ead96499
+	github.com/maddalax/htmgo/extensions/websocket v0.0.0-20241112221242-3a3039609fb7
+	github.com/maddalax/htmgo/framework v1.0.3-0.20241112190420-423fd3f42985
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/nats-io/nats-server/v2 v2.10.22
 	github.com/nats-io/nats.go v1.37.0
@@ -43,7 +44,6 @@ require (
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect

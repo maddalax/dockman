@@ -1,16 +1,17 @@
 package deployment
 
 import (
+	"context"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
-	"paas/docker"
-	"paas/kv"
-	"paas/kv/subject"
+	"paas/logger"
 	"paas/pages"
+	resource2 "paas/pages/resource"
 	"paas/resources"
 	"paas/ui"
+	"paas/wsutil"
 )
 
 func RunLog(ctx *h.RequestContext) *h.Page {
@@ -22,31 +23,13 @@ func RunLog(ctx *h.RequestContext) *h.Page {
 		return h.EmptyPage()
 	}
 
-	natsClient := kv.GetClientFromCtx(ctx)
-
-	ws.Once(ctx, func() {
-		natsClient.SubscribeSubject(subject.RunLogsForResource(resource.Id), func(msg *nats.Msg) {
+	wsutil.OnceWithAliveContext(ctx, func(context context.Context) {
+		logger.StreamLogs(ctx.ServiceLocator(), context, resource, func(msg *nats.Msg) {
 			data := string(msg.Data)
 			data = "RUN: " + data
-			ws.PushElementCtx(ctx, ui.LogLine(data))
+			success := ws.PushElementCtx(ctx, ui.LogLine(data))
+			fmt.Printf("Pushed log line: %s, success: %v\n", data, success)
 		})
-		writer := natsClient.NewEphemeralNatsWriter(
-			subject.RunLogsForResource(resource.Id),
-		)
-		client, err := docker.Connect()
-		if err != nil {
-			ws.PushElementCtx(ctx, ui.LogLine("Failed connecting to docker"))
-		} else {
-			containerId := fmt.Sprintf("%s-%s-container", resource.Name, resource.Id)
-			if err == nil {
-				err := client.StreamLogs(containerId, docker.StreamLogsOptions{
-					Stdout: writer,
-				})
-				if err != nil {
-					ws.PushElementCtx(ctx, ui.LogLine("Failed to stream logs"))
-				}
-			}
-		}
 	})
 
 	return pages.SidebarPage(
@@ -55,7 +38,7 @@ func RunLog(ctx *h.RequestContext) *h.Page {
 			h.Class("flex flex-col gap-2"),
 			pages.Title("Run Logs"),
 			h.Pf("Resource: %s", resource.Name),
-			TopTabs(ctx, resource),
+			resource2.TopTabs(ctx, resource),
 			h.Div(
 				h.Class("h-[500px]"),
 				ui.LogBody(),

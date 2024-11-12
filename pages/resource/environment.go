@@ -4,8 +4,6 @@ import (
 	"github.com/maddalax/htmgo/framework/h"
 	"paas/pages"
 	"paas/resources"
-	"paas/ui"
-	"paas/urls"
 )
 
 func Environment(ctx *h.RequestContext) *h.Page {
@@ -24,22 +22,7 @@ func Environment(ctx *h.RequestContext) *h.Page {
 			h.Class("flex flex-col gap-2"),
 			pages.Title("Resource"),
 			h.Pf("Resource: %s", resource.Name),
-			ui.LinkTabs(ctx, ui.LinkTabsProps{
-				Links: []ui.Link{
-					{
-						Text: "Overview",
-						Href: urls.ResourceUrl(resource.Id),
-					},
-					{
-						Text: "Deployment",
-						Href: urls.ResourceDeploymentUrl(resource.Id),
-					},
-					{
-						Text: "Environment",
-						Href: urls.ResourceEnvironmentUrl(resource.Id),
-					},
-				},
-			}),
+			TopTabs(ctx, resource),
 		),
 	)
 }

@@ -3,6 +3,7 @@ package deployment
 import (
 	"github.com/maddalax/htmgo/framework/h"
 	"paas/pages"
+	resource2 "paas/pages/resource"
 	"paas/resources"
 	"paas/ui"
 )
@@ -24,7 +25,7 @@ func BuidLog(ctx *h.RequestContext) *h.Page {
 			h.Class("flex flex-col gap-2"),
 			pages.Title("Resource"),
 			h.Pf("Resource: %s", resource.Name),
-			TopTabs(ctx, resource),
+			resource2.TopTabs(ctx, resource),
 			h.Div(
 				ui.DockerBuildLogs(ctx, resource, buildId),
 			),

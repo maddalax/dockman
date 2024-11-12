@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
@@ -9,23 +10,18 @@ import (
 	"paas/kv/subject"
 	"paas/resources"
 	"paas/urls"
+	"paas/wsutil"
 )
 
 func DockerBuildLogs(ctx *h.RequestContext, resource *resources.Resource, buildId string) *h.Element {
 	natsClient := kv.GetClientFromCtx(ctx)
 
-	ws.Once(ctx, func() {
-		natsClient.SubscribeStreamAndReplayAll(subject.BuildLogForResource(resource.Id, buildId), func(msg *nats.Msg) {
+	wsutil.OnceWithAliveContext(ctx, func(context context.Context) {
+		sb := subject.BuildLogForResource(resource.Id, buildId)
+		natsClient.SubscribeStreamAndReplayAll(context, sb, func(msg *nats.Msg) {
 			data := string(msg.Data)
 			ws.PushElementCtx(ctx, LogLine(data))
 		})
-
-		natsClient.SubscribeSubject(subject.RunLogsForResource(resource.Id), func(msg *nats.Msg) {
-			data := string(msg.Data)
-			data = "RUN: " + data
-			ws.PushElementCtx(ctx, LogLine(data))
-		})
-
 	})
 
 	return h.Div(

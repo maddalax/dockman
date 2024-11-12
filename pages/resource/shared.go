@@ -1,4 +1,4 @@
-package deployment
+package resource
 
 import (
 	"github.com/maddalax/htmgo/framework/h"

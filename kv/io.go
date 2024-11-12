@@ -20,14 +20,12 @@ func (c *Client) NewNatsWriter(subject subject.Subject) *NatsWriter {
 
 // Write implements the io.Writer interface
 func (nw *NatsWriter) Write(p []byte) (n int, err error) {
-	// Publish the data to the NATS JetStream subject
 	_, err = nw.js.Publish(nw.subject, p)
 
 	if err != nil {
 		return 0, err
 	}
 
-	// Return the length of the written data
 	return len(p), nil
 }
 
@@ -43,6 +41,7 @@ func (c *Client) NewEphemeralNatsWriter(subject subject.Subject) *EphemeralNatsW
 	}
 }
 
+// Write implements the io.Writer interface
 func (nw *EphemeralNatsWriter) Write(p []byte) (n int, err error) {
 	err = nw.c.Publish(nw.subject, p)
 
@@ -50,5 +49,12 @@ func (nw *EphemeralNatsWriter) Write(p []byte) (n int, err error) {
 		return 0, err
 	}
 
+	return len(p), nil
+}
+
+type EmptyWriter struct {
+}
+
+func (ew *EmptyWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }

@@ -1,11 +1,13 @@
 package kv
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
+	"log/slog"
 	"paas/kv/subject"
 	"time"
 )
@@ -20,7 +22,11 @@ type Client struct {
 }
 
 func GetClientFromCtx(ctx *h.RequestContext) *Client {
-	client := service.Get[Client](ctx.ServiceLocator())
+	return GetClientFromLocator(ctx.ServiceLocator())
+}
+
+func GetClientFromLocator(locator *service.Locator) *Client {
+	client := service.Get[Client](locator)
 	return client
 }
 
@@ -41,17 +47,22 @@ func (c *Client) DeleteBucket(bucket string) error {
 }
 
 // SubscribeStreamAndReplayAll subscribes to a stream and replays all messages
-func (c *Client) SubscribeStreamAndReplayAll(subject subject.Subject, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+func (c *Client) SubscribeStreamAndReplayAll(context context.Context, subject subject.Subject, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
 	sub, err := c.js.Subscribe(subject, handler, nats.DeliverAll())
 
 	if err != nil {
 		return nil, err
 	}
+
+	DisposeOnCancel(context, func() {
+		_ = sub.Unsubscribe()
+	})
+
 	return sub, nil
 }
 
 // SubscribeStreamUntilTimeout subscribes to a subject and replays all messages, closing the subscription after no messages are received for the specified timeout
-func (c *Client) SubscribeStreamUntilTimeout(subject subject.Subject, timeout time.Duration, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+func (c *Client) SubscribeStreamUntilTimeout(context context.Context, subject subject.Subject, timeout time.Duration, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
 	lastMessageTime := time.Now()
 	var sub *nats.Subscription
 
@@ -64,33 +75,51 @@ func (c *Client) SubscribeStreamUntilTimeout(subject subject.Subject, timeout ti
 	go func() {
 		for {
 			time.Sleep(time.Second)
-			if time.Since(lastMessageTime) > timeout && sub != nil {
-				_ = sub.Unsubscribe()
-				return
+			select {
+			case <-context.Done():
+				if sub != nil {
+					slog.Debug("Unsubscribing from stream", slog.String("subject", subject))
+					_ = sub.Unsubscribe()
+					return
+				}
+			default:
+				if time.Since(lastMessageTime) > timeout && sub != nil {
+					slog.Debug("Unsubscribing from stream", slog.String("subject", subject))
+					_ = sub.Unsubscribe()
+					return
+				}
 			}
 		}
 	}()
 
+	slog.Debug("Subscribing to stream", slog.String("subject", subject))
 	sub, err := c.js.Subscribe(subject, handle, nats.DeliverAll())
 	if err != nil {
 		return nil, err
 	}
+
 	return sub, nil
 }
 
-func (c *Client) SubscribeSubject(subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+func (c *Client) SubscribeSubject(context context.Context, subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
 	sub, err := c.nc.Subscribe(subject, handler)
 	if err != nil {
 		return nil, err
 	}
+	DisposeOnCancel(context, func() {
+		_ = sub.Unsubscribe()
+	})
 	return sub, nil
 }
 
-func (c *Client) SubscribeStream(subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+func (c *Client) SubscribeStream(context context.Context, subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
 	sub, err := c.js.Subscribe(subject, handler, nats.StartTime(time.Now()))
 	if err != nil {
 		return nil, err
 	}
+	DisposeOnCancel(context, func() {
+		_ = sub.Unsubscribe()
+	})
 	return sub, nil
 }
 
