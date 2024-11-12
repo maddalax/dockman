@@ -80,24 +80,22 @@ func (v GithubRepositoryValidator) Validate() error {
 	}
 
 	if v.Dockerfile != "" {
-		tempDir, err := os.MkdirTemp("", "repo-clone-*")
+		clone, err := Clone(CloneRequest{
+			Meta: &DockerBuildMeta{
+				RepositoryUrl:     v.RepositoryUrl,
+				Dockerfile:        v.Dockerfile,
+				GithubAccessToken: v.AccessToken,
+			},
+			Progress: os.Stdout,
+		})
 
 		if err != nil {
 			return err
 		}
 
-		os.Chmod(tempDir, 0700)
-
-		_, err = git.PlainClone(tempDir, false, &git.CloneOptions{
-			URL:      v.RepositoryUrl,
-			Auth:     opts.Auth,
-			Progress: os.Stdout,
-			Depth:    1,
-		})
-
 		validator := ValidDockerFileValidator{
 			Dockerfile:    v.Dockerfile,
-			RepositoryDir: tempDir,
+			RepositoryDir: clone.Directory,
 		}
 		return validator.Validate()
 	}

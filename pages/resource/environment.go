@@ -8,7 +8,7 @@ import (
 	"paas/urls"
 )
 
-func Index(ctx *h.RequestContext) *h.Page {
+func Environment(ctx *h.RequestContext) *h.Page {
 	id := ctx.QueryParam("id")
 
 	resource, err := resources.Get(ctx.ServiceLocator(), id)

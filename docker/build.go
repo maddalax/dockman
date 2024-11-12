@@ -58,8 +58,11 @@ func (cw *CustomWriter) Write(p []byte) (n int, err error) {
 func (c *Client) Build(out io.Writer, path string, opts types.ImageBuildOptions) error {
 	ctx := context.Background()
 	abs, err := filepath.Abs(path)
+	projectDir := filepath.Dir(filepath.Join(abs, opts.Dockerfile))
 
-	buildContext, _ := archive.TarWithOptions(abs, &archive.TarOptions{})
+	opts.Dockerfile = filepath.Base(opts.Dockerfile)
+
+	buildContext, _ := archive.TarWithOptions(projectDir, &archive.TarOptions{})
 
 	response, err := c.cli.ImageBuild(ctx, buildContext, opts)
 	if err != nil {

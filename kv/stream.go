@@ -1,14 +1,24 @@
 package kv
 
 import (
+	"fmt"
 	"github.com/nats-io/nats.go"
 	"paas/kv/subject"
 )
 
-func (c *Client) CreateBuildLogStream() error {
+func (c *Client) LogBuildError(resourceId string, buildId string, error error) {
+	_, _ = c.js.Publish(subject.BuildLogForResource(resourceId, buildId), []byte(error.Error()))
+}
+
+func (c *Client) LogBuildMessage(resourceId string, buildId string, message string) {
+	_, _ = c.js.Publish(subject.BuildLogForResource(resourceId, buildId), []byte(message))
+}
+
+func (c *Client) CreateBuildLogStream(resourceId string, buildId string) error {
 	_, err := c.js.AddStream(&nats.StreamConfig{
-		Name:      "BUILD_LOG_STREAM",
-		Subjects:  []string{string(subject.BuildLog)},
+		Name: fmt.Sprintf("BUILD_LOG_STREAM-%s-%s", resourceId, buildId),
+		// TODO should this have max age, and max msgs?
+		Subjects:  []string{subject.BuildLogForResource(resourceId, buildId)},
 		Retention: nats.LimitsPolicy, // Retain messages until storage limit is reached
 		MaxAge:    0,                 // Messages never expire based on age
 		MaxMsgs:   -1,                // No limit on the number of messages

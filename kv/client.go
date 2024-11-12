@@ -38,7 +38,7 @@ func (c *Client) DeleteBucket(bucket string) error {
 
 // SubscribeAndReplayAll subscribes to a subject and replays all messages
 func (c *Client) SubscribeAndReplayAll(subject subject.Subject, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
-	sub, err := c.js.Subscribe(string(subject), handler, nats.DeliverAll())
+	sub, err := c.js.Subscribe(subject, handler, nats.DeliverAll())
 	if err != nil {
 		return nil, err
 	}

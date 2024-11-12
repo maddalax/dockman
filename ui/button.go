@@ -12,6 +12,8 @@ type ButtonProps struct {
 	Type     string
 	Trigger  string
 	Get      string
+	Post     string
+	Href     string
 	Class    string
 	Children []h.Ren
 }
@@ -36,10 +38,16 @@ func Button(props ButtonProps) *h.Element {
 
 	text := h.Text(props.Text)
 
-	button := h.Button(
+	tag := h.Ternary(props.Href != "", "a", "button")
+
+	button := h.Tag(tag,
 		h.If(
 			props.Id != "",
 			h.Id(props.Id),
+		),
+		h.If(
+			props.Href != "",
+			h.Href(props.Href),
 		),
 		h.If(
 			props.Children != nil,
@@ -49,6 +57,10 @@ func Button(props ButtonProps) *h.Element {
 		h.If(
 			props.Get != "",
 			h.Get(props.Get),
+		),
+		h.If(
+			props.Post != "",
+			h.Post(props.Post),
 		),
 		h.If(
 			props.Target != "",

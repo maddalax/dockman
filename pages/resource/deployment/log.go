@@ -1,4 +1,4 @@
-package resource
+package deployment
 
 import (
 	"github.com/maddalax/htmgo/framework/h"
@@ -8,8 +8,9 @@ import (
 	"paas/urls"
 )
 
-func Index(ctx *h.RequestContext) *h.Page {
+func NewDeployment(ctx *h.RequestContext) *h.Page {
 	id := ctx.QueryParam("id")
+	buildId := ctx.QueryParam("buildId")
 
 	resource, err := resources.Get(ctx.ServiceLocator(), id)
 
@@ -40,6 +41,7 @@ func Index(ctx *h.RequestContext) *h.Page {
 					},
 				},
 			}),
+			ui.DockerBuildLogs(ctx, resource, buildId),
 		),
 	)
 }

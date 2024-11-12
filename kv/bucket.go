@@ -6,7 +6,7 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-func decode(data any, result any) error {
+func Deserialize(data any, result any) error {
 	config := &mapstructure.DecoderConfig{
 		TagName:          "json",
 		WeaklyTypedInput: true,
@@ -42,7 +42,7 @@ func MustMapStringToStructure[T any](data string) *T {
 	if err != nil {
 		return nil
 	}
-	err = decode(m, &n)
+	err = Deserialize(m, &n)
 	if err != nil {
 		return nil
 	}
@@ -110,7 +110,7 @@ func MustMapAllInto[T any](bucket nats.KeyValue) (*T, error) {
 		m[key] = v
 	}
 
-	err = decode(m, &n)
+	err = Deserialize(m, &n)
 
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func MustMapInto[T any](bucket nats.KeyValue, keys ...string) (*T, error) {
 		m[key] = string(v)
 	}
 
-	err := decode(m, &n)
+	err := Deserialize(m, &n)
 
 	if err != nil {
 		return nil, err
