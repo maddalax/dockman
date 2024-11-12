@@ -92,6 +92,5 @@ func (c *Client) Build(out io.Writer, path string, opts types.ImageBuildOptions,
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

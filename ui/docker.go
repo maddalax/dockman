@@ -15,10 +15,17 @@ func DockerBuildLogs(ctx *h.RequestContext, resource *resources.Resource, buildI
 	natsClient := kv.GetClientFromCtx(ctx)
 
 	ws.Once(ctx, func() {
-		natsClient.SubscribeAndReplayAll(subject.BuildLogForResource(resource.Id, buildId), func(msg *nats.Msg) {
+		natsClient.SubscribeStreamAndReplayAll(subject.BuildLogForResource(resource.Id, buildId), func(msg *nats.Msg) {
 			data := string(msg.Data)
 			ws.PushElementCtx(ctx, LogLine(data))
 		})
+
+		natsClient.SubscribeSubject(subject.RunLogsForResource(resource.Id), func(msg *nats.Msg) {
+			data := string(msg.Data)
+			data = "RUN: " + data
+			ws.PushElementCtx(ctx, LogLine(data))
+		})
+
 	})
 
 	return h.Div(

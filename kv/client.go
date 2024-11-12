@@ -40,8 +40,8 @@ func (c *Client) DeleteBucket(bucket string) error {
 	return c.js.DeleteKeyValue(bucket)
 }
 
-// SubscribeAndReplayAll subscribes to a stream and replays all messages
-func (c *Client) SubscribeAndReplayAll(subject subject.Subject, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+// SubscribeStreamAndReplayAll subscribes to a stream and replays all messages
+func (c *Client) SubscribeStreamAndReplayAll(subject subject.Subject, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
 	sub, err := c.js.Subscribe(subject, handler, nats.DeliverAll())
 
 	if err != nil {
@@ -50,8 +50,8 @@ func (c *Client) SubscribeAndReplayAll(subject subject.Subject, handler func(msg
 	return sub, nil
 }
 
-// SubscribeUntilTimeout subscribes to a subject and replays all messages, closing the subscription after no messages are received for the specified timeout
-func (c *Client) SubscribeUntilTimeout(subject subject.Subject, timeout time.Duration, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+// SubscribeStreamUntilTimeout subscribes to a subject and replays all messages, closing the subscription after no messages are received for the specified timeout
+func (c *Client) SubscribeStreamUntilTimeout(subject subject.Subject, timeout time.Duration, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
 	lastMessageTime := time.Now()
 	var sub *nats.Subscription
 
@@ -71,14 +71,22 @@ func (c *Client) SubscribeUntilTimeout(subject subject.Subject, timeout time.Dur
 		}
 	}()
 
-	sub, err := c.js.Subscribe(string(subject), handle, nats.DeliverAll())
+	sub, err := c.js.Subscribe(subject, handle, nats.DeliverAll())
 	if err != nil {
 		return nil, err
 	}
 	return sub, nil
 }
 
-func (c *Client) Subscribe(subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+func (c *Client) SubscribeSubject(subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+	sub, err := c.nc.Subscribe(subject, handler)
+	if err != nil {
+		return nil, err
+	}
+	return sub, nil
+}
+
+func (c *Client) SubscribeStream(subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
 	sub, err := c.js.Subscribe(subject, handler, nats.StartTime(time.Now()))
 	if err != nil {
 		return nil, err

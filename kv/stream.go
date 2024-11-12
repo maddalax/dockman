@@ -14,6 +14,10 @@ func (c *Client) LogBuildMessage(resourceId string, buildId string, message stri
 	_, _ = c.js.Publish(subject.BuildLogForResource(resourceId, buildId), []byte(message))
 }
 
+func (c *Client) LogRunMessage(resourceId string, message string) {
+	_, _ = c.js.Publish(subject.RunLogsForResource(resourceId), []byte(message))
+}
+
 func (c *Client) BuildLogStreamName(resourceId string, buildId string) string {
 	return fmt.Sprintf("BUILD_LOG_STREAM-%s-%s", resourceId, buildId)
 }

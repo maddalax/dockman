@@ -12,8 +12,6 @@ type Client struct {
 func Connect() (*Client, error) {
 	env := client.FromEnv
 	cli, err := client.NewClientWithOpts(env,
-		// TODO
-		client.WithHost("unix:///Users/maddox/.docker/run/docker.sock"),
 		client.WithAPIVersionNegotiation(),
 	)
 	if err != nil {

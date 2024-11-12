@@ -27,7 +27,7 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *resources.DockerBuild
 
 	result, err := resources.Clone(resources.CloneRequest{
 		Meta:     buildMeta,
-		Progress: b.OutputStream,
+		Progress: b.BuildOutputStream,
 	})
 
 	if err != nil {
@@ -50,7 +50,7 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *resources.DockerBuild
 		}
 	}()
 
-	err = client.Build(b.OutputStream, result.Directory, types.ImageBuildOptions{
+	err = client.Build(b.BuildOutputStream, result.Directory, types.ImageBuildOptions{
 		Dockerfile: buildMeta.Dockerfile,
 		BuildID:    dockerBuildId,
 		Labels: map[string]string{
@@ -58,9 +58,20 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *resources.DockerBuild
 			"paas.build.id":    b.BuildId,
 		},
 		Tags: []string{
-			fmt.Sprintf(fmt.Sprintf("%s:latest", b.Resource.Name)),
+			fmt.Sprintf(fmt.Sprintf("%s-%s:latest", b.Resource.Name, b.Resource.Id)),
 		},
 	}, &handlers)
+
+	if err != nil {
+		return b.BuildError(err)
+	}
+
+	b.LogBuildMessage("Starting container...")
+
+	// build successful, lets try to run it
+	err = client.Run(b.Resource, docker.RunOptions{
+		Stdout: b.RunOutputStream,
+	})
 
 	if err != nil {
 		return b.BuildError(err)

@@ -89,7 +89,7 @@ func StreamDetails(ctx *h.RequestContext, stream *nats.StreamInfo) *h.Element {
 		fmt.Printf("Subscribing to %s\n", stream.Config.Name)
 
 		for _, subject := range stream.Config.Subjects {
-			client.SubscribeUntilTimeout(subject, time.Second*3, func(msg *nats.Msg) {
+			client.SubscribeStreamUntilTimeout(subject, time.Second*3, func(msg *nats.Msg) {
 				data := string(msg.Data)
 				ws.PushElementCtx(ctx, ui.LogLine(data))
 			})

@@ -14,13 +14,16 @@ import (
 var builderLock = sync.Mutex{}
 
 type ResourceBuilder struct {
-	Resource           *resources.Resource
-	BuildId            string
-	ServiceLocator     *service.Locator
-	NatsClient         *kv.Client
-	OutputStream       *kv.NatsWriter
+	Resource          *resources.Resource
+	BuildId           string
+	ServiceLocator    *service.Locator
+	NatsClient        *kv.Client
+	BuildOutputStream *kv.NatsWriter
+	// RunOutputStream stream for run logs that we don't want to persist since docker already persists them
+	RunOutputStream    *kv.EphemeralNatsWriter
 	LogBuildMessage    func(message string)
 	LogBuildError      func(err error)
+	LogRunMessage      func(message string)
 	UpdateDeployStatus func(status resources.DeploymentStatus)
 	PendingCancel      bool
 	CancelBuildFunc    func() error
@@ -48,6 +51,9 @@ func NewResourceBuilder(serviceLocator *service.Locator, resource *resources.Res
 		},
 		LogBuildError: func(err error) {
 			natsClient.LogBuildError(resource.Id, buildId, err)
+		},
+		LogRunMessage: func(message string) {
+			natsClient.LogRunMessage(resource.Id, message)
 		},
 		UpdateDeployStatus: func(status resources.DeploymentStatus) {
 			err := resources.UpdateDeploymentStatus(serviceLocator, resources.UpdateDeploymentStatusRequest{
@@ -108,7 +114,8 @@ func (b *ResourceBuilder) Build() error {
 		return err
 	}
 
-	b.OutputStream = b.NatsClient.NewNatsWriter(subject.BuildLogForResource(b.Resource.Id, b.BuildId))
+	b.BuildOutputStream = b.NatsClient.NewNatsWriter(subject.BuildLogForResource(b.Resource.Id, b.BuildId))
+	b.RunOutputStream = b.NatsClient.NewEphemeralNatsWriter(subject.RunLogsForResource(b.Resource.Id))
 
 	err = resources.CreateDeployment(b.ServiceLocator, resources.CreateDeploymentRequest{
 		ResourceId: b.Resource.Id,
