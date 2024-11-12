@@ -6,7 +6,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"io"
-	"log/slog"
 	"paas/resources"
 )
 
@@ -76,26 +75,9 @@ func (c *Client) Run(resource *resources.Resource, opts RunOptions) error {
 	}
 
 	if opts.Stdout != nil {
-		out, err := c.cli.ContainerLogs(ctx, resp.ID, container.LogsOptions{
-			ShowStdout: true,
-			ShowStderr: true,
-			Follow:     true,
+		return c.StreamLogs(resp.ID, StreamLogsOptions{
+			Stdout: opts.Stdout,
 		})
-		if err != nil {
-			return err
-		}
-
-		if opts.Stdout != nil {
-			go func() {
-				fmt.Printf("coping logs from container to stdout\n")
-				_, err := io.Copy(opts.Stdout, out)
-				if err != nil {
-					slog.Error("error copying logs from container to stdout", slog.String("error", err.Error()))
-					_ = out.Close()
-				}
-				fmt.Printf("done coping logs from container to stdout\n")
-			}()
-		}
 	}
 
 	return nil

@@ -22,7 +22,11 @@ func ResourceStartDeploymentPath(resourceId string, buildId string) string {
 }
 
 func ResourceDeploymentLogUrl(id string, buildId string) string {
-	return WithQs("/resource/deployment/log", "id", id, "buildId", buildId)
+	return WithQs("/resource/deployment/build-log", "id", id, "buildId", buildId)
+}
+
+func ResourceRunLogUrl(id string) string {
+	return WithQs("/resource/deployment/run-log", "id", id)
 }
 
 func ResourceEnvironmentUrl(id string) string {

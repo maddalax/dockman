@@ -31,22 +31,7 @@ func Deployment(ctx *h.RequestContext) *h.Page {
 			h.Class("flex flex-col gap-2"),
 			pages.Title("Resource"),
 			h.Pf("Resource: %s", resource.Name),
-			ui.LinkTabs(ctx, ui.LinkTabsProps{
-				Links: []ui.Link{
-					{
-						Text: "Overview",
-						Href: urls.ResourceUrl(resource.Id),
-					},
-					{
-						Text: "Deployment",
-						Href: urls.ResourceDeploymentUrl(resource.Id),
-					},
-					{
-						Text: "Environment",
-						Href: urls.ResourceEnvironmentUrl(resource.Id),
-					},
-				},
-			}),
+			TopTabs(ctx, resource),
 			h.Div(
 				h.Class("flex gap-2 items-center"),
 				ui.PrimaryButton(ui.ButtonProps{
