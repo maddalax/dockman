@@ -7,8 +7,11 @@ import (
 	"paas/kv"
 	"paas/kv/subject"
 	"paas/resources"
+	"sync"
 	"time"
 )
+
+var builderLock = sync.Mutex{}
 
 type ResourceBuilder struct {
 	Resource           *resources.Resource
@@ -19,15 +22,27 @@ type ResourceBuilder struct {
 	LogBuildMessage    func(message string)
 	LogBuildError      func(err error)
 	UpdateDeployStatus func(status resources.DeploymentStatus)
+	PendingCancel      bool
+	CancelBuildFunc    func() error
+	Finished           bool
 }
 
 func NewResourceBuilder(serviceLocator *service.Locator, resource *resources.Resource, buildId string) *ResourceBuilder {
+	builderLock.Lock()
+	defer builderLock.Unlock()
+	// Only want one builder per resource and buildId
+	existing := GetBuilder(resource.Id, buildId)
+	if existing != nil {
+		return existing
+	}
 	natsClient := service.Get[kv.Client](serviceLocator)
-	return &ResourceBuilder{
+	builder := &ResourceBuilder{
 		Resource:       resource,
 		BuildId:        buildId,
 		NatsClient:     natsClient,
 		ServiceLocator: serviceLocator,
+		Finished:       false,
+		PendingCancel:  false,
 		LogBuildMessage: func(message string) {
 			natsClient.LogBuildMessage(resource.Id, buildId, message)
 		},
@@ -49,6 +64,18 @@ func NewResourceBuilder(serviceLocator *service.Locator, resource *resources.Res
 			}
 		},
 	}
+	SetBuilder(resource.Id, buildId, builder)
+	return builder
+}
+
+func (b *ResourceBuilder) onFinish() {
+	slog.Info("Builder finished", slog.String("resource", b.Resource.Id), slog.String("build", b.BuildId))
+	b.Finished = true
+	ClearBuilder(b.Resource.Id, b.BuildId)
+}
+
+func (b *ResourceBuilder) CancelBuild() {
+	b.PendingCancel = true
 }
 
 func (b *ResourceBuilder) ClearLogs() {
@@ -70,6 +97,11 @@ func (b *ResourceBuilder) BuildError(err error) error {
 }
 
 func (b *ResourceBuilder) Build() error {
+
+	defer func() {
+		b.onFinish()
+	}()
+
 	err := b.NatsClient.CreateBuildLogStream(b.Resource.Id, b.BuildId)
 
 	if err != nil {
@@ -88,6 +120,24 @@ func (b *ResourceBuilder) Build() error {
 	}
 
 	b.UpdateDeployStatus(resources.DeploymentStatusPending)
+
+	go func() {
+		for {
+			if b.Finished {
+				return
+			}
+			if b.PendingCancel && b.CancelBuildFunc != nil {
+				slog.Info("Cancelling build", slog.String("resource", b.Resource.Id), slog.String("build", b.BuildId))
+				err := b.CancelBuildFunc()
+				if err != nil {
+					b.LogBuildError(err)
+				}
+				b.LogBuildError(errors.New("build cancelled"))
+				return
+			}
+			time.Sleep(time.Millisecond * 250)
+		}
+	}()
 
 	switch bm := b.Resource.BuildMeta.(type) {
 	case *resources.DockerBuildMeta:

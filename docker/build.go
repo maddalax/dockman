@@ -55,7 +55,11 @@ func (cw *CustomWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func (c *Client) Build(out io.Writer, path string, opts types.ImageBuildOptions) error {
+type BuildResponse struct {
+	CancelChan chan func() error
+}
+
+func (c *Client) Build(out io.Writer, path string, opts types.ImageBuildOptions, cb *BuildResponse) error {
 	ctx := context.Background()
 	abs, err := filepath.Abs(path)
 	projectDir := filepath.Dir(filepath.Join(abs, opts.Dockerfile))
@@ -65,9 +69,21 @@ func (c *Client) Build(out io.Writer, path string, opts types.ImageBuildOptions)
 	buildContext, _ := archive.TarWithOptions(projectDir, &archive.TarOptions{})
 
 	response, err := c.cli.ImageBuild(ctx, buildContext, opts)
+
 	if err != nil {
 		return err
 	}
+
+	if cb != nil {
+		cb.CancelChan <- func() error {
+			// send a request to cancel
+			_ = c.cli.BuildCancel(ctx, opts.BuildID)
+			// sometimes that doesn't work, so kill the response, which forces it to end
+			_ = response.Body.Close()
+			return nil
+		}
+	}
+
 	defer response.Body.Close()
 
 	customWriter := CustomWriter{out}

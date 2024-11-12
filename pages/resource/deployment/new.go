@@ -14,6 +14,7 @@ func StartNewDeployment(ctx *h.RequestContext) *h.Page {
 
 	resourceId := ctx.QueryParam("resourceId")
 	buildId := ctx.QueryParam("buildId")
+	isExistingBuild := buildId != ""
 
 	if resourceId == "" {
 		ctx.Redirect("/", 302)
@@ -34,8 +35,11 @@ func StartNewDeployment(ctx *h.RequestContext) *h.Page {
 	}
 
 	b := builder.NewResourceBuilder(ctx.ServiceLocator(), resource, buildId)
-	// starting a new build, clear any previous logs for this build
-	b.ClearLogs()
+
+	if isExistingBuild {
+		// starting a new build, clear any previous logs for this build
+		b.ClearLogs()
+	}
 
 	// waiting 2 seconds so they can see the build log starting
 	err = b.StartBuildAsync(time.Second * 2)
