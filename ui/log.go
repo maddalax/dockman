@@ -1,14 +1,21 @@
 package ui
 
 import (
+	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
 )
 
-func LogBody() *h.Element {
+type LogBodyOptions struct {
+	MaxLogs int
+}
+
+func LogBody(opts LogBodyOptions) *h.Element {
 	return h.Div(
 		h.Class("max-w-[800px] max-h-full overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg p-4 mt-6 min-w-[800px]"),
-		h.Id("build-log"),
+		h.Div(
+			h.Id("build-log"),
+		),
 		// Scroll to the bottom of the div when the page loads
 		h.OnLoad(
 			// language=JavaScript
@@ -21,6 +28,16 @@ func LogBody() *h.Element {
 		// Scroll to the bottom of the div when the message is sent
 		// only if the user is close to the bottom of the div
 		h.OnEvent("htmx:wsAfterMessage",
+			// language=JavaScript
+			js.EvalJs(fmt.Sprintf(
+				`
+				 // only keep the last MaxLogs
+         let logs = document.getElementById('build-log');
+				 while (logs.children.length >= %d) {
+       		 logs.removeChild(logs.firstElementChild);
+    			}
+      `,
+				opts.MaxLogs)),
 			// language=JavaScript
 			js.EvalJs(`
 					const scrollPosition = self.scrollTop + self.clientHeight;
@@ -36,10 +53,9 @@ func LogBody() *h.Element {
 
 func LogLine(data string) *h.Element {
 	return h.Div(
-		h.Class("bg-slate-50 p-2 rounded-md text-sm"),
 		h.Attribute("hx-swap-oob", "beforeend:#build-log"),
 		h.P(
-			h.Text(data),
+			h.UnsafeRaw(data),
 		),
 	)
 }

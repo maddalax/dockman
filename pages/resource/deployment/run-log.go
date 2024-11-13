@@ -2,7 +2,6 @@ package deployment
 
 import (
 	"context"
-	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
@@ -26,9 +25,7 @@ func RunLog(ctx *h.RequestContext) *h.Page {
 	wsutil.OnceWithAliveContext(ctx, func(context context.Context) {
 		logger.StreamLogs(ctx.ServiceLocator(), context, resource, func(msg *nats.Msg) {
 			data := string(msg.Data)
-			data = "RUN: " + data
-			success := ws.PushElementCtx(ctx, ui.LogLine(data))
-			fmt.Printf("Pushed log line: %s, success: %v\n", data, success)
+			ws.PushElementCtx(ctx, ui.LogLine(data))
 		})
 	})
 
@@ -41,7 +38,9 @@ func RunLog(ctx *h.RequestContext) *h.Page {
 			resource2.TopTabs(ctx, resource),
 			h.Div(
 				h.Class("h-[500px]"),
-				ui.LogBody(),
+				ui.LogBody(ui.LogBodyOptions{
+					MaxLogs: 1000,
+				}),
 			),
 		),
 	)

@@ -46,6 +46,7 @@ func RootPage(ctx *h.RequestContext, children ...h.Ren) *h.Page {
 			),
 			h.Body(
 				WsConnect(ctx),
+				h.TriggerChildren(),
 				h.Div(
 					h.Class("flex flex-col gap-2 bg-white h-full"),
 					h.Fragment(children...),

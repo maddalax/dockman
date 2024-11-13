@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/docker/docker/api/types"
+	"github.com/maddalax/htmgo/framework/h"
 	"paas/docker"
 	"paas/resources"
+	"paas/urls"
 )
 
 func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *resources.DockerBuildMeta) error {
@@ -76,6 +78,17 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *resources.DockerBuild
 	if err != nil {
 		return b.BuildError(err)
 	}
+
+	b.LogBuildMessage("Container successfully started.")
+	b.LogBuildMessage(
+		h.Render(
+			h.A(
+				h.Href(urls.ResourceRunLogUrl(b.Resource.Id)),
+				h.Text("View run logs"),
+				h.Class("underline text-brand-500"),
+			),
+		),
+	)
 
 	b.UpdateDeployStatus(resources.DeploymentStatusSucceeded)
 

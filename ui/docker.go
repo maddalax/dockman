@@ -50,7 +50,11 @@ func DockerBuildLogs(ctx *h.RequestContext, resource *resources.Resource, buildI
 		),
 		h.Div(
 			h.Class("h-[500px]"),
-			LogBody(),
+			LogBody(
+				LogBodyOptions{
+					MaxLogs: 1000,
+				},
+			),
 		),
 	)
 }

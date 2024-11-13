@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
 	"io"
 	"paas/resources"
@@ -23,7 +24,13 @@ func (c *Client) Run(resource *resources.Resource, opts RunOptions) error {
 	err := c.cli.ContainerStop(ctx, containerName, container.StopOptions{})
 
 	if err != nil {
-		return err
+		switch err.(type) {
+		case errdefs.ErrNotFound:
+			// don't need to worry about it if the container doesn't exist
+			err = nil
+		default:
+			return err
+		}
 	}
 
 	err = c.cli.ContainerRemove(ctx, containerName, container.RemoveOptions{
@@ -31,7 +38,13 @@ func (c *Client) Run(resource *resources.Resource, opts RunOptions) error {
 	})
 
 	if err != nil {
-		return err
+		switch err.(type) {
+		case errdefs.ErrNotFound:
+			// don't need to worry about it if the container doesn't exist
+			err = nil
+		default:
+			return err
+		}
 	}
 
 	// TODO make this configurable
