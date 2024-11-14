@@ -11,7 +11,6 @@ import (
 	"io/fs"
 	"net/http"
 	"paas/__htmgo"
-	"paas/caddy"
 	"paas/kv"
 )
 
@@ -34,8 +33,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	go caddy.Run()
 
 	//go func() {
 	//	client, err := docker.Connect()
@@ -82,6 +79,9 @@ func main() {
 		Register: func(app *h.App) {
 
 			app.Use(func(ctx *h.RequestContext) {
+				host := ctx.Request.Host
+				fmt.Printf("Host: %s\n", host)
+
 				session.CreateSession(ctx)
 			})
 

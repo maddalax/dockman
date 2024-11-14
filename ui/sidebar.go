@@ -33,6 +33,7 @@ func MainSidebar(ctx *h.RequestContext) *h.Element {
 					h.Class("md:mt-4 text-xl text-slate-900 font-bold"),
 				),
 			),
+			RoutingSection(),
 			ResourceList(ctx),
 			DebugSection(),
 		),
@@ -62,6 +63,37 @@ func ResourceList(ctx *h.RequestContext) *h.Element {
 				return h.A(
 					h.Href(urls.ResourceUrl(resource.Id)),
 					h.Text(resource.Name),
+					h.Class("text-slate-900 hover:text-brand-400"),
+				)
+			}),
+		),
+	)
+}
+
+func RoutingSection() *h.Element {
+
+	links := []Page{
+		{
+			Title: "Route Table",
+			Path:  "/routing",
+		},
+	}
+
+	return h.Div(
+		h.Class("flex flex-col gap-2"),
+		h.Div(
+			h.Class("flex justify-between items-center"),
+			h.P(
+				h.Text("Routing"),
+				h.Class("text-slate-800 font-bold"),
+			),
+		),
+		h.Div(
+			h.Class("flex flex-col gap-2"),
+			h.List(links, func(link Page, index int) *h.Element {
+				return h.A(
+					h.Href(link.Path),
+					h.Text(link.Title),
 					h.Class("text-slate-900 hover:text-brand-400"),
 				)
 			}),

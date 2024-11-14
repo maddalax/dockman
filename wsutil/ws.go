@@ -5,8 +5,6 @@ import (
 	"github.com/maddalax/htmgo/extensions/websocket/session"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
-	"log/slog"
-	"time"
 )
 
 type OnceAliveOpts struct {
@@ -27,20 +25,24 @@ func WithAliveContext(ctx *h.RequestContext) context.Context {
 	ccv := context.WithValue(context.Background(), "socketId", session.GetSessionId(ctx))
 	cc, cancel := context.WithCancel(ccv)
 	socketId := session.GetSessionId(ctx)
+
+	listener := make(chan ws.SocketEvent)
 	manager := ws.ManagerFromCtx(ctx)
 
-	ws.Once(ctx, func() {
-		go func() {
-			for {
-				if manager.Get(string(socketId)) == nil {
+	go func() {
+		for {
+			select {
+			case event := <-listener:
+				if event.Type == ws.DisconnectedEvent && event.SessionId == string(socketId) {
+					manager.RemoveListener(listener)
 					cancel()
 					return
 				}
-				slog.Debug("socket is alive, waiting for close", slog.String("socketId", string(socketId)))
-				time.Sleep(time.Second)
 			}
-		}()
-	})
+		}
+	}()
+
+	manager.Listen(listener)
 
 	return cc
 }

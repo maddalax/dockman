@@ -33,13 +33,10 @@ func repeaterItem(ctx *h.RequestContext, item *h.Element, index int, props *Repe
 		item,
 		props.RemoveButton(
 			index,
-			h.ClassIf(index == 0, "opacity-0 disabled"),
-			h.If(
-				index == 0,
-				h.Disabled(),
-			),
 			ws.OnClick(ctx, func(data ws.HandlerData) {
-				props.OnRemove(data, index)
+				if props.OnRemove != nil {
+					props.OnRemove(data, index)
+				}
 				props.currentIndex--
 				ws.PushElement(
 					data,
@@ -70,7 +67,9 @@ func Repeater(ctx *h.RequestContext, props RepeaterProps) *h.Element {
 			h.Class("flex justify-left"),
 			props.AddButton,
 			ws.OnClick(ctx, func(data ws.HandlerData) {
-				props.OnAdd(data)
+				if props.OnAdd != nil {
+					props.OnAdd(data)
+				}
 				ws.PushElement(
 					data,
 					h.Div(

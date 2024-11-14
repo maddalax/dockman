@@ -24,12 +24,12 @@ type SubmitButtonProps struct {
 	Class          string
 }
 
-func PrimaryButton(props ButtonProps) h.Ren {
+func PrimaryButton(props ButtonProps) *h.Element {
 	props.Class = h.MergeClasses(props.Class, "border-slate-800 bg-slate-900 hover:bg-slate-800 text-white")
 	return Button(props)
 }
 
-func SecondaryButton(props ButtonProps) h.Ren {
+func SecondaryButton(props ButtonProps) *h.Element {
 	props.Class = h.MergeClasses(props.Class, "border-gray-700 bg-gray-700 text-white")
 	return Button(props)
 }
@@ -53,7 +53,7 @@ func Button(props ButtonProps) *h.Element {
 			props.Children != nil,
 			h.Children(props.Children...),
 		),
-		h.Class("flex gap-1 items-center justify-center border p-4 rounded cursor-hover", props.Class),
+		h.Class("flex gap-1 items-center justify-center border p-2 rounded cursor-hover", props.Class),
 		h.If(
 			props.Get != "",
 			h.Get(props.Get),

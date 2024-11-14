@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
+	"paas/sanitize"
 )
 
 type LogBodyOptions struct {
@@ -55,7 +56,7 @@ func LogLine(data string) *h.Element {
 	return h.Div(
 		h.Attribute("hx-swap-oob", "beforeend:#build-log"),
 		h.P(
-			h.UnsafeRaw(data),
+			h.UnsafeRaw(sanitize.Text(data)),
 		),
 	)
 }

@@ -35,7 +35,7 @@ func Input(props InputProps) *h.Element {
 
 	input := h.Input(
 		props.Type,
-		h.Class("border p-2 rounded focus:outline-none focus:ring focus:ring-slate-800"),
+		h.Class("border p-2 rounded focus:outline-none focus:ring-0 focus:border-gray-400"),
 		h.If(
 			props.Name != "",
 			h.Name(props.Name),

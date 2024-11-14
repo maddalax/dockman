@@ -128,7 +128,7 @@ func SidebarPage(ctx *h.RequestContext, children ...h.Ren) *h.Page {
 							h.Class("flex flex-col justify-center items-center md:mt-6 mx-auto w-full"),
 							h.Div(
 								h.Class(
-									"w-full flex flex-col max-w-[90vw] md:max-w-[65vw] xl:max-w-4xl",
+									"w-full flex flex-col max-w-[90vw]",
 								),
 								h.Children(children...),
 							),

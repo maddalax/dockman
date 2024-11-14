@@ -45,3 +45,32 @@ func TrashIcon() *h.Element {
 		),
 	)
 }
+
+func Question() *h.Element {
+	return h.Svg(
+		h.Class("h-full w-full"),
+		h.Attribute("xmlns", "http://www.w3.org/2000/svg"),
+		h.Attribute("viewBox", "0 0 24 24"),
+		h.Attribute("fill", "none"),
+		h.Attribute("stroke", "#000000"),
+		h.Attribute("stroke-width", "2"),
+		h.Attribute("stroke-linecap", "round"),
+		h.Attribute("stroke-linejoin", "round"),
+		h.Tag(
+			"circle",
+			h.Attribute("cx", "12"),
+			h.Attribute("cy", "12"),
+			h.Attribute("r", "10"),
+		),
+		h.Path(
+			h.Attribute("d", "M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"),
+		),
+		h.Tag(
+			"line",
+			h.Attribute("x1", "12"),
+			h.Attribute("y1", "17"),
+			h.Attribute("x2", "12.01"),
+			h.Attribute("y2", "17"),
+		),
+	)
+}
