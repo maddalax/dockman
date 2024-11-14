@@ -3,17 +3,24 @@ package docker
 import (
 	"context"
 	"fmt"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
 	"io"
 	"paas/resources"
+	"strconv"
 )
 
 type RunOptions struct {
 	Stdout io.Writer
 	// If we should kill the existing container that's running first
 	KillExisting bool
+}
+
+func (c *Client) GetContainer(resource *resources.Resource) (types.ContainerJSON, error) {
+	containerName := fmt.Sprintf("%s-%s-container", resource.Name, resource.Id)
+	return c.cli.ContainerInspect(context.Background(), containerName)
 }
 
 func (c *Client) Run(resource *resources.Resource, opts RunOptions) error {
@@ -47,13 +54,18 @@ func (c *Client) Run(resource *resources.Resource, opts RunOptions) error {
 		}
 	}
 
-	// TODO make this configurable
+	hostPort, err := FindOpenPort(3000)
+
+	if err != nil {
+		return err
+	}
+
 	// Define port bindings
 	portBindings := nat.PortMap{
 		"3000/tcp": []nat.PortBinding{
 			{
-				HostIP:   "0.0.0.0", // Bind to all network interfaces
-				HostPort: "4000",    // Map container port 80 to host port 8080
+				HostIP:   "0.0.0.0",              // Bind to all network interfaces
+				HostPort: strconv.Itoa(hostPort), // Map container port 80 to host port 8080
 			},
 		},
 	}

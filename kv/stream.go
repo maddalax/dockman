@@ -7,7 +7,9 @@ import (
 )
 
 func (c *Client) LogBuildError(resourceId string, buildId string, error error) {
-	_, _ = c.js.Publish(subject.BuildLogForResource(resourceId, buildId), []byte(error.Error()))
+	str := error.Error()
+	str = fmt.Sprintf("BUILD_ERROR: %s", str)
+	_, _ = c.js.Publish(subject.BuildLogForResource(resourceId, buildId), []byte(str))
 }
 
 func (c *Client) LogBuildMessage(resourceId string, buildId string, message string) {

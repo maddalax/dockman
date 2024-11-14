@@ -5,6 +5,7 @@ import (
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
 	"paas/sanitize"
+	"strings"
 )
 
 type LogBodyOptions struct {
@@ -53,8 +54,21 @@ func LogBody(opts LogBodyOptions) *h.Element {
 }
 
 func LogLine(data string) *h.Element {
+	swap := h.Attribute("hx-swap-oob", "beforeend:#build-log")
+
+	if strings.HasPrefix(data, "BUILD_ERROR:") {
+		data = strings.TrimPrefix(data, "BUILD_ERROR:")
+		return h.Div(
+			swap,
+			h.P(
+				h.Class("text-red-800"),
+				h.UnsafeRaw(sanitize.Text(data)),
+			),
+		)
+	}
+
 	return h.Div(
-		h.Attribute("hx-swap-oob", "beforeend:#build-log"),
+		swap,
 		h.P(
 			h.UnsafeRaw(sanitize.Text(data)),
 		),

@@ -25,6 +25,9 @@ func ApplyBlocks(locator *service.Locator, blocks []RouteBlock) error {
 	if err != nil {
 		return err
 	}
+
+	ReloadConfig(locator)
+
 	return nil
 }
 

@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"paas/__htmgo"
 	"paas/kv"
+	"paas/router"
 )
 
 func main() {
@@ -33,6 +34,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	router.StartProxy(locator)
 
 	//go func() {
 	//	client, err := docker.Connect()
