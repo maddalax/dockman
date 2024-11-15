@@ -121,7 +121,7 @@ func (c *Client) Run(resource *domain.Resource, opts RunOptions) error {
 	}
 
 	if opts.Stdout != nil {
-		return c.StreamLogs(resp.ID, StreamLogsOptions{
+		return c.StreamLogs(resp.ID, ctx, StreamLogsOptions{
 			Stdout: opts.Stdout,
 		})
 	}

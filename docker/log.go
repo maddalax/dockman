@@ -15,9 +15,7 @@ type StreamLogsOptions struct {
 	Since  time.Time
 }
 
-func (c *Client) StreamLogs(containerId string, opts StreamLogsOptions) error {
-	ctx := context.Background()
-
+func (c *Client) StreamLogs(containerId string, ctx context.Context, opts StreamLogsOptions) error {
 	logOpts := container.LogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
