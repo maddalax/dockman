@@ -8,11 +8,15 @@ import (
 )
 
 type WriterSubscriber struct {
-	Writer     io.Writer
+	Writer     io.WriteCloser
 	Subscriber chan *nats.Msg
 }
 
-func (c *Client) CreateEphemeralWriterSubscriber(ctx context.Context, subject subject.Subject) *WriterSubscriber {
+type CreateOptions struct {
+	BeforeWrite func(data string) bool
+}
+
+func (c *Client) CreateEphemeralWriterSubscriber(ctx context.Context, subject subject.Subject, opts CreateOptions) *WriterSubscriber {
 	ch := make(chan *nats.Msg, 100)
 	_, err := c.SubscribeSubject(ctx, subject, func(msg *nats.Msg) {
 		ch <- msg
@@ -23,8 +27,14 @@ func (c *Client) CreateEphemeralWriterSubscriber(ctx context.Context, subject su
 			Subscriber: ch,
 		}
 	}
+
+	w := c.NewEphemeralNatsWriter(subject)
+	if opts.BeforeWrite != nil {
+		w.SetBeforeWrite(opts.BeforeWrite)
+	}
+
 	return &WriterSubscriber{
-		Writer:     c.NewEphemeralNatsWriter(subject),
+		Writer:     w,
 		Subscriber: ch,
 	}
 }

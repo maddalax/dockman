@@ -37,7 +37,7 @@ func PageHeader(ctx *h.RequestContext, resource *domain.Resource) *h.Element {
 		),
 		TopTabs(ctx, resource, ui.LinkTabsProps{
 			End: h.Div(
-				h.GetPartialWithQs(GetStatusPartial, h.NewQs("id", resource.Id), "load, every 3s"),
+				h.GetPartialWithQs(GetStatusPartial, h.NewQs("id", resource.Id), "load"),
 			),
 		}),
 	)
@@ -53,15 +53,17 @@ func ResourceStatusContainer(resource *domain.Resource) *h.Element {
 
 func ResourceStatus(resource *domain.Resource) *h.Element {
 	if resource.RunStatus == domain.RunStatusRunning {
-		return ui.PrimaryButton(ui.ButtonProps{
-			Post: h.GetPartialPathWithQs(StopResource, h.NewQs("id", resource.Id)),
-			Text: "Stop Resource",
+		return ui.SubmitButton(ui.SubmitButtonProps{
+			Post:           h.GetPartialPathWithQs(StopResource, h.NewQs("id", resource.Id)),
+			SubmittingText: "Stopping...",
+			Text:           "Stop Resource",
 		})
 	}
 
-	return ui.PrimaryButton(ui.ButtonProps{
-		Text: "Start Resource",
-		Post: h.GetPartialPathWithQs(StartResource, h.NewQs("id", resource.Id)),
+	return ui.SubmitButton(ui.SubmitButtonProps{
+		Text:           "Start Resource",
+		SubmittingText: "Starting...",
+		Post:           h.GetPartialPathWithQs(StartResource, h.NewQs("id", resource.Id)),
 	})
 }
 

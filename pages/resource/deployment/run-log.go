@@ -23,6 +23,7 @@ func RunLog(ctx *h.RequestContext) *h.Page {
 	}
 
 	wsutil.OnceWithAliveContext(ctx, func(context context.Context) {
+
 		logger.StreamLogs(ctx.ServiceLocator(), context, resource, func(msg *nats.Msg) {
 			data := string(msg.Data)
 			ws.PushElementCtx(ctx, ui.LogLine(data))

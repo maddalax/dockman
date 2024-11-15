@@ -73,7 +73,8 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *domain.DockerBuildMet
 
 	// build successful, lets try to run it
 	err = client.Run(b.Resource, docker.RunOptions{
-		Stdout: b.RunOutputStream,
+		Stdout:         b.RunOutputStream,
+		RemoveExisting: true,
 	})
 
 	if err != nil {

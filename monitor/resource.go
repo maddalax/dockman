@@ -1,9 +1,12 @@
 package monitor
 
 import (
+	"context"
 	"github.com/maddalax/htmgo/framework/service"
 	"paas/docker"
 	"paas/domain"
+	"paas/kv"
+	"paas/kv/subject"
 	"paas/resources"
 	"time"
 )
@@ -31,10 +34,28 @@ func (monitor *Monitor) StartRunStatusMonitor() {
 				if err != nil {
 					continue
 				}
+				monitor.OnStatusChange(res, status)
 			}
 		}
 		time.Sleep(3 * time.Second)
 	}
+}
+
+func (monitor *Monitor) OnStatusChange(resource *domain.Resource, status domain.RunStatus) {
+	ctx, cancel := context.WithCancel(context.Background())
+	natsClient := kv.GetClientFromLocator(monitor.locator)
+	writer := natsClient.CreateEphemeralWriterSubscriber(ctx, subject.RunLogsForResource(resource.Id), kv.CreateOptions{})
+
+	message := ""
+	if status == domain.RunStatusRunning {
+		message = "Container is now running"
+	} else {
+		message = "Container has stopped"
+	}
+
+	writer.Writer.Write([]byte(message))
+
+	cancel()
 }
 
 func (monitor *Monitor) GetRunStatus(resource *domain.Resource) domain.RunStatus {

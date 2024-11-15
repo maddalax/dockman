@@ -22,6 +22,8 @@ type SubmitButtonProps struct {
 	Text           string
 	SubmittingText string
 	Class          string
+	Post           string
+	Trigger        string
 }
 
 func PrimaryButton(props ButtonProps) *h.Element {
@@ -91,16 +93,32 @@ func SubmitButton(props SubmitButtonProps) *h.Element {
 			js.RemoveClassOnChildren(".submit", "hidden"),
 		),
 		h.Class("flex gap-2 justify-center"),
-		h.Button(
-			h.Class("loading hidden relative text-center", buttonClasses),
-			spinner(),
+
+		h.Div(
+			h.OnLoad(
+				// let's make sure the button is the same width as the loading spinner
+				js.EvalJs(`
+					const button = self.nextElementSibling.getBoundingClientRect();
+					self.style.width = button.width + 'px';
+				`),
+			),
+			h.Class("loading hidden text-center", buttonClasses),
 			h.Disabled(),
-			h.Text(props.SubmittingText),
+			h.Div(
+				h.Class("flex gap-2 items-center justify-start"),
+				spinner(),
+				h.Text(h.Ternary(props.SubmittingText != "", props.SubmittingText, "Loading...")),
+			),
 		),
+
 		h.Button(
 			h.Type("submit"),
 			h.Class("submit", buttonClasses),
 			h.Text(props.Text),
+			h.If(
+				props.Post != "",
+				h.Post(props.Post),
+			),
 		),
 	)
 }
@@ -108,7 +126,7 @@ func SubmitButton(props SubmitButtonProps) *h.Element {
 func spinner(children ...h.Ren) *h.Element {
 	return h.Div(
 		h.Children(children...),
-		h.Class("absolute left-1 spinner spinner-border animate-spin inline-block w-6 h-6 border-4 rounded-full border-slate-200 border-t-transparent"),
+		h.Class("spinner spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full border-slate-200 border-t-transparent"),
 		h.Attribute("role", "status"),
 	)
 }

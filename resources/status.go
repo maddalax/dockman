@@ -26,7 +26,7 @@ func Start(locator *service.Locator, resourceId string) (*domain.Resource, error
 			return nil, err
 		}
 		err = client.Run(resource, docker.RunOptions{
-			KillExisting: true,
+			RemoveExisting: false,
 		})
 		if err != nil {
 			return nil, err

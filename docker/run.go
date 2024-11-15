@@ -14,9 +14,9 @@ import (
 )
 
 type RunOptions struct {
-	Stdout io.Writer
+	Stdout io.WriteCloser
 	// If we should kill the existing container that's running first
-	KillExisting bool
+	RemoveExisting bool
 }
 
 func (c *Client) GetContainer(resource *domain.Resource) (types.ContainerJSON, error) {
@@ -46,9 +46,11 @@ func (c *Client) Run(resource *domain.Resource, opts RunOptions) error {
 		}
 	}
 
-	err = c.cli.ContainerRemove(ctx, containerName, container.RemoveOptions{
-		Force: true,
-	})
+	if opts.RemoveExisting {
+		err = c.cli.ContainerRemove(ctx, containerName, container.RemoveOptions{
+			Force: true,
+		})
+	}
 
 	if err != nil {
 		switch err.(type) {
@@ -101,12 +103,20 @@ func (c *Client) Run(resource *domain.Resource, opts RunOptions) error {
 		switch err.(type) {
 		case errdefs.ErrNotFound:
 			return errors.New("image not found, please build the resource first")
+		case errdefs.ErrConflict:
+			// container already exists, it failed to get killed for some reason
+			if opts.RemoveExisting {
+				return errors.New("container already exists, please stop it first")
+			} else {
+				// we don't want to remove existing, so lets run the current one
+				err = nil
+			}
 		default:
 			return err
 		}
 	}
 
-	if err := c.cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
+	if err := c.cli.ContainerStart(ctx, containerName, container.StartOptions{}); err != nil {
 		return err
 	}
 
