@@ -1,4 +1,4 @@
-package resource
+package create
 
 import (
 	"github.com/maddalax/htmgo/framework/h"

@@ -30,7 +30,7 @@ func ResourceRunLogUrl(id string) string {
 }
 
 func ResourceEnvironmentUrl(id string) string {
-	return WithQs("/resource/environment", "id", id)
+	return WithQs("/resource/deployment/environment", "id", id)
 }
 
 func ResourceDeploymentUrl(id string) string {
@@ -38,5 +38,5 @@ func ResourceDeploymentUrl(id string) string {
 }
 
 func NewResourceUrl() string {
-	return WithQs("/resource/new")
+	return WithQs("/resource/create")
 }

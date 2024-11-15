@@ -67,7 +67,7 @@ func loadUpstreams(locator *service.Locator) []*multiproxy.Upstream {
 	var upstreams []*multiproxy.Upstream
 	table, err := GetRouteTable(locator)
 	if err != nil {
-		panic(err)
+		return []*multiproxy.Upstream{}
 	}
 	for _, block := range table {
 		resource, err := resources.Get(locator, block.ResourceId)

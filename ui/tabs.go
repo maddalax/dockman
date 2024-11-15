@@ -12,6 +12,7 @@ type Link struct {
 
 type LinkTabsProps struct {
 	Links []Link
+	End   *h.Element
 }
 
 func compareLinks(a string, b string) bool {
@@ -40,7 +41,7 @@ func LinkTabs(ctx *h.RequestContext, props LinkTabsProps) *h.Element {
 		),
 		h.Div(
 			h.Div(
-				h.Class("border-b border-gray-200"),
+				h.Class("border-b border-gray-200 relative"),
 				h.Nav(
 					h.Class("-mb-px flex gap-6"),
 					h.Attribute("aria-label", "LinkTabs"),
@@ -54,6 +55,7 @@ func LinkTabs(ctx *h.RequestContext, props LinkTabsProps) *h.Element {
 						)
 					}),
 				),
+				props.End,
 			),
 		),
 	)

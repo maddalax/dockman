@@ -2,8 +2,7 @@ package deployment
 
 import (
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/pages"
-	resource2 "paas/pages/resource"
+	"paas/pages/resource/resourceui"
 	"paas/resources"
 	"paas/ui"
 	"paas/urls"
@@ -26,13 +25,8 @@ func Deployment(ctx *h.RequestContext) *h.Page {
 		deployments = []resources.Deployment{}
 	}
 
-	return pages.SidebarPage(
-		ctx,
-		h.Div(
-			h.Class("flex flex-col gap-2"),
-			pages.Title("Resource"),
-			h.Pf("Resource: %s", resource.Name),
-			resource2.TopTabs(ctx, resource),
+	return resourceui.Page(ctx, func(resource *resources.Resource) *h.Element {
+		return h.Div(
 			h.Div(
 				h.Class("flex gap-2 items-center"),
 				ui.PrimaryButton(ui.ButtonProps{
@@ -40,12 +34,12 @@ func Deployment(ctx *h.RequestContext) *h.Page {
 					Href: urls.ResourceStartDeploymentPath(resource.Id, ""),
 				}),
 			),
-			DeploymentList(ctx, deployments),
-		),
-	)
+			List(deployments),
+		)
+	})
 }
 
-func DeploymentList(ctx *h.RequestContext, deployments []resources.Deployment) *h.Element {
+func List(deployments []resources.Deployment) *h.Element {
 	return h.Div(
 		h.Class("flex flex-col gap-4 max-w-md"), // Increase gap for better spacing between cards
 		h.List(deployments, func(deployment resources.Deployment, index int) *h.Element {

@@ -33,3 +33,32 @@ func GetNames(locator *service.Locator) []ResourceName {
 	return mapped
 
 }
+
+func List(locator *service.Locator) ([]*Resource, error) {
+	client := service.Get[kv.Client](locator)
+	bucket, err := client.GetBucket("resources")
+	resources := make([]*Resource, 0)
+
+	if err != nil {
+		return nil, err
+	}
+
+	listener, err := bucket.ListKeys()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for s := range listener.Keys() {
+		resourceBucket, err := client.GetBucket(s)
+		if err != nil {
+			continue
+		}
+		mapped, err := MapToResource(resourceBucket)
+		if err != nil {
+			continue
+		}
+		resources = append(resources, mapped)
+	}
+	return resources, nil
+}

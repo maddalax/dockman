@@ -1,4 +1,4 @@
-package resource
+package create
 
 import (
 	"fmt"
@@ -70,7 +70,7 @@ func SubmitHandler(ctx *h.RequestContext) *h.Partial {
 		index++
 	}
 
-	runType := resources.Unknown
+	runType := resources.RunTypeUnknown
 
 	if values.Get("deployment-type") == "dockerfile" {
 		runType = resources.RunTypeDockerBuild

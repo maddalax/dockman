@@ -1,9 +1,9 @@
 package resources
 
-type RunType = int
+type RunType int
 
 const (
-	Unknown RunType = iota
+	RunTypeUnknown RunType = iota
 	RunTypeDockerBuild
 	RunTypeDockerRegistry
 )
@@ -24,13 +24,4 @@ type DockerRegistryMeta struct {
 type Env struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
-}
-
-type Resource struct {
-	Id          string  `json:"id"`
-	Name        string  `json:"name"`
-	Environment string  `json:"environment"`
-	RunType     RunType `json:"run_type"`
-	BuildMeta   any     `json:"build_meta"`
-	Env         []Env   `json:"env"`
 }

@@ -125,15 +125,6 @@ func (c *Client) SubscribeStream(context context.Context, subject string, handle
 
 func (c *Client) GetBucketWithConfig(config *nats.KeyValueConfig) (nats.KeyValue, error) {
 	b, err := c.js.KeyValue(config.Bucket)
-	if err != nil {
-		if errors.Is(err, nats.ErrBucketNotFound) {
-			b, err = c.js.CreateKeyValue(config)
-			if err != nil {
-				return nil, err
-			}
-			return b, nil
-		}
-	}
 	return b, err
 }
 
@@ -163,6 +154,25 @@ func (c *Client) GetBucket(bucket string) (nats.KeyValue, error) {
 	return c.GetBucketWithConfig(&nats.KeyValueConfig{
 		Bucket: bucket,
 	})
+}
+
+func (c *Client) GetOrCreateBucket(bucket string) (nats.KeyValue, error) {
+	b, err := c.GetBucketWithConfig(&nats.KeyValueConfig{
+		Bucket: bucket,
+	})
+	if err != nil {
+		if errors.Is(err, nats.ErrBucketNotFound) {
+			b, err = c.CreateBucket(&nats.KeyValueConfig{
+				Bucket: bucket,
+			})
+			return b, err
+		}
+	}
+	return b, err
+}
+
+func (c *Client) CreateBucket(config *nats.KeyValueConfig) (nats.KeyValue, error) {
+	return c.js.CreateKeyValue(config)
 }
 
 func Connect(opts Options) (*Client, error) {

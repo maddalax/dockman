@@ -14,6 +14,26 @@ type Validator interface {
 	Validate() error
 }
 
+type RequiredFieldsValidator struct {
+	resource *Resource
+}
+
+func (v RequiredFieldsValidator) Validate() error {
+	if v.resource.Name == "" {
+		return errors.New("name is required")
+	}
+
+	if v.resource.Environment == "" {
+		return errors.New("environment is required")
+	}
+
+	if v.resource.RunType == RunTypeUnknown {
+		return errors.New("run type is required")
+	}
+
+	return nil
+}
+
 type BuildMetaValidator struct {
 	meta any
 }

@@ -1,11 +1,9 @@
 package resources
 
 import (
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"
 	"paas/history"
-	"paas/kv"
 	"paas/kv/subject"
 )
 
@@ -18,10 +16,20 @@ type CreateOptions struct {
 }
 
 func Create(locator *service.Locator, options CreateOptions) (string, error) {
+	resource := NewResource(uuid.NewString())
+
+	resource.Name = options.Name
+	resource.Environment = options.Environment
+	resource.RunType = options.RunType
+	resource.BuildMeta = options.BuildMeta
+	resource.Env = options.Env
 
 	validators := []Validator{
 		BuildMetaValidator{
-			meta: options.BuildMeta,
+			meta: resource.BuildMeta,
+		},
+		RequiredFieldsValidator{
+			resource: resource,
 		},
 	}
 
@@ -32,49 +40,17 @@ func Create(locator *service.Locator, options CreateOptions) (string, error) {
 		}
 	}
 
-	client := service.Get[kv.Client](locator)
-	id := uuid.NewString()
-	resourceBucketKey := fmt.Sprintf("resources-%s", id)
-
-	bucket, err := client.GetBucket("resources")
-
-	if err != nil {
-		return "", err
-	}
-
-	_, err = bucket.Create(resourceBucketKey, []byte{})
-
-	if err != nil {
-		return "", err
-	}
-
-	resourceBucket, err := client.GetBucket(resourceBucketKey)
-
-	if err != nil {
-		return "", err
-	}
-
-	err = kv.AtomicPutMany(resourceBucket, func(m map[string]any) error {
-		m["id"] = id
-		m["environment"] = options.Environment
-		m["run_type"] = options.RunType
-		m["build_meta"] = options.BuildMeta
-		m["name"] = options.Name
-		for k, v := range options.Env {
-			m[fmt.Sprintf("env/%s", k)] = v
-		}
-		return nil
-	})
+	err := resource.Create(locator)
 
 	if err != nil {
 		return "", err
 	}
 
 	history.LogChange(locator, subject.ResourceCreated, map[string]any{
-		"id":          id,
+		"id":          resource.Id,
 		"environment": options.Environment,
 		"name":        options.Name,
 	})
 
-	return id, nil
+	return resource.Id, nil
 }

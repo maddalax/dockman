@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"paas/__htmgo"
 	"paas/kv"
+	"paas/monitor"
 	"paas/router"
 )
 
@@ -36,6 +37,13 @@ func main() {
 	}
 
 	router.StartProxy(locator)
+
+	m := monitor.NewMonitor(locator)
+	service.Set(locator, service.Singleton, func() *monitor.Monitor {
+		return m
+	})
+
+	go m.StartRunStatusMonitor()
 
 	//go func() {
 	//	client, err := docker.Connect()

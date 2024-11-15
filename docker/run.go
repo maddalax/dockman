@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -92,7 +93,12 @@ func (c *Client) Run(resource *resources.Resource, opts RunOptions) error {
 	}, hostConfig, nil, nil, containerName)
 
 	if err != nil {
-		return err
+		switch err.(type) {
+		case errdefs.ErrNotFound:
+			return errors.New("image not found, please build the resource first")
+		default:
+			return err
+		}
 	}
 
 	if err := c.cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
