@@ -3,11 +3,16 @@ package resources
 import (
 	"fmt"
 	"github.com/maddalax/htmgo/framework/service"
+	"paas/domain"
 	"paas/kv"
 	"strings"
 )
 
-func Get(locator *service.Locator, id string) (*Resource, error) {
+func Get(locator *service.Locator, id string) (*domain.Resource, error) {
+	if id == "" {
+		return nil, fmt.Errorf("id is required")
+	}
+
 	client := service.Get[kv.Client](locator)
 
 	if !strings.HasPrefix(id, "resources-") {

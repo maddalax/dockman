@@ -1,6 +1,7 @@
 package kv
 
 import (
+	"errors"
 	"fmt"
 	"github.com/nats-io/nats.go"
 	"paas/kv/subject"
@@ -42,16 +43,31 @@ func (c *Client) CreateBuildLogStream(resourceId string, buildId string) error {
 }
 
 func (c *Client) CreateHistoryStream() error {
-	_, err := c.js.AddStream(&nats.StreamConfig{
-		Name:      "HISTORY_STREAM",
-		Subjects:  []string{string(subject.ResourceCreated)},
+	config := &nats.StreamConfig{
+		Name: "HISTORY_STREAM",
+		Subjects: []string{
+			subject.ResourceCreated,
+			subject.ResourcePatched,
+			subject.ResourceStarted,
+			subject.ResourceStopped,
+		},
 		Retention: nats.LimitsPolicy, // Retain messages until storage limit is reached
 		MaxAge:    0,                 // Messages never expire based on age
 		MaxMsgs:   -1,                // No limit on the number of messages
 		MaxBytes:  -1,                // No limit on the total size of messages
 		Storage:   nats.FileStorage,  // Use file storage for persistence
-	})
+	}
+
+	_, err := c.js.AddStream(config)
 	if err != nil {
+		var APIError *nats.APIError
+		switch {
+		case errors.As(err, &APIError):
+			if APIError.ErrorCode == nats.JSErrCodeStreamNameInUse {
+				// stream already exists, lets just update it
+				_, err = c.js.UpdateStream(config)
+			}
+		}
 		return err
 	}
 	return nil

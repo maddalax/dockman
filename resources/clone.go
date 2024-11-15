@@ -5,6 +5,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/protocol/packp/sideband"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"os"
+	"paas/domain"
 )
 
 type CloneResult struct {
@@ -12,7 +13,7 @@ type CloneResult struct {
 }
 
 type CloneRequest struct {
-	Meta     *DockerBuildMeta
+	Meta     *domain.DockerBuildMeta
 	Progress sideband.Progress
 }
 

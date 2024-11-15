@@ -3,6 +3,7 @@ package monitor
 import (
 	"github.com/maddalax/htmgo/framework/service"
 	"paas/docker"
+	"paas/domain"
 	"paas/resources"
 	"time"
 )
@@ -26,9 +27,7 @@ func (monitor *Monitor) StartRunStatusMonitor() {
 		for _, res := range list {
 			status := monitor.GetRunStatus(res)
 			if res.RunStatus != status {
-				err := res.Patch(monitor.locator, map[string]any{
-					"run_status": status,
-				})
+				err := resources.SetRunStatus(monitor.locator, res.Id, status)
 				if err != nil {
 					continue
 				}
@@ -38,21 +37,21 @@ func (monitor *Monitor) StartRunStatusMonitor() {
 	}
 }
 
-func (monitor *Monitor) GetRunStatus(resource *resources.Resource) resources.RunStatus {
-	if resource.RunType == resources.RunTypeDockerBuild || resource.RunType == resources.RunTypeDockerRegistry {
+func (monitor *Monitor) GetRunStatus(resource *domain.Resource) domain.RunStatus {
+	if resource.RunType == domain.RunTypeDockerBuild || resource.RunType == domain.RunTypeDockerRegistry {
 		return getRunStatusDocker(resource)
 	}
-	return resources.RunStatusUnknown
+	return domain.RunStatusUnknown
 }
 
-func getRunStatusDocker(resource *resources.Resource) resources.RunStatus {
+func getRunStatusDocker(resource *domain.Resource) domain.RunStatus {
 	client, err := docker.Connect()
 	if err != nil {
-		return resources.RunStatusErrored
+		return domain.RunStatusErrored
 	}
 	status, err := client.GetRunStatus(resource)
 	if err != nil {
-		return resources.RunStatusErrored
+		return domain.RunStatusErrored
 	}
 	return status
 }

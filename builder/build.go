@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/maddalax/htmgo/framework/service"
 	"log/slog"
+	"paas/domain"
 	"paas/kv"
 	"paas/kv/subject"
 	"paas/resources"
@@ -14,7 +15,7 @@ import (
 var builderLock = sync.Mutex{}
 
 type ResourceBuilder struct {
-	Resource          *resources.Resource
+	Resource          *domain.Resource
 	BuildId           string
 	ServiceLocator    *service.Locator
 	NatsClient        *kv.Client
@@ -24,13 +25,13 @@ type ResourceBuilder struct {
 	LogBuildMessage    func(message string)
 	LogBuildError      func(err error)
 	LogRunMessage      func(message string)
-	UpdateDeployStatus func(status resources.DeploymentStatus)
+	UpdateDeployStatus func(status domain.DeploymentStatus)
 	PendingCancel      bool
 	CancelBuildFunc    func() error
 	Finished           bool
 }
 
-func NewResourceBuilder(serviceLocator *service.Locator, resource *resources.Resource, buildId string) *ResourceBuilder {
+func NewResourceBuilder(serviceLocator *service.Locator, resource *domain.Resource, buildId string) *ResourceBuilder {
 	builderLock.Lock()
 	defer builderLock.Unlock()
 	// Only want one builder per resource and buildId
@@ -55,8 +56,8 @@ func NewResourceBuilder(serviceLocator *service.Locator, resource *resources.Res
 		LogRunMessage: func(message string) {
 			natsClient.LogRunMessage(resource.Id, message)
 		},
-		UpdateDeployStatus: func(status resources.DeploymentStatus) {
-			err := resources.UpdateDeploymentStatus(serviceLocator, resources.UpdateDeploymentStatusRequest{
+		UpdateDeployStatus: func(status domain.DeploymentStatus) {
+			err := resources.UpdateDeploymentStatus(serviceLocator, domain.UpdateDeploymentStatusRequest{
 				ResourceId: resource.Id,
 				BuildId:    buildId,
 				Status:     status,
@@ -98,7 +99,7 @@ func (b *ResourceBuilder) ClearLogs() {
 
 func (b *ResourceBuilder) BuildError(err error) error {
 	b.LogBuildError(err)
-	b.UpdateDeployStatus(resources.DeploymentStatusFailed)
+	b.UpdateDeployStatus(domain.DeploymentStatusFailed)
 	return err
 }
 
@@ -117,7 +118,7 @@ func (b *ResourceBuilder) Build() error {
 	b.BuildOutputStream = b.NatsClient.NewNatsWriter(subject.BuildLogForResource(b.Resource.Id, b.BuildId))
 	b.RunOutputStream = b.NatsClient.NewEphemeralNatsWriter(subject.RunLogsForResource(b.Resource.Id))
 
-	err = resources.CreateDeployment(b.ServiceLocator, resources.CreateDeploymentRequest{
+	err = resources.CreateDeployment(b.ServiceLocator, domain.CreateDeploymentRequest{
 		ResourceId: b.Resource.Id,
 		BuildId:    b.BuildId,
 	})
@@ -126,7 +127,7 @@ func (b *ResourceBuilder) Build() error {
 		return b.BuildError(err)
 	}
 
-	b.UpdateDeployStatus(resources.DeploymentStatusPending)
+	b.UpdateDeployStatus(domain.DeploymentStatusPending)
 
 	go func() {
 		for {
@@ -147,7 +148,7 @@ func (b *ResourceBuilder) Build() error {
 	}()
 
 	switch bm := b.Resource.BuildMeta.(type) {
-	case *resources.DockerBuildMeta:
+	case *domain.DockerBuildMeta:
 		return b.runDockerImageBuilder(bm)
 	default:
 		return errors.New("unknown build type")

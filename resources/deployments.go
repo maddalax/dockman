@@ -2,38 +2,12 @@ package resources
 
 import (
 	"github.com/maddalax/htmgo/framework/service"
+	"paas/domain"
 	"paas/kv"
 	"time"
 )
 
-type DeploymentStatus string
-
-const (
-	DeploymentStatusPending   DeploymentStatus = "pending"
-	DeploymentStatusRunning   DeploymentStatus = "running"
-	DeploymentStatusSucceeded DeploymentStatus = "succeeded"
-	DeploymentStatusFailed    DeploymentStatus = "failed"
-)
-
-type CreateDeploymentRequest struct {
-	ResourceId string
-	BuildId    string
-}
-
-type UpdateDeploymentStatusRequest struct {
-	ResourceId string
-	BuildId    string
-	Status     DeploymentStatus
-}
-
-type Deployment struct {
-	ResourceId string
-	CreatedAt  time.Time
-	BuildId    string
-	Status     DeploymentStatus
-}
-
-func UpdateDeploymentStatus(locator *service.Locator, request UpdateDeploymentStatusRequest) error {
+func UpdateDeploymentStatus(locator *service.Locator, request domain.UpdateDeploymentStatusRequest) error {
 	deployment, err := GetDeployment(locator, request.ResourceId, request.BuildId)
 	if err != nil {
 		return err
@@ -42,7 +16,7 @@ func UpdateDeploymentStatus(locator *service.Locator, request UpdateDeploymentSt
 	return SetDeployment(locator, *deployment)
 }
 
-func SetDeployment(locator *service.Locator, deployment Deployment) error {
+func SetDeployment(locator *service.Locator, deployment domain.Deployment) error {
 	client := service.Get[kv.Client](locator)
 
 	bucket, _ := client.GetResourceDeployBucket(deployment.ResourceId)
@@ -56,7 +30,7 @@ func SetDeployment(locator *service.Locator, deployment Deployment) error {
 	return nil
 }
 
-func GetDeployments(locator *service.Locator, resourceId string) ([]Deployment, error) {
+func GetDeployments(locator *service.Locator, resourceId string) ([]domain.Deployment, error) {
 	client := service.Get[kv.Client](locator)
 	bucket, err := client.GetResourceDeployBucket(resourceId)
 
@@ -70,7 +44,7 @@ func GetDeployments(locator *service.Locator, resourceId string) ([]Deployment, 
 		return nil, err
 	}
 
-	var mapped []Deployment
+	var mapped []domain.Deployment
 
 	for buildId := range buildIds.Keys() {
 		value, err := bucket.Get(buildId)
@@ -78,7 +52,7 @@ func GetDeployments(locator *service.Locator, resourceId string) ([]Deployment, 
 			continue
 		}
 		json := string(value.Value())
-		d := kv.MustMapStringToStructure[Deployment](json)
+		d := kv.MustMapStringToStructure[domain.Deployment](json)
 		if d == nil {
 			continue
 		}
@@ -88,7 +62,7 @@ func GetDeployments(locator *service.Locator, resourceId string) ([]Deployment, 
 	return mapped, nil
 }
 
-func GetDeployment(locator *service.Locator, resourceId string, buildId string) (*Deployment, error) {
+func GetDeployment(locator *service.Locator, resourceId string, buildId string) (*domain.Deployment, error) {
 	client := service.Get[kv.Client](locator)
 	bucket, err := client.GetResourceDeployBucket(resourceId)
 
@@ -102,16 +76,16 @@ func GetDeployment(locator *service.Locator, resourceId string, buildId string) 
 	}
 
 	json := string(build.Value())
-	d := kv.MustMapStringToStructure[Deployment](json)
+	d := kv.MustMapStringToStructure[domain.Deployment](json)
 
 	return d, nil
 }
 
-func CreateDeployment(locator *service.Locator, request CreateDeploymentRequest) error {
-	return SetDeployment(locator, Deployment{
+func CreateDeployment(locator *service.Locator, request domain.CreateDeploymentRequest) error {
+	return SetDeployment(locator, domain.Deployment{
 		ResourceId: request.ResourceId,
 		CreatedAt:  time.Now(),
 		BuildId:    request.BuildId,
-		Status:     DeploymentStatusPending,
+		Status:     domain.DeploymentStatusPending,
 	})
 }

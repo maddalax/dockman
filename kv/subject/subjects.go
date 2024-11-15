@@ -13,3 +13,6 @@ func RunLogsForResource(id string) string {
 }
 
 var ResourceCreated = "resource.created"
+var ResourceStopped = "resource.stopped"
+var ResourceStarted = "resource.started"
+var ResourcePatched = "resource.patched"

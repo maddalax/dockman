@@ -1,22 +1,26 @@
 package resources
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"
+	"paas/domain"
 	"paas/history"
+	"paas/kv"
 	"paas/kv/subject"
 )
 
 type CreateOptions struct {
 	Name        string            `json:"name"`
 	Environment string            `json:"environment"`
-	RunType     RunType           `json:"run_type"`
+	RunType     domain.RunType    `json:"run_type"`
 	BuildMeta   any               `json:"build_meta"`
 	Env         map[string]string `json:"env"`
 }
 
 func Create(locator *service.Locator, options CreateOptions) (string, error) {
-	resource := NewResource(uuid.NewString())
+	client := service.Get[kv.Client](locator)
+	resource := domain.NewResource(uuid.NewString())
 
 	resource.Name = options.Name
 	resource.Environment = options.Environment
@@ -40,7 +44,42 @@ func Create(locator *service.Locator, options CreateOptions) (string, error) {
 		}
 	}
 
-	err := resource.Create(locator)
+	bucket, _ := client.GetBucket(resource.BucketKey())
+
+	if bucket != nil {
+		return "", fmt.Errorf("resource already exists")
+	}
+
+	bucket, err := client.GetOrCreateBucket(resource.BucketKey())
+
+	if err != nil {
+		return "", err
+	}
+
+	err = kv.AtomicPutMany(bucket, func(m map[string]any) error {
+		m["id"] = resource.Id
+		m["environment"] = resource.Environment
+		m["run_type"] = resource.RunType
+		m["build_meta"] = resource.BuildMeta
+		m["name"] = resource.Name
+		for k, v := range resource.Env {
+			m[fmt.Sprintf("env/%s", k)] = v
+		}
+		return nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	bucket, err = client.GetOrCreateBucket("resources")
+
+	if err != nil {
+		return "", err
+	}
+
+	// add it to the resources bucket for listing
+	_, err = bucket.Create(resource.Id, []byte{})
 
 	if err != nil {
 		return "", err

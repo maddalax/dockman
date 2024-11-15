@@ -2,13 +2,14 @@ package resourceui
 
 import (
 	"github.com/maddalax/htmgo/framework/h"
+	"paas/domain"
 	"paas/pages"
 	"paas/resources"
 	"paas/ui"
 	"paas/urls"
 )
 
-func Page(ctx *h.RequestContext, children func(resource *resources.Resource) *h.Element) *h.Page {
+func Page(ctx *h.RequestContext, children func(resource *domain.Resource) *h.Element) *h.Page {
 	id := ctx.QueryParam("id")
 	resource, err := resources.Get(ctx.ServiceLocator(), id)
 
@@ -27,7 +28,7 @@ func Page(ctx *h.RequestContext, children func(resource *resources.Resource) *h.
 	)
 }
 
-func PageHeader(ctx *h.RequestContext, resource *resources.Resource) *h.Element {
+func PageHeader(ctx *h.RequestContext, resource *domain.Resource) *h.Element {
 	return h.Div(
 		h.Class("flex flex-col gap-6"),
 		h.Div(
@@ -42,7 +43,7 @@ func PageHeader(ctx *h.RequestContext, resource *resources.Resource) *h.Element 
 	)
 }
 
-func ResourceStatusContainer(resource *resources.Resource) *h.Element {
+func ResourceStatusContainer(resource *domain.Resource) *h.Element {
 	return h.Div(
 		h.Id("resource-status"),
 		h.Class("flex gap-2 absolute -top-3 right-0"),
@@ -50,10 +51,10 @@ func ResourceStatusContainer(resource *resources.Resource) *h.Element {
 	)
 }
 
-func ResourceStatus(resource *resources.Resource) *h.Element {
-	if resource.RunStatus == resources.RunStatusRunning {
+func ResourceStatus(resource *domain.Resource) *h.Element {
+	if resource.RunStatus == domain.RunStatusRunning {
 		return ui.PrimaryButton(ui.ButtonProps{
-			// TODO
+			Post: h.GetPartialPathWithQs(StopResource, h.NewQs("id", resource.Id)),
 			Text: "Stop Resource",
 		})
 	}
@@ -64,7 +65,7 @@ func ResourceStatus(resource *resources.Resource) *h.Element {
 	})
 }
 
-func TopTabs(ctx *h.RequestContext, resource *resources.Resource, props ui.LinkTabsProps) *h.Element {
+func TopTabs(ctx *h.RequestContext, resource *domain.Resource, props ui.LinkTabsProps) *h.Element {
 	props.Links = []ui.Link{
 		{
 			Text: "Overview",

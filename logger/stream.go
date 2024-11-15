@@ -7,16 +7,16 @@ import (
 	"github.com/nats-io/nats.go"
 	"io"
 	"paas/docker"
+	"paas/domain"
 	"paas/kv"
 	"paas/kv/subject"
-	"paas/resources"
 )
 
 type StreamLogsOptions struct {
 	Stdout io.Writer
 }
 
-func StreamLogs(locator *service.Locator, context context.Context, resource *resources.Resource, cb func(msg *nats.Msg)) *kv.WriterSubscriber {
+func StreamLogs(locator *service.Locator, context context.Context, resource *domain.Resource, cb func(msg *nats.Msg)) *kv.WriterSubscriber {
 	natsClient := kv.GetClientFromLocator(locator)
 	writer := natsClient.CreateEphemeralWriterSubscriber(context, subject.RunLogsForResource(resource.Id))
 
@@ -32,14 +32,14 @@ func StreamLogs(locator *service.Locator, context context.Context, resource *res
 	}()
 
 	switch resource.BuildMeta.(type) {
-	case *resources.DockerBuildMeta:
+	case *domain.DockerBuildMeta:
 		streamDockerLogs(resource, writer)
 	}
 
 	return writer
 }
 
-func streamDockerLogs(resource *resources.Resource, writer *kv.WriterSubscriber) {
+func streamDockerLogs(resource *domain.Resource, writer *kv.WriterSubscriber) {
 	client, err := docker.Connect()
 	if err != nil {
 		writer.Writer.Write([]byte(err.Error()))

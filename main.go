@@ -45,54 +45,12 @@ func main() {
 
 	go m.StartRunStatusMonitor()
 
-	//go func() {
-	//	client, err := docker.Connect()
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//
-	//	outputStream := natsClient.NewNatsWriter(kv.BuildLogStreamSubject)
-	//	err = client.Build(outputStream, ".", types.ImageBuildOptions{
-	//		Dockerfile: "Dockerfile",
-	//	})
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//}()
-
-	//err = resources.Create(locator, resources.CreateOptions{
-	//	Name:        "htmgo-" + uuid.NewString()[0:4],
-	//	Environment: "dev",
-	//	RunType:     resources.RunTypeDockerBuild,
-	//	BuildMeta: resources.DockerBuildMeta{
-	//		Dockerfile: "Dockerfile",
-	//		Tags:       []string{"test", "test2"},
-	//	},
-	//	Env: []resources.Env{
-	//		{
-	//			Key:   "TEST",
-	//			Value: "test",
-	//		},
-	//		{
-	//			Key:   "TEST2",
-	//			Value: "test2",
-	//		},
-	//	},
-	//})
-	//
-	//if err != nil {
-	//	panic(err)
-	//}
-
 	h.Start(h.AppOpts{
 		ServiceLocator: locator,
 		LiveReload:     true,
 		Register: func(app *h.App) {
 
 			app.Use(func(ctx *h.RequestContext) {
-				host := ctx.Request.Host
-				fmt.Printf("Host: %s\n", host)
-
 				session.CreateSession(ctx)
 			})
 

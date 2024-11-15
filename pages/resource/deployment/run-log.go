@@ -5,6 +5,7 @@ import (
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
+	"paas/domain"
 	"paas/logger"
 	"paas/pages/resource/resourceui"
 	"paas/resources"
@@ -28,7 +29,7 @@ func RunLog(ctx *h.RequestContext) *h.Page {
 		})
 	})
 
-	return resourceui.Page(ctx, func(resource *resources.Resource) *h.Element {
+	return resourceui.Page(ctx, func(resource *domain.Resource) *h.Element {
 		return h.Div(
 			h.Class("h-[500px]"),
 			ui.LogBody(ui.LogBodyOptions{

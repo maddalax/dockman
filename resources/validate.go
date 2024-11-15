@@ -1,13 +1,16 @@
 package resources
 
 import (
+	"bufio"
 	"errors"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/storage/memory"
 	"os"
+	"paas/domain"
 	"path/filepath"
+	"strings"
 )
 
 type Validator interface {
@@ -15,7 +18,7 @@ type Validator interface {
 }
 
 type RequiredFieldsValidator struct {
-	resource *Resource
+	resource *domain.Resource
 }
 
 func (v RequiredFieldsValidator) Validate() error {
@@ -27,7 +30,7 @@ func (v RequiredFieldsValidator) Validate() error {
 		return errors.New("environment is required")
 	}
 
-	if v.resource.RunType == RunTypeUnknown {
+	if v.resource.RunType == domain.RunTypeUnknown {
 		return errors.New("run type is required")
 	}
 
@@ -42,7 +45,7 @@ func (v BuildMetaValidator) Validate() error {
 	var validators []Validator
 
 	switch m := v.meta.(type) {
-	case DockerBuildMeta:
+	case domain.DockerBuildMeta:
 		validators = []Validator{
 			GithubRepositoryValidator{
 				RepositoryUrl: m.RepositoryUrl,
@@ -101,7 +104,7 @@ func (v GithubRepositoryValidator) Validate() error {
 
 	if v.Dockerfile != "" {
 		clone, err := Clone(CloneRequest{
-			Meta: &DockerBuildMeta{
+			Meta: &domain.DockerBuildMeta{
 				RepositoryUrl:     v.RepositoryUrl,
 				Dockerfile:        v.Dockerfile,
 				GithubAccessToken: v.AccessToken,
@@ -136,5 +139,16 @@ func (v ValidDockerFileValidator) Validate() error {
 		return errors.New("dockerfile not found, please ensure the path is correct and is relative from the repository root")
 	}
 
-	return nil
+	// validate it's a valid dockerfile with a quick check
+	file, err := os.Open(dockerfilePath)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		// all good
+		if strings.HasPrefix(strings.ToLower(line), "from") {
+			return nil
+		}
+	}
+
+	return errors.New("found the specified Dockerfile but it didn't appear to be a valid Dockerfile")
 }

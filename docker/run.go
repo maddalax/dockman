@@ -9,7 +9,7 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
 	"io"
-	"paas/resources"
+	"paas/domain"
 	"strconv"
 )
 
@@ -19,12 +19,17 @@ type RunOptions struct {
 	KillExisting bool
 }
 
-func (c *Client) GetContainer(resource *resources.Resource) (types.ContainerJSON, error) {
+func (c *Client) GetContainer(resource *domain.Resource) (types.ContainerJSON, error) {
 	containerName := fmt.Sprintf("%s-%s-container", resource.Name, resource.Id)
 	return c.cli.ContainerInspect(context.Background(), containerName)
 }
 
-func (c *Client) Run(resource *resources.Resource, opts RunOptions) error {
+func (c *Client) Stop(resource *domain.Resource) error {
+	containerName := fmt.Sprintf("%s-%s-container", resource.Name, resource.Id)
+	return c.cli.ContainerStop(context.Background(), containerName, container.StopOptions{})
+}
+
+func (c *Client) Run(resource *domain.Resource, opts RunOptions) error {
 	ctx := context.Background()
 	imageName := fmt.Sprintf("%s-%s", resource.Name, resource.Id)
 	containerName := fmt.Sprintf("%s-%s-container", resource.Name, resource.Id)

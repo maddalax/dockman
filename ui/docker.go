@@ -6,14 +6,14 @@ import (
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
 	"paas/builder"
+	"paas/domain"
 	"paas/kv"
 	"paas/kv/subject"
-	"paas/resources"
 	"paas/urls"
 	"paas/wsutil"
 )
 
-func DockerBuildLogs(ctx *h.RequestContext, resource *resources.Resource, buildId string) *h.Element {
+func DockerBuildLogs(ctx *h.RequestContext, resource *domain.Resource, buildId string) *h.Element {
 	natsClient := kv.GetClientFromCtx(ctx)
 
 	wsutil.OnceWithAliveContext(ctx, func(context context.Context) {

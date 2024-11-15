@@ -2,23 +2,24 @@ package resources
 
 import (
 	"github.com/nats-io/nats.go"
+	"paas/domain"
 	"paas/kv"
 )
 
-func MapToResource(bucket nats.KeyValue) (*Resource, error) {
-	resource, err := kv.MustMapAllInto[Resource](bucket)
+func MapToResource(bucket nats.KeyValue) (*domain.Resource, error) {
+	resource, err := kv.MustMapAllInto[domain.Resource](bucket)
 
 	if err != nil {
 		return nil, err
 	}
 
 	switch resource.RunType {
-	case RunTypeDockerBuild:
-		resource.BuildMeta = kv.MustMapStringToStructure[DockerBuildMeta](resource.BuildMeta.(string))
-	case RunTypeDockerRegistry:
-		resource.BuildMeta = kv.MustMapStringToStructure[DockerRegistryMeta](resource.BuildMeta.(string))
+	case domain.RunTypeDockerBuild:
+		resource.BuildMeta = kv.MustMapStringToStructure[domain.DockerBuildMeta](resource.BuildMeta.(string))
+	case domain.RunTypeDockerRegistry:
+		resource.BuildMeta = kv.MustMapStringToStructure[domain.DockerRegistryMeta](resource.BuildMeta.(string))
 	default:
-		resource.BuildMeta = EmptyBuildMeta{}
+		resource.BuildMeta = domain.EmptyBuildMeta{}
 	}
 
 	return resource, nil

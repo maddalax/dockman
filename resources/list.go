@@ -2,6 +2,7 @@ package resources
 
 import (
 	"github.com/maddalax/htmgo/framework/service"
+	"paas/domain"
 	"paas/kv"
 )
 
@@ -34,10 +35,10 @@ func GetNames(locator *service.Locator) []ResourceName {
 
 }
 
-func List(locator *service.Locator) ([]*Resource, error) {
+func List(locator *service.Locator) ([]*domain.Resource, error) {
 	client := service.Get[kv.Client](locator)
 	bucket, err := client.GetBucket("resources")
-	resources := make([]*Resource, 0)
+	resources := make([]*domain.Resource, 0)
 
 	if err != nil {
 		return nil, err

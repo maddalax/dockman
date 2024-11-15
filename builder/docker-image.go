@@ -6,11 +6,12 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/maddalax/htmgo/framework/h"
 	"paas/docker"
+	"paas/domain"
 	"paas/resources"
 	"paas/urls"
 )
 
-func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *resources.DockerBuildMeta) error {
+func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *domain.DockerBuildMeta) error {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	defer func() {
@@ -25,7 +26,7 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *resources.DockerBuild
 		return b.BuildError(err)
 	}
 
-	b.UpdateDeployStatus(resources.DeploymentStatusRunning)
+	b.UpdateDeployStatus(domain.DeploymentStatusRunning)
 
 	result, err := resources.Clone(resources.CloneRequest{
 		Meta:     buildMeta,
@@ -90,7 +91,7 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *resources.DockerBuild
 		),
 	)
 
-	b.UpdateDeployStatus(resources.DeploymentStatusSucceeded)
+	b.UpdateDeployStatus(domain.DeploymentStatusSucceeded)
 
 	return nil
 }
