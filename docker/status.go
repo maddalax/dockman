@@ -19,9 +19,6 @@ func (c *Client) GetRunStatus(resource *domain.Resource) (domain.RunStatus, erro
 		if inspect.State.Running {
 			return domain.RunStatusRunning, nil
 		}
-		if inspect.State.ExitCode != 0 {
-			return domain.RunStatusErrored, nil
-		}
 		return domain.RunStatusNotRunning, nil
 	}
 

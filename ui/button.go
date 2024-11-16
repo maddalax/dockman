@@ -84,7 +84,17 @@ func SubmitButton(props SubmitButtonProps) *h.Element {
 		"rounded items-center px-3 py-2 border-slate-800 bg-slate-900 hover:bg-slate-800 text-white w-full text-center", props.Class)
 
 	return h.Div(
-		h.HxBeforeRequest(
+		h.OnLoad(
+			h.EvalJs(`
+			if(self.form) {
+			console.log(self.form)
+       self.form.addEventListener('submit', function() {
+         self.onclick(new MouseEvent('click'));
+       })
+      }
+     `),
+		),
+		h.OnClick(
 			js.RemoveClassOnChildren(".loading", "hidden"),
 			js.SetClassOnChildren(".submit", "hidden"),
 		),

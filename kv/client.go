@@ -156,15 +156,11 @@ func (c *Client) GetBucket(bucket string) (nats.KeyValue, error) {
 	})
 }
 
-func (c *Client) GetOrCreateBucket(bucket string) (nats.KeyValue, error) {
-	b, err := c.GetBucketWithConfig(&nats.KeyValueConfig{
-		Bucket: bucket,
-	})
+func (c *Client) GetOrCreateBucket(config *nats.KeyValueConfig) (nats.KeyValue, error) {
+	b, err := c.GetBucketWithConfig(config)
 	if err != nil {
 		if errors.Is(err, nats.ErrBucketNotFound) {
-			b, err = c.CreateBucket(&nats.KeyValueConfig{
-				Bucket: bucket,
-			})
+			b, err = c.CreateBucket(config)
 			return b, err
 		}
 	}

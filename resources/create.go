@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"
+	"github.com/nats-io/nats.go"
 	"paas/domain"
 	"paas/history"
 	"paas/kv"
@@ -50,7 +51,9 @@ func Create(locator *service.Locator, options CreateOptions) (string, error) {
 		return "", fmt.Errorf("resource already exists")
 	}
 
-	bucket, err := client.GetOrCreateBucket(resource.BucketKey())
+	bucket, err := client.GetOrCreateBucket(&nats.KeyValueConfig{
+		Bucket: resource.BucketKey(),
+	})
 
 	if err != nil {
 		return "", err
@@ -72,7 +75,9 @@ func Create(locator *service.Locator, options CreateOptions) (string, error) {
 		return "", err
 	}
 
-	bucket, err = client.GetOrCreateBucket("resources")
+	bucket, err = client.GetOrCreateBucket(&nats.KeyValueConfig{
+		Bucket: "resources",
+	})
 
 	if err != nil {
 		return "", err

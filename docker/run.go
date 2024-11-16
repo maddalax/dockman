@@ -2,7 +2,6 @@ package docker
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -102,11 +101,11 @@ func (c *Client) Run(resource *domain.Resource, opts RunOptions) error {
 	if err != nil {
 		switch err.(type) {
 		case errdefs.ErrNotFound:
-			return errors.New("image not found, please build the resource first")
+			return domain.ResourceNotFoundError
 		case errdefs.ErrConflict:
 			// container already exists, it failed to get killed for some reason
 			if opts.RemoveExisting {
-				return errors.New("container already exists, please stop it first")
+				return domain.ContainerExistsError
 			} else {
 				// we don't want to remove existing, so lets run the current one
 				err = nil

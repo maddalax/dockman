@@ -2,11 +2,11 @@ package util
 
 import "time"
 
-func WaitFor(timeout time.Duration, predicate func() bool) bool {
+func WaitFor(timeout time.Duration, interval time.Duration, predicate func() bool) bool {
 	timer := time.NewTimer(timeout)
 	defer timer.Stop()
 
-	ticker := time.NewTicker(200 * time.Millisecond)
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {

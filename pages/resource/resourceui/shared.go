@@ -22,7 +22,9 @@ func Page(ctx *h.RequestContext, children func(resource *domain.Resource) *h.Ele
 		ctx,
 		h.Div(
 			h.Class("flex flex-col gap-2 px-8"),
-			PageHeader(ctx, resource),
+			h.Div(
+				h.GetPartialWithQs(GetStatusPartial, h.NewQs("id", resource.Id), "load, every 3s"),
+			),
 			children(resource),
 		),
 	)
@@ -31,14 +33,19 @@ func Page(ctx *h.RequestContext, children func(resource *domain.Resource) *h.Ele
 func PageHeader(ctx *h.RequestContext, resource *domain.Resource) *h.Element {
 	return h.Div(
 		h.Class("flex flex-col gap-6"),
+		h.Id("resource-page-header"),
 		h.Div(
-			h.Class("flex gap-2 justify-between items-center"),
+			h.Class("flex gap-2 items-center"),
 			h.H3F("%s", resource.Name, h.Class("text-2xl")),
+			h.Div(
+				h.Class("ml-0.5 mt-1"),
+				ui.StatusIndicator(ui.StatusIndicatorProps{
+					IsRunning: resource.RunStatus == domain.RunStatusRunning,
+				}),
+			),
 		),
 		TopTabs(ctx, resource, ui.LinkTabsProps{
-			End: h.Div(
-				h.GetPartialWithQs(GetStatusPartial, h.NewQs("id", resource.Id), "load"),
-			),
+			End: ResourceStatusContainer(resource),
 		}),
 	)
 }
@@ -52,19 +59,43 @@ func ResourceStatusContainer(resource *domain.Resource) *h.Element {
 }
 
 func ResourceStatus(resource *domain.Resource) *h.Element {
-	if resource.RunStatus == domain.RunStatusRunning {
-		return ui.SubmitButton(ui.SubmitButtonProps{
-			Post:           h.GetPartialPathWithQs(StopResource, h.NewQs("id", resource.Id)),
-			SubmittingText: "Stopping...",
-			Text:           "Stop Resource",
-		})
-	}
+	runnable := resources.IsRunnable(resource)
 
-	return ui.SubmitButton(ui.SubmitButtonProps{
-		Text:           "Start Resource",
-		SubmittingText: "Starting...",
-		Post:           h.GetPartialPathWithQs(StartResource, h.NewQs("id", resource.Id)),
+	var deployButton = ui.SecondaryButton(ui.ButtonProps{
+		Href: urls.ResourceStartDeploymentPath(resource.Id, ""),
+		Text: "Deploy Resource",
 	})
+
+	var stopButton = ui.SubmitButton(ui.SubmitButtonProps{
+		Post:           h.GetPartialPathWithQs(StopResource, h.NewQs("id", resource.Id)),
+		SubmittingText: "Stopping...",
+		Text:           "Stop",
+	})
+
+	var redeployButton = ui.PrimaryButton(ui.ButtonProps{
+		Href: urls.ResourceStartDeploymentPath(resource.Id, ""),
+		Text: "Redeploy",
+	})
+
+	var startButton = ui.SubmitButton(ui.SubmitButtonProps{
+		Post:           h.GetPartialPathWithQs(StartResource, h.NewQs("id", resource.Id)),
+		SubmittingText: "Starting...",
+		Text:           "Start",
+	})
+
+	var restartButton = ui.SubmitButton(ui.SubmitButtonProps{
+		Post:           h.GetPartialPathWithQs(RestartResource, h.NewQs("id", resource.Id)),
+		SubmittingText: "Restarting...",
+		Text:           "Restart",
+	})
+
+	return h.Div(
+		h.Class("flex gap-2 w-full"),
+		h.IfElse(!runnable, deployButton, redeployButton),
+		h.If(resource.RunStatus == domain.RunStatusRunning, stopButton),
+		h.If(resource.RunStatus == domain.RunStatusRunning, restartButton),
+		h.If(resource.RunStatus != domain.RunStatusRunning && runnable, startButton),
+	)
 }
 
 func TopTabs(ctx *h.RequestContext, resource *domain.Resource, props ui.LinkTabsProps) *h.Element {

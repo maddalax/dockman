@@ -6,5 +6,7 @@ import (
 )
 
 func (c *Client) GetResourceDeployBucket(resourceId string) (nats.KeyValue, error) {
-	return c.GetOrCreateBucket(fmt.Sprintf("resources-%s-deploys", resourceId))
+	return c.GetOrCreateBucket(&nats.KeyValueConfig{
+		Bucket: fmt.Sprintf("resources-%s-deploys", resourceId),
+	})
 }

@@ -21,7 +21,7 @@ func (c *Client) StreamLogs(containerId string, ctx context.Context, opts Stream
 		ShowStderr: true,
 		Follow:     true,
 		Tail:       "1000",
-		Timestamps: true,
+		Timestamps: false,
 	}
 
 	if !opts.Since.IsZero() {

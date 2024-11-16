@@ -68,11 +68,11 @@ func (monitor *Monitor) GetRunStatus(resource *domain.Resource) domain.RunStatus
 func getRunStatusDocker(resource *domain.Resource) domain.RunStatus {
 	client, err := docker.Connect()
 	if err != nil {
-		return domain.RunStatusErrored
+		return domain.RunStatusNotRunning
 	}
 	status, err := client.GetRunStatus(resource)
 	if err != nil {
-		return domain.RunStatusErrored
+		return domain.RunStatusNotRunning
 	}
 	return status
 }

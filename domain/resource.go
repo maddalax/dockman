@@ -22,7 +22,6 @@ const (
 	RunStatusUnknown RunStatus = iota
 	RunStatusNotRunning
 	RunStatusRunning
-	RunStatusErrored
 )
 
 func NewResource(id string) *Resource {

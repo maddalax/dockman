@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"errors"
 	"github.com/maddalax/htmgo/framework/service"
 	"log/slog"
 	"paas/domain"
@@ -140,7 +139,7 @@ func (b *ResourceBuilder) Build() error {
 				if err != nil {
 					b.LogBuildError(err)
 				}
-				b.LogBuildError(errors.New("build cancelled"))
+				b.LogBuildError(domain.BuildCancelledError)
 				return
 			}
 			time.Sleep(time.Millisecond * 250)
@@ -151,7 +150,7 @@ func (b *ResourceBuilder) Build() error {
 	case *domain.DockerBuildMeta:
 		return b.runDockerImageBuilder(bm)
 	default:
-		return errors.New("unknown build type")
+		return domain.UnknownBuildTypeError
 	}
 }
 
