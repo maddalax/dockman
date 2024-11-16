@@ -87,16 +87,23 @@ func SubmitButton(props SubmitButtonProps) *h.Element {
 
 	return h.Div(
 		h.OnLoad(
+			// language=JavaScript
 			h.EvalJs(`
-			if(self.form) {
-			console.log(self.form)
-       self.form.addEventListener('submit', function() {
-         self.onclick(new MouseEvent('click'));
+		  let form = self.closest('form');
+      let startLoader = new Function(self.dataset.startLoader);
+			if(form) {
+       form.addEventListener('submit', function() {
+         startLoader.call(self);
        })
+      } else {
+         // if the button is not in a form, we need to manually trigger the click event
+	       self.addEventListener('click', function() {
+           startLoader.call(self);
+         })
       }
      `),
 		),
-		h.OnClick(
+		h.OnEvent("data-start-loader",
 			js.RemoveClassOnChildren(".loading", "hidden"),
 			js.SetClassOnChildren(".submit", "hidden"),
 		),

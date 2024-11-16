@@ -223,8 +223,8 @@ func block(props blockProps) *h.Element {
 						Value:    props.pathMatchModifier,
 						Items: []ui.Item{
 							{
-								Value: "is",
-								Text:  "is",
+								Value: "equals",
+								Text:  "equals",
 							},
 							{
 								Value: "glob",
