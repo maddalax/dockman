@@ -2,6 +2,7 @@ package pages
 
 import (
 	"github.com/maddalax/htmgo/framework/h"
+	"github.com/maddalax/htmgo/framework/js"
 	"paas/ui"
 	"strings"
 )
@@ -102,36 +103,186 @@ func Link(text string, href string, additionalClasses ...string) *h.Element {
 	)
 }
 
+func NavBar() *h.Element {
+
+	var OpenMobileSidebarButton = h.Button(
+		h.OnClick(
+			js.EvalCommandsOnSelector("#mobile-sidebar", js.AddClass("relative"), js.RemoveClass("hidden")),
+		),
+		h.Type("button"),
+		h.Class("-m-2.5 p-2.5 text-gray-700 lg:hidden"),
+		h.Span(
+			h.Class("sr-only"),
+			h.Text("Open sidebar"),
+		),
+		h.Svg(
+			h.Class("size-6"),
+			h.Attribute("fill", "none"),
+			h.Attribute("viewBox", "0 0 24 24"),
+			h.Attribute("stroke-width", "1.5"),
+			h.Attribute("stroke", "currentColor"),
+			h.Attribute("aria-hidden", "true"),
+			h.Attribute("data-slot", "icon"),
+			h.Path(
+				h.Attribute("stroke-linecap", "round"),
+				h.Attribute("stroke-linejoin", "round"),
+				h.Attribute("d", "M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"),
+			),
+		),
+	)
+
+	return h.Div(
+		h.Class("sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8"),
+		OpenMobileSidebarButton,
+		h.Div(
+			h.Class("h-6 w-px bg-gray-200 lg:hidden"),
+			h.Attribute("aria-hidden", "true"),
+		),
+		SearchBar(),
+	)
+}
+
+func SearchBar() *h.Element {
+	return h.Div(
+		h.Class("flex flex-1 gap-x-4 self-stretch lg:gap-x-6"),
+		h.Form(
+			h.Class("relative flex flex-1"),
+			h.Action("#"),
+			h.Method("GET"),
+			h.Label(
+				h.For("search-field"),
+				h.Class("sr-only"),
+				h.Text("Search"),
+			),
+			h.Svg(
+				h.Class("pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-gray-400"),
+				h.Attribute("viewBox", "0 0 20 20"),
+				h.Attribute("fill", "currentColor"),
+				h.Attribute("aria-hidden", "true"),
+				h.Attribute("data-slot", "icon"),
+				h.Path(
+					h.Attribute("fill-rule", "evenodd"),
+					h.Attribute("d", "M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z"),
+					h.Attribute("clip-rule", "evenodd"),
+				),
+			),
+			h.Input(
+				"search",
+				h.Id("search-field"),
+				h.Class("block size-full border-0 py-0 pl-8 pr-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"),
+				h.Placeholder("Search..."),
+				h.Name("search"),
+			),
+		),
+		h.Div(
+			h.Class("flex items-center gap-x-4 lg:gap-x-6"),
+			h.Button(
+				h.Type("button"),
+				h.Class("-m-2.5 p-2.5 text-gray-400 hover:text-gray-500"),
+				h.Span(
+					h.Class("sr-only"),
+					h.Text("View notifications"),
+				),
+				h.Svg(
+					h.Class("size-6"),
+					h.Attribute("fill", "none"),
+					h.Attribute("viewBox", "0 0 24 24"),
+					h.Attribute("stroke-width", "1.5"),
+					h.Attribute("stroke", "currentColor"),
+					h.Attribute("aria-hidden", "true"),
+					h.Attribute("data-slot", "icon"),
+					h.Path(
+						h.Attribute("stroke-linecap", "round"),
+						h.Attribute("stroke-linejoin", "round"),
+						h.Attribute("d", "M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"),
+					),
+				),
+			),
+			h.Div(
+				h.Class("hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200"),
+				h.Attribute("aria-hidden", "true"),
+			),
+			h.Div(
+				h.Class("relative"),
+				h.Button(
+					h.Type("button"),
+					h.Class("-m-1.5 flex items-center p-1.5"),
+					h.Id("user-menu-button"),
+					h.Attribute("aria-expanded", "false"),
+					h.Attribute("aria-haspopup", "true"),
+					h.Span(
+						h.Class("sr-only"),
+						h.Text("Open user menu"),
+					),
+					h.Img(
+						h.Class("size-8 rounded-full bg-gray-50"),
+						h.Src("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"),
+						h.Alt(""),
+					),
+					h.Span(
+						h.Class("hidden lg:flex lg:items-center"),
+						h.Span(
+							h.Class("ml-4 text-sm/6 font-semibold text-gray-900"),
+							h.Attribute("aria-hidden", "true"),
+							h.Text("Tom Cook"),
+						),
+						h.Svg(
+							h.Class("ml-2 size-5 text-gray-400"),
+							h.Attribute("viewBox", "0 0 20 20"),
+							h.Attribute("fill", "currentColor"),
+							h.Attribute("aria-hidden", "true"),
+							h.Attribute("data-slot", "icon"),
+							h.Path(
+								h.Attribute("fill-rule", "evenodd"),
+								h.Attribute("d", "M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"),
+								h.Attribute("clip-rule", "evenodd"),
+							),
+						),
+					),
+				),
+				// TODO: Implement user menu
+				//h.Div(
+				//	h.Class("absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"),
+				//	h.Role("menu"),
+				//	h.Attribute("aria-orientation", "vertical"),
+				//	h.Attribute("aria-labelledby", "user-menu-button"),
+				//	h.TabIndex(-1),
+				//	h.A(
+				//		h.Href("#"),
+				//		h.Class("block px-3 py-1 text-sm/6 text-gray-900"),
+				//		h.Role("menuitem"),
+				//		h.TabIndex(-1),
+				//		h.Id("user-menu-item-0"),
+				//		h.Text("Your profile"),
+				//	),
+				//	h.A(
+				//		h.Href("#"),
+				//		h.Class("block px-3 py-1 text-sm/6 text-gray-900"),
+				//		h.Role("menuitem"),
+				//		h.TabIndex(-1),
+				//		h.Id("user-menu-item-1"),
+				//		h.Text("Sign out"),
+				//	),
+				//),
+			),
+		),
+	)
+}
+
 func SidebarPage(ctx *h.RequestContext, children ...h.Ren) *h.Page {
 	return RootPage(
 		ctx,
 		h.Div(
-			h.Class("flex h-full"),
-			h.Aside(
-				h.Class("hidden md:block md:min-w-60 text-white overflow-y-auto"),
-				ui.MainSidebar(ctx),
-			),
 			h.Div(
-				h.Class("flex flex-col flex-1 overflow-hidden"),
-				NavBar(ctx, NavBarProps{
-					Expanded: false,
-				}),
-				h.Main(
-					h.Div(
-						h.Class("w-full md:hidden bg-neutral-50 overflow-y-auto mb-4 border-b border-b-slate-300"),
-						ui.MainSidebar(ctx),
-					),
-					h.Class("overflow-y-auto overflow-x-hidden pb-6 items-center w-full"),
-					h.Div(
-						h.Class("flex flex-col mx-auto"),
+				ui.MainSidebar(ctx),
+				h.Div(
+					h.Class("lg:pl-60"),
+					NavBar(),
+					h.Main(
+						h.Class("py-10"),
 						h.Div(
-							h.Class("flex flex-col justify-center items-center md:mt-6 mx-auto w-full"),
-							h.Div(
-								h.Class(
-									"w-full flex flex-col max-w-[90vw]",
-								),
-								h.Children(children...),
-							),
+							h.Class("px-4 sm:px-6 lg:px-8"),
+							h.Children(children...),
 						),
 					),
 				),

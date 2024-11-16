@@ -69,14 +69,15 @@ func Setup(ctx *h.RequestContext) *h.Page {
 	return pages.SidebarPage(
 		ctx,
 		h.Div(
-			h.Class("w-full min-h-screen min-h-[100%] flex flex-col items-center w-full"),
+			h.Class("min-h-screen min-h-[100%] flex flex-col items-center w-full"),
 			h.Form(
+				h.Class("w-full"),
 				h.NoSwap(),
 				h.TriggerChildren(),
 				h.PostPartial(SaveRouteTable),
 
 				h.Div(
-					h.Class("flex flex-col gap-4 pr-8 mt-6"),
+					h.Class("flex flex-col gap-4 pr-8 mt-6 w-full"),
 					ui.ErrorAlertPlaceholder(),
 					h.Div(
 						h.Class("flex justify-between items-center mb-6"),
@@ -187,9 +188,6 @@ func block(props blockProps) *h.Element {
 						h.P(
 							h.Text("Leave it blank to route all paths."),
 						),
-						h.P(
-							h.Text(" The request will match if the path starts with the value you enter, example: /blog will match /blog/my-article."),
-						),
 						h.Div(
 							h.P(h.Text("Glob Matching"), h.Class("font-bold")),
 							h.P(h.Text(
@@ -227,6 +225,10 @@ func block(props blockProps) *h.Element {
 								Text:  "equals",
 							},
 							{
+								Value: "not-equals",
+								Text:  "not equals",
+							},
+							{
 								Value: "glob",
 								Text:  "glob matches",
 							},
@@ -235,8 +237,16 @@ func block(props blockProps) *h.Element {
 								Text:  "starts with",
 							},
 							{
+								Value: "not-starts-with",
+								Text:  "not starts with",
+							},
+							{
 								Value: "ends-with",
 								Text:  "ends with",
+							},
+							{
+								Value: "not-ends-with",
+								Text:  "not ends with",
 							},
 							{
 								Value: "contains",

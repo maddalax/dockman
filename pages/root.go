@@ -20,6 +20,7 @@ func RootPage(ctx *h.RequestContext, children ...h.Ren) *h.Page {
 
 	return h.NewPage(
 		h.Html(
+			h.Class("h-full bg-white"),
 			h.JoinExtensions(
 				h.HxExtension(
 					h.BaseExtensions(),
@@ -45,12 +46,10 @@ func RootPage(ctx *h.RequestContext, children ...h.Ren) *h.Page {
 				h.Script(assets.HtmgoJs),
 			),
 			h.Body(
+				h.Class("h-full"),
 				WsConnect(ctx),
 				h.TriggerChildren(),
-				h.Div(
-					h.Class("flex flex-col gap-2 bg-white h-full"),
-					h.Fragment(children...),
-				),
+				h.Fragment(children...),
 			),
 		),
 	)

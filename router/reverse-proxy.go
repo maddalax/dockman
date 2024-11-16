@@ -98,6 +98,12 @@ func loadUpstreams(locator *service.Locator) []*multiproxy.Upstream {
 							switch block.PathMatchModifier {
 							case "starts-with":
 								return strings.HasPrefix(path, block.Path)
+							case "not-starts-with":
+								return !strings.HasPrefix(path, block.Path)
+							case "not-equals":
+								return path != block.Path
+							case "not-ends-with":
+								return !strings.HasSuffix(path, block.Path)
 							case "ends-with":
 								return strings.HasSuffix(path, block.Path)
 							case "contains":

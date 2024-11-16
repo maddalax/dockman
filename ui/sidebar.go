@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/maddalax/htmgo/framework/h"
+	"github.com/maddalax/htmgo/framework/js"
 	"paas/resources"
 	"paas/urls"
 )
@@ -21,21 +22,92 @@ func DocPath(path string) string {
 }
 
 func MainSidebar(ctx *h.RequestContext) *h.Element {
-	return h.Div(
-		h.Class("px-3 py-2 pr-6 md:min-h-screen pb-4 mb:pb-0 bg-neutral-50 border-r border-r-slate-300 overflow-y-auto"),
+	return h.Fragment(
 		h.Div(
-			h.Class("flex flex-col gap-4"),
+			h.Class("lg:hidden"),
+			MobileSidebar(ctx),
+		),
+		DesktopSidebar(ctx),
+	)
+}
+
+func DesktopSidebar(ctx *h.RequestContext) *h.Element {
+	return h.Div(
+		h.Class("hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-60 lg:flex-col"),
+		h.Div(
+			h.Class("fixed inset-y-0 z-50 flex w-60 flex-col"),
 			h.Div(
-				h.Class("mb-3"),
-				h.A(
-					h.Href("/"),
-					h.Text("paas"),
-					h.Class("md:mt-4 text-xl text-slate-900 font-bold"),
+				h.Class("flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-4 pb-4"),
+				h.Div(
+					h.Class("mt-2 flex h-10 shrink-0 items-center"),
+					h.Div(
+						h.Class("h-6 w-auto"),
+						HtmgoLogo(),
+					),
+				),
+				RoutingSection(),
+				ResourceList(ctx),
+				DebugSection(),
+			),
+		),
+	)
+}
+
+func MobileSidebar(ctx *h.RequestContext) *h.Element {
+	CloseButton := h.Div(
+		h.Class("absolute left-full top-0 flex w-16 justify-center pt-5"),
+		h.Button(
+			h.Type("button"),
+			h.OnClick(
+				js.EvalCommandsOnSelector("#mobile-sidebar", js.RemoveClass("relative"), js.AddClass("hidden")),
+			),
+			h.Class("-m-2.5 p-2.5"),
+			h.Span(
+				h.Class("sr-only"),
+				h.Text("Close sidebar"),
+			),
+			h.Svg(
+				h.Class("size-6 text-white"),
+				h.Attribute("fill", "none"),
+				h.Attribute("viewBox", "0 0 24 24"),
+				h.Attribute("stroke-width", "1.5"),
+				h.Attribute("stroke", "currentColor"),
+				h.Attribute("aria-hidden", "true"),
+				h.Attribute("data-slot", "icon"),
+				h.Path(
+					h.Attribute("stroke-linecap", "round"),
+					h.Attribute("stroke-linejoin", "round"),
+					h.Attribute("d", "M6 18 18 6M6 6l12 12"),
 				),
 			),
-			RoutingSection(),
-			ResourceList(ctx),
-			DebugSection(),
+		),
+	)
+
+	return h.Div(
+		h.Class("hidden md:relative z-50 w-60"),
+		h.Id("mobile-sidebar"),
+		h.Role("dialog"),
+		h.Attribute("aria-modal", "true"),
+		h.Div(
+			h.Class("fixed inset-0 bg-gray-900/80"),
+			h.Attribute("aria-hidden", "true"),
+		),
+		CloseButton,
+		h.Div(
+			h.Class("fixed inset-y-0 z-50 flex w-60 flex-col"),
+			h.Div(
+				h.Class("flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-4 pb-4"),
+				h.Div(
+					h.Class("mt-2 flex h-10 shrink-0 items-center"),
+					h.Div(
+						h.Class("h-6 w-auto"),
+						HtmgoLogo(),
+					),
+				),
+				RoutingSection(),
+				ResourceList(ctx),
+				DebugSection(),
+			),
 		),
 	)
 }
