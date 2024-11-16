@@ -1,7 +1,8 @@
 package router
 
 type RouteBlock struct {
-	Hostname   string
-	Path       string
-	ResourceId string
+	Hostname          string
+	Path              string
+	ResourceId        string
+	PathMatchModifier string
 }

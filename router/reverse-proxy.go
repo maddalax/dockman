@@ -2,7 +2,6 @@ package router
 
 import (
 	"fmt"
-	"github.com/dlclark/regexp2"
 	"github.com/go-chi/chi/v5"
 	"github.com/gobwas/glob"
 	"github.com/maddalax/htmgo/framework/service"
@@ -12,16 +11,11 @@ import (
 	"paas/docker"
 	"paas/must"
 	"paas/resources"
+	"strings"
 	"time"
 )
 
 func StartProxy(locator *service.Locator) {
-	regex := regexp2.MustCompile(`^(?!\/example).*`, 0)
-
-	if ok, _ := regex.MatchString("example"); ok {
-		fmt.Println("Matched")
-	}
-
 	service.Set(locator, service.Singleton, func() *multiproxy.LoadBalancer {
 		return multiproxy.CreateLoadBalancer()
 	})
@@ -92,16 +86,37 @@ func loadUpstreams(locator *service.Locator) []*multiproxy.Upstream {
 					upstreams = append(upstreams, &multiproxy.Upstream{
 						Url: must.Url(fmt.Sprintf("http://%s:%s", portBinding.HostIP, portBinding.HostPort)),
 						PathMatchesFunc: func(path string, match *multiproxy.Match) bool {
-							if path == match.Path {
+
+							if block.PathMatchModifier == "" {
+								block.PathMatchModifier = "starts-with"
+							}
+
+							if block.Path == "" {
 								return true
 							}
-							// todo precompile these
-							g, err := glob.Compile(match.Path)
-							if err != nil {
-								slog.Error("Failed to compile glob", slog.String("error", err.Error()))
+
+							switch block.PathMatchModifier {
+							case "starts-with":
+								return strings.HasPrefix(path, block.Path)
+							case "ends-with":
+								return strings.HasSuffix(path, block.Path)
+							case "contains":
+								return strings.Contains(path, block.Path)
+							case "is":
+								return path == block.Path
+							case "glob":
+								// todo precompile these
+								g, err := glob.Compile(match.Path)
+								if err != nil {
+									slog.Error("Failed to compile glob", slog.String("error", err.Error()))
+									return false
+								}
+								return g.Match(path)
+							default:
+								// should never happen
 								return false
+
 							}
-							return g.Match(path)
 						},
 						Matches: []multiproxy.Match{
 							{

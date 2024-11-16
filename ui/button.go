@@ -3,6 +3,7 @@ package ui
 import (
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
+	"time"
 )
 
 type ButtonProps struct {
@@ -24,6 +25,7 @@ type SubmitButtonProps struct {
 	Class          string
 	Post           string
 	Trigger        string
+	Delay          time.Duration
 }
 
 func PrimaryButton(props ButtonProps) *h.Element {
@@ -99,8 +101,12 @@ func SubmitButton(props SubmitButtonProps) *h.Element {
 			js.SetClassOnChildren(".submit", "hidden"),
 		),
 		h.HxAfterRequest(
-			js.SetClassOnChildren(".loading", "hidden"),
-			js.RemoveClassOnChildren(".submit", "hidden"),
+			// delay so the loading spinner doesn't flash too quickly
+			// and we give some feedback to the user
+			js.RunAfterTimeout(props.Delay,
+				js.SetClassOnChildren(".loading", "hidden"),
+				js.RemoveClassOnChildren(".submit", "hidden"),
+			),
 		),
 		h.Class("flex gap-2 justify-center"),
 

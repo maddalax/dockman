@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/service"
+	"github.com/nats-io/nats.go"
 	"paas/kv"
 )
 
@@ -17,7 +18,9 @@ func ApplyBlocks(locator *service.Locator, blocks []RouteBlock) error {
 
 	// Save block to database
 	client := kv.GetClientFromLocator(locator)
-	bucket, err := client.GetBucket("route-table")
+	bucket, err := client.GetOrCreateBucket(&nats.KeyValueConfig{
+		Bucket: "route-table",
+	})
 	if err != nil {
 		return err
 	}

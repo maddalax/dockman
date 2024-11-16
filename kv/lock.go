@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nats-io/nats.go"
+	"log/slog"
 	"paas/util"
 	"time"
 )
@@ -39,7 +40,6 @@ func (l *Lock) Lock() error {
 		if errors.Is(err, nats.ErrKeyExists) {
 			// wait for the lock to be released
 			success := util.WaitFor(l.timeout, 25*time.Millisecond, func() bool {
-				fmt.Printf("waiting for lock %s\n", l.key)
 				_, err = bucket.Create(l.key, []byte("locked"))
 				return err == nil
 			})
@@ -58,6 +58,6 @@ func (l *Lock) Unlock() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("unlocking %s\n", l.key)
+	slog.Debug("unlocking %s", slog.String("key", l.key))
 	return bucket.Delete(l.key)
 }

@@ -9,41 +9,44 @@ import (
 	"paas/slices"
 	"paas/ui"
 	"paas/ui/icons"
+	"paas/util"
+	"time"
 )
 
 func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
-	index := 0
-	var blocks []router.RouteBlock
+	return util.DelayedPartial(time.Millisecond*800, func() *h.Partial {
+		index := 0
+		var blocks []router.RouteBlock
 
-	for {
-		hostname := ctx.FormValue(fmt.Sprintf("hostname-%d", index))
-		path := ctx.FormValue(fmt.Sprintf("path-%d", index))
-		resourceId := ctx.FormValue(fmt.Sprintf("resource-%d", index))
+		for {
+			hostname := ctx.FormValue(fmt.Sprintf("hostname-%d", index))
+			path := ctx.FormValue(fmt.Sprintf("path-%d", index))
+			resourceId := ctx.FormValue(fmt.Sprintf("resource-%d", index))
+			pathMatchModifier := ctx.FormValue(fmt.Sprintf("path-match-modifier-%d", index))
 
-		if hostname == "" {
-			break
+			if hostname == "" {
+				break
+			}
+
+			blocks = append(blocks, router.RouteBlock{
+				Hostname:          hostname,
+				Path:              path,
+				ResourceId:        resourceId,
+				PathMatchModifier: pathMatchModifier,
+			})
+
+			index++
 		}
 
-		blocks = append(blocks, router.RouteBlock{
-			Hostname:   hostname,
-			Path:       path,
-			ResourceId: resourceId,
-		})
+		// TODO should we automatically apply the blocks here or just save them?
+		err := router.ApplyBlocks(ctx.ServiceLocator(), blocks)
 
-		index++
-	}
+		if err != nil {
+			return ui.GenericErrorAlertPartial(ctx, err)
+		}
 
-	// TODO should we automatically apply the blocks here or just save them?
-	err := router.ApplyBlocks(ctx.ServiceLocator(), blocks)
-
-	// TODO error handling
-	if err != nil {
-		return h.NewPartial(h.Div())
-	}
-
-	return h.NewPartial(
-		h.Div(),
-	)
+		return ui.SuccessAlertPartial(ctx, "Route Table Saved", "The new rules have been applied.")
+	})
 }
 
 func Setup(ctx *h.RequestContext) *h.Page {
@@ -63,8 +66,6 @@ func Setup(ctx *h.RequestContext) *h.Page {
 		}
 	}
 
-	fmt.Printf("Route table: %v", table)
-
 	return pages.SidebarPage(
 		ctx,
 		h.Div(
@@ -75,25 +76,29 @@ func Setup(ctx *h.RequestContext) *h.Page {
 				h.PostPartial(SaveRouteTable),
 
 				h.Div(
-					h.Class("flex justify-between items-center mb-6"),
-					h.H2F("Route Table", h.Class("text-xl font-bold")),
+					h.Class("flex flex-col gap-4 pr-8 mt-6"),
+					ui.ErrorAlertPlaceholder(),
 					h.Div(
-						h.Class("mr-8"),
-						ui.PrimaryButton(ui.ButtonProps{
-							Text: "Save Changes",
-							Type: "submit",
-						}),
+						h.Class("flex justify-between items-center mb-6"),
+						h.H2F("Route Table", h.Class("text-xl font-bold")),
+						h.Div(
+							ui.SubmitButton(ui.SubmitButtonProps{
+								Text:           "Save Changes",
+								SubmittingText: "Saving...",
+							}),
+						),
 					),
 				),
 
 				ui.Repeater(ctx, ui.RepeaterProps{
 					DefaultItems: slices.Map(table, func(rb router.RouteBlock, index int) *h.Element {
 						return block(blockProps{
-							index:         index,
-							path:          rb.Path,
-							resourceId:    rb.ResourceId,
-							hostname:      rb.Hostname,
-							resourceNames: resourceNames,
+							index:             index,
+							path:              rb.Path,
+							resourceId:        rb.ResourceId,
+							pathMatchModifier: rb.PathMatchModifier,
+							hostname:          rb.Hostname,
+							resourceNames:     resourceNames,
 						})
 					}),
 					RemoveButton: func(index int, children ...h.Ren) *h.Element {
@@ -124,11 +129,12 @@ func Setup(ctx *h.RequestContext) *h.Page {
 }
 
 type blockProps struct {
-	index         int
-	hostname      string
-	path          string
-	resourceId    string
-	resourceNames []resources.ResourceName
+	index             int
+	hostname          string
+	path              string
+	pathMatchModifier string
+	resourceId        string
+	resourceNames     []resources.ResourceName
 }
 
 func block(props blockProps) *h.Element {
@@ -184,19 +190,61 @@ func block(props blockProps) *h.Element {
 						h.P(
 							h.Text(" The request will match if the path starts with the value you enter, example: /blog will match /blog/my-article."),
 						),
+						h.Div(
+							h.P(h.Text("Glob Matching"), h.Class("font-bold")),
+							h.P(h.Text(
+								"Glob matching is supported. For example, /blog/* will match /blog/my-article, /blog/2021, etc. "),
+								h.A(
+									h.Text("Learn more"),
+									h.Class("text-blue-500 underline"),
+									h.Href("https://github.com/gobwas/glob"),
+									h.Target("_blank"),
+								),
+							),
+						),
 					),
 				),
 				// label
 				h.Label(h.P(
+					h.Class("flex gap-1 items-center"),
 					h.Text("When "),
 					h.Span(h.Text("path"), h.Class("font-bold")),
-					h.Text(" is"),
 				),
 				),
 			),
 
 			h.Div(
 				h.Class("flex gap-2 items-center"),
+				h.Div(
+					h.Class("-mt-1 min-w-[140px]"),
+					ui.Select(ui.SelectProps{
+						Name:     fmt.Sprintf("path-match-modifier-%d", props.index),
+						Required: true,
+						Value:    props.pathMatchModifier,
+						Items: []ui.Item{
+							{
+								Value: "is",
+								Text:  "is",
+							},
+							{
+								Value: "glob",
+								Text:  "glob matches",
+							},
+							{
+								Value: "starts-with",
+								Text:  "starts with",
+							},
+							{
+								Value: "ends-with",
+								Text:  "ends with",
+							},
+							{
+								Value: "contains",
+								Text:  "contains",
+							},
+						},
+					}),
+				),
 				ui.Input(ui.InputProps{
 					Name:         fmt.Sprintf("path-%d", props.index),
 					Id:           "path",
