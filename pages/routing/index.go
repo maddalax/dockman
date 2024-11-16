@@ -69,7 +69,7 @@ func Setup(ctx *h.RequestContext) *h.Page {
 	return pages.SidebarPage(
 		ctx,
 		h.Div(
-			h.Class("min-h-screen min-h-[100%] flex flex-col items-center w-full"),
+			h.Class("flex flex-col items-center w-full max-w-5xl mx-auto"),
 			h.Form(
 				h.Class("w-full"),
 				h.NoSwap(),
@@ -140,9 +140,9 @@ type blockProps struct {
 
 func block(props blockProps) *h.Element {
 	return h.Div(
-		h.Class("bg-white shadow-md rounded-md p-6 w-full flex gap-6"),
+		h.Class("bg-white shadow-md rounded-md p-6 w-full flex flex-col xl:flex-row gap-6 items-center xl:items-start"),
 		h.Div(
-			h.Class("flex flex-col gap-2"),
+			h.Class("flex flex-col gap-2 max-w-[350px] w-full"),
 			h.Div(
 				h.Class("flex gap-1 items-center"),
 				// tooltip
@@ -265,7 +265,7 @@ func block(props blockProps) *h.Element {
 		),
 
 		h.Div(
-			h.Class("flex flex-col gap-2 min-w-[300px]"),
+			h.Class("flex flex-col gap-2 max-w-[350px] w-full"),
 			h.LabelFor("app-selection", "then route to"),
 			ui.Select(ui.SelectProps{
 				Id:       fmt.Sprintf("resource-%d", props.index),
