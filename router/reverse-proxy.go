@@ -10,26 +10,44 @@ import (
 	"time"
 )
 
+func GetInstance(locator *service.Locator) *ReverseProxy {
+	return service.Get[ReverseProxy](locator)
+}
+
+func createReverseProxy(locator *service.Locator) *ReverseProxy {
+	lb := multiproxy.CreateLoadBalancer()
+	config := loadConfig(locator)
+	lb.SetUpstreams(h.Map(config.Upstreams, func(u *UpstreamWithResource) *multiproxy.Upstream {
+		return u.Upstream
+	}))
+	return &ReverseProxy{
+		lb:     lb,
+		config: config,
+	}
+}
+
 func StartProxy(locator *service.Locator) {
-	service.Set(locator, service.Singleton, func() *multiproxy.LoadBalancer {
-		return multiproxy.CreateLoadBalancer()
+	created := createReverseProxy(locator)
+
+	service.Set(locator, service.Singleton, func() *ReverseProxy {
+		return created
 	})
 
-	lb := service.Get[multiproxy.LoadBalancer](locator)
+	proxy := GetInstance(locator)
+
+	// Start the upstream port monitor to detect changes in the upstreams
+	go proxy.StartUpstreamPortMonitor(locator)
 
 	if h.IsDevelopment() {
 		go func() {
 			for {
-				lb.PrintMetrics()
+				proxy.lb.PrintMetrics()
 				time.Sleep(5 * time.Second)
 			}
 		}()
 	}
 
-	config := loadConfig(locator)
-	lb.SetUpstreams(config.Upstreams)
-
-	handler := multiproxy.NewReverseProxyHandler(lb)
+	handler := multiproxy.NewReverseProxyHandler(proxy.lb)
 
 	router := chi.NewRouter()
 	router.HandleFunc("/*", handler)

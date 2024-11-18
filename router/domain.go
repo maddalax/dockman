@@ -2,6 +2,11 @@ package router
 
 import "github.com/maddalax/multiproxy"
 
+type ReverseProxy struct {
+	lb     *multiproxy.LoadBalancer
+	config *Config
+}
+
 type RouteBlock struct {
 	Hostname          string
 	Path              string
@@ -10,6 +15,11 @@ type RouteBlock struct {
 }
 
 type Config struct {
-	Upstreams []*multiproxy.Upstream
+	Upstreams []*UpstreamWithResource
 	Matcher   *Matcher
+}
+
+type UpstreamWithResource struct {
+	Upstream   *multiproxy.Upstream
+	ResourceId string
 }

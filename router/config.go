@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
 	"log/slog"
@@ -8,10 +9,13 @@ import (
 )
 
 func ReloadConfig(locator *service.Locator) {
-	lb := service.Get[multiproxy.LoadBalancer](locator)
+	proxy := GetInstance(locator)
 	slog.Info("Reloading reverse proxy upstream config")
 	config := loadConfig(locator)
-	lb.SetUpstreams(config.Upstreams)
+	proxy.lb.SetUpstreams(h.Map(config.Upstreams, func(u *UpstreamWithResource) *multiproxy.Upstream {
+		return u.Upstream
+	}))
+	proxy.config = config
 }
 
 func loadConfig(locator *service.Locator) *Config {
@@ -39,4 +43,18 @@ func loadConfig(locator *service.Locator) *Config {
 	}
 
 	return builder.Build()
+}
+
+func (c *Config) HasPortDifference(old *Config) bool {
+	if len(old.Upstreams) != len(c.Upstreams) {
+		return true
+	}
+
+	for i, u := range c.Upstreams {
+		if u.Upstream.Url.Port() != old.Upstreams[i].Upstream.Url.Port() {
+			return true
+		}
+	}
+
+	return false
 }

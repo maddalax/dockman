@@ -10,6 +10,7 @@ import (
 	"io"
 	"paas/domain"
 	"strconv"
+	"strings"
 )
 
 type RunOptions struct {
@@ -92,6 +93,7 @@ func (c *Client) Run(resource *domain.Resource, opts RunOptions) error {
 		Image: imageName,
 		ExposedPorts: map[nat.Port]struct{}{
 			// the port the container exposes
+			// TODO this should be dynamic
 			"3000/tcp": {},
 		},
 		AttachStdout: true,
@@ -115,7 +117,16 @@ func (c *Client) Run(resource *domain.Resource, opts RunOptions) error {
 		}
 	}
 
-	if err := c.cli.ContainerStart(ctx, containerName, container.StartOptions{}); err != nil {
+	err = c.cli.ContainerStart(ctx, containerName, container.StartOptions{})
+
+	if err != nil {
+		// the port this container is trying to bind to is already in use
+		// this can happen if we reboot the container and something else took it
+		// kind of edge case, but it can happen, ideally we should be able to kill the container
+		// and start it again, but we can't do that if opts.RemoveExisting is false
+		if strings.Contains(err.Error(), "address already in use") {
+			return domain.ResourcePortInUseError(strconv.Itoa(hostPort))
+		}
 		return err
 	}
 

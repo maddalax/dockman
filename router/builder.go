@@ -11,13 +11,13 @@ import (
 
 type ConfigBuilder struct {
 	matcher   *Matcher
-	upstreams []*multiproxy.Upstream
+	upstreams []*UpstreamWithResource
 }
 
 func NewConfigBuilder(matcher *Matcher) *ConfigBuilder {
 	return &ConfigBuilder{
 		matcher:   matcher,
-		upstreams: make([]*multiproxy.Upstream, 0),
+		upstreams: make([]*UpstreamWithResource, 0),
 	}
 }
 
@@ -74,7 +74,10 @@ func (b *ConfigBuilder) appendDockerUpstreams(resource *domain.Resource, block *
 				}
 
 				b.matcher.AddUpstream(upstream, block)
-				b.upstreams = append(b.upstreams, upstream)
+				b.upstreams = append(b.upstreams, &UpstreamWithResource{
+					Upstream:   upstream,
+					ResourceId: resource.Id,
+				})
 			}
 		}
 	}
