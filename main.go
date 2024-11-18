@@ -47,12 +47,9 @@ func main() {
 
 	go m.StartRunStatusMonitor()
 
-	if h.IsDevelopment() {
-		// pprof
-		go func() {
-			http.ListenAndServe("localhost:6060", nil)
-		}()
-	}
+	go func() {
+		http.ListenAndServe("localhost:6060", nil)
+	}()
 
 	h.Start(h.AppOpts{
 		ServiceLocator: locator,
