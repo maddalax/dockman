@@ -14,7 +14,7 @@ type LogBodyOptions struct {
 
 func LogBody(opts LogBodyOptions) *h.Element {
 	return h.Div(
-		h.Class("max-w-[800px] max-h-full overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg p-4 mt-6 min-w-[800px]"),
+		h.Class("max-w-4xl max-h-full overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg p-4 mt-6 min-w-[800px]"),
 		h.Div(
 			h.Id("build-log"),
 		),

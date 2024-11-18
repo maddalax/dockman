@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
 	"io"
+	"log/slog"
 	"paas/domain"
 	"strconv"
 	"strings"
@@ -153,6 +154,16 @@ func (c *Client) doRun(resource *domain.Resource, index int, opts RunOptions) er
 	err = c.cli.ContainerStart(ctx, containerName, container.StartOptions{})
 
 	if err != nil {
+		// another container may have taken the port, lets try a different one
+		if strings.Contains(err.Error(), "port is already allocated") {
+			slog.Error("Port is already allocated, trying a different one", slog.String("container_name", containerName))
+			for i := 0; i < 50; i++ {
+				err = c.doRun(resource, index, opts)
+				if err == nil {
+					return nil
+				}
+			}
+		}
 		// the port this container is trying to bind to is already in use
 		// this can happen if we reboot the container and something else took it
 		// kind of edge case, but it can happen, ideally we should be able to kill the container
@@ -160,6 +171,7 @@ func (c *Client) doRun(resource *domain.Resource, index int, opts RunOptions) er
 		if strings.Contains(err.Error(), "address already in use") {
 			return domain.ResourcePortInUseError(strconv.Itoa(hostPort))
 		}
+
 		return err
 	}
 

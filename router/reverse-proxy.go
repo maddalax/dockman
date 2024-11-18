@@ -38,14 +38,12 @@ func StartProxy(locator *service.Locator) {
 	// Start the upstream port monitor to detect changes in the upstreams
 	go proxy.StartUpstreamPortMonitor(locator)
 
-	if h.IsDevelopment() {
-		go func() {
-			for {
-				proxy.lb.PrintMetrics()
-				time.Sleep(5 * time.Second)
-			}
-		}()
-	}
+	go func() {
+		for {
+			proxy.lb.PrintMetrics()
+			time.Sleep(5 * time.Second)
+		}
+	}()
 
 	handler := multiproxy.NewReverseProxyHandler(proxy.lb)
 

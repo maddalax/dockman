@@ -12,11 +12,12 @@ import (
 )
 
 type CreateOptions struct {
-	Name        string            `json:"name"`
-	Environment string            `json:"environment"`
-	RunType     domain.RunType    `json:"run_type"`
-	BuildMeta   any               `json:"build_meta"`
-	Env         map[string]string `json:"env"`
+	Name               string            `json:"name"`
+	Environment        string            `json:"environment"`
+	RunType            domain.RunType    `json:"run_type"`
+	BuildMeta          any               `json:"build_meta"`
+	Env                map[string]string `json:"env"`
+	InstancesPerServer int               `json:"instances_per_server"`
 }
 
 func Create(locator *service.Locator, options CreateOptions) (string, error) {
@@ -28,6 +29,11 @@ func Create(locator *service.Locator, options CreateOptions) (string, error) {
 	resource.RunType = options.RunType
 	resource.BuildMeta = options.BuildMeta
 	resource.Env = options.Env
+	resource.InstancesPerServer = options.InstancesPerServer
+
+	if resource.InstancesPerServer == 0 {
+		resource.InstancesPerServer = 1
+	}
 
 	validators := []Validator{
 		BuildMetaValidator{
@@ -84,7 +90,7 @@ func Create(locator *service.Locator, options CreateOptions) (string, error) {
 	}
 
 	// add it to the resources bucket for listing
-	_, err = bucket.Create(resource.Id, []byte{})
+	_, err = bucket.Create(resource.BucketKey(), []byte{})
 
 	if err != nil {
 		return "", err

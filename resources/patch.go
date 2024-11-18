@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"errors"
 	"github.com/maddalax/htmgo/framework/service"
 	"paas/domain"
 	"paas/history"
@@ -18,6 +19,35 @@ func Patch(locator *service.Locator, id string, patch map[string]any) error {
 	resource, err := Get(locator, id)
 	if err != nil {
 		return err
+	}
+
+	if patch["run_status"] != nil {
+		resource.RunStatus = patch["run_status"].(domain.RunStatus)
+	}
+
+	if patch["instances_per_server"] != nil {
+		resource.InstancesPerServer = patch["instances_per_server"].(int)
+	}
+
+	if patch["name"] != nil {
+		return errors.New("name cannot be changed")
+	}
+
+	if patch["build_meta"] != nil {
+		return errors.New("build meta cannot be changed")
+	}
+
+	validators := []Validator{
+		RequiredFieldsValidator{
+			resource: resource,
+		},
+	}
+
+	for _, validator := range validators {
+		err := validator.Validate()
+		if err != nil {
+			return err
+		}
 	}
 
 	client := service.Get[kv.Client](locator)

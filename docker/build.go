@@ -1,11 +1,14 @@
 package docker
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
+	"github.com/buildkite/terminal-to-html/v3"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
 	"io"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -49,7 +52,7 @@ func (cw *CustomWriter) Write(p []byte) (n int, err error) {
 			if str == "\n" {
 				continue
 			}
-			cw.Writer.Write([]byte(str))
+			cw.Writer.Write([]byte(terminal.Render([]byte(str))))
 		}
 	}
 	return len(p), nil
@@ -66,7 +69,23 @@ func (c *Client) Build(out io.Writer, path string, opts types.ImageBuildOptions,
 
 	opts.Dockerfile = filepath.Base(opts.Dockerfile)
 
-	buildContext, _ := archive.TarWithOptions(projectDir, &archive.TarOptions{})
+	var ignored []string
+	dockerIgnore, err := os.Open(filepath.Join(projectDir, ".dockerignore"))
+
+	if err == nil {
+		scanner := bufio.NewScanner(dockerIgnore)
+		for scanner.Scan() {
+			line := strings.TrimSpace(scanner.Text())
+			if line == "" || strings.HasPrefix(line, "#") {
+				continue
+			}
+			ignored = append(ignored, scanner.Text())
+		}
+	}
+
+	buildContext, _ := archive.TarWithOptions(projectDir, &archive.TarOptions{
+		ExcludePatterns: ignored,
+	})
 
 	response, err := c.cli.ImageBuild(ctx, buildContext, opts)
 
