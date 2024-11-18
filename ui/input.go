@@ -13,6 +13,7 @@ type InputProps struct {
 	DefaultValue   string
 	Placeholder    string
 	Required       bool
+	Disabled       bool
 	ValidationPath string
 	Error          string
 	HelpText       *h.Element
@@ -35,11 +36,14 @@ func Input(props InputProps) *h.Element {
 
 	input := h.Input(
 		props.Type,
-		h.Class("border p-2 rounded focus:outline-none focus:ring-0 focus:border-gray-400"),
+		h.ClassX("border p-2 rounded focus:outline-none focus:ring-0 focus:border-gray-400", h.ClassMap{
+			"bg-gray-100 cursor-not-allowed": props.Disabled,
+		}),
 		h.If(
 			props.Name != "",
 			h.Name(props.Name),
 		),
+		h.If(props.Disabled, h.Disabled()),
 		h.If(
 			props.Children != nil,
 			h.Children(props.Children...),

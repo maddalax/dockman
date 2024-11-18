@@ -17,22 +17,55 @@ type RunOptions struct {
 	Stdout io.WriteCloser
 	// If we should kill the existing container that's running first
 	RemoveExisting bool
+	// Whether we should just return if the container is already running
+	IgnoreIfRunning bool
 }
 
-func (c *Client) GetContainer(resource *domain.Resource) (types.ContainerJSON, error) {
-	containerName := fmt.Sprintf("%s-%s-container", resource.Name, resource.Id)
+func (c *Client) GetContainer(resource *domain.Resource, index int) (types.ContainerJSON, error) {
+	containerName := fmt.Sprintf("%s-%s-container-%d", resource.Name, resource.Id, index)
 	return c.cli.ContainerInspect(context.Background(), containerName)
 }
 
 func (c *Client) Stop(resource *domain.Resource) error {
-	containerName := fmt.Sprintf("%s-%s-container", resource.Name, resource.Id)
-	return c.cli.ContainerStop(context.Background(), containerName, container.StopOptions{})
+	for i := range resource.InstancesPerServer {
+		containerName := fmt.Sprintf("%s-%s-container-%d", resource.Name, resource.Id, i)
+		err := c.cli.ContainerStop(context.Background(), containerName, container.StopOptions{})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *Client) Run(resource *domain.Resource, opts RunOptions) error {
+	instances := resource.InstancesPerServer
+	if instances == 0 {
+		instances = 1
+	}
+
+	c.ReduceToMatchResourceCount(resource, instances)
+
+	for i := range instances {
+		err := c.doRun(resource, i, opts)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *Client) doRun(resource *domain.Resource, index int, opts RunOptions) error {
 	ctx := context.Background()
 	imageName := fmt.Sprintf("%s-%s", resource.Name, resource.Id)
-	containerName := fmt.Sprintf("%s-%s-container", resource.Name, resource.Id)
+	containerName := fmt.Sprintf("%s-%s-container-%d", resource.Name, resource.Id, index)
+
+	if opts.IgnoreIfRunning {
+		exists, err := c.GetContainer(resource, index)
+		// if the container exists and is running, we can just return
+		if err == nil && exists.State.Running {
+			return nil
+		}
+	}
 
 	err := c.cli.ContainerStop(ctx, containerName, container.StopOptions{})
 

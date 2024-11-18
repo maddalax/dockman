@@ -12,6 +12,7 @@ import (
 	"paas/kv"
 	"paas/kv/subject"
 	"paas/monitor"
+	"sync"
 	"time"
 )
 
@@ -97,12 +98,20 @@ func streamDockerLogs(resource *domain.Resource, context context.Context, opts S
 		opts.Stdout.Write([]byte(err.Error()))
 		return
 	}
-	containerId := fmt.Sprintf("%s-%s-container", resource.Name, resource.Id)
-	err = client.StreamLogs(containerId, context, docker.StreamLogsOptions{
-		Stdout: opts.Stdout,
-		Since:  opts.Since,
-	})
-	if err != nil {
-		opts.Stdout.Write([]byte(err.Error()))
+
+	wg := sync.WaitGroup{}
+	for i := range resource.InstancesPerServer {
+		wg.Add(1)
+		go func() {
+			containerId := fmt.Sprintf("%s-%s-container-%d", resource.Name, resource.Id, i)
+			err = client.StreamLogs(containerId, context, docker.StreamLogsOptions{
+				Stdout: opts.Stdout,
+				Since:  opts.Since,
+			})
+			if err != nil {
+				opts.Stdout.Write([]byte(err.Error()))
+			}
+		}()
 	}
+	wg.Wait()
 }

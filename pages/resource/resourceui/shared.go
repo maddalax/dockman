@@ -1,6 +1,7 @@
 package resourceui
 
 import (
+	"errors"
 	"github.com/maddalax/htmgo/framework/h"
 	"paas/domain"
 	"paas/pages"
@@ -31,8 +32,11 @@ func Page(ctx *h.RequestContext, children func(resource *domain.Resource) *h.Ele
 }
 
 func PageHeader(ctx *h.RequestContext, resource *domain.Resource) *h.Element {
+	_, err := resources.IsRunnable(resource)
+
 	return h.Div(
 		h.Class("flex flex-col gap-6"),
+		h.If(err != nil, ResourceStatusError(err)),
 		h.Id("resource-page-header"),
 		h.Div(
 			h.Class("flex gap-2 items-center"),
@@ -40,7 +44,7 @@ func PageHeader(ctx *h.RequestContext, resource *domain.Resource) *h.Element {
 			h.Div(
 				h.Class("ml-0.5 mt-1"),
 				ui.StatusIndicator(ui.StatusIndicatorProps{
-					IsRunning: resource.RunStatus == domain.RunStatusRunning,
+					RunStatus: resource.RunStatus,
 				}),
 			),
 		),
@@ -48,6 +52,17 @@ func PageHeader(ctx *h.RequestContext, resource *domain.Resource) *h.Element {
 			End: ResourceStatusContainer(resource),
 		}),
 	)
+}
+
+func ResourceStatusError(err error) *h.Element {
+	if err == nil {
+		return h.Empty()
+	}
+	switch {
+	case errors.Is(err, domain.DockerConnectionError):
+		return ui.ErrorAlert(h.Pf("Failed to connect to docker"), h.Pf("Please check your docker connection"))
+	}
+	return ui.ErrorAlert(h.Pf("Failed to load resource status"), h.Pf(err.Error()))
 }
 
 func ResourceStatusContainer(resource *domain.Resource) *h.Element {
@@ -59,7 +74,11 @@ func ResourceStatusContainer(resource *domain.Resource) *h.Element {
 }
 
 func ResourceStatus(resource *domain.Resource) *h.Element {
-	runnable := resources.IsRunnable(resource)
+	runnable, err := resources.IsRunnable(resource)
+
+	if err != nil {
+		return h.Empty()
+	}
 
 	var deployButton = ui.SecondaryButton(ui.ButtonProps{
 		Href: urls.ResourceStartDeploymentPath(resource.Id, ""),

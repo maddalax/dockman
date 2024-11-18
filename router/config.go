@@ -38,7 +38,7 @@ func loadConfig(locator *service.Locator) *Config {
 		err = builder.Append(resource, &block)
 
 		if err != nil {
-			panic(err)
+			continue
 		}
 	}
 

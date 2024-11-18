@@ -1,26 +1,48 @@
 package docker
 
 import (
-	"context"
-	"fmt"
 	"paas/domain"
 )
 
 func (c *Client) GetRunStatus(resource *domain.Resource) (domain.RunStatus, error) {
-	containerName := fmt.Sprintf("%s-%s-container", resource.Name, resource.Id)
-	inspect, err := c.cli.ContainerInspect(context.Background(), containerName)
+	statuses := make([]domain.RunStatus, resource.InstancesPerServer)
 
-	// unable to inspect, must not be running or docker is down
-	if err != nil {
-		return domain.RunStatusNotRunning, nil
-	}
-
-	if inspect.State != nil {
-		if inspect.State.Running {
-			return domain.RunStatusRunning, nil
+	for i := range resource.InstancesPerServer {
+		inspect, err := c.GetContainer(resource, i)
+		if err != nil {
+			statuses[i] = domain.RunStatusNotRunning
+			continue
 		}
-		return domain.RunStatusNotRunning, nil
+
+		if inspect.State != nil {
+			if inspect.State.Running {
+				statuses[i] = domain.RunStatusRunning
+			} else {
+				statuses[i] = domain.RunStatusNotRunning
+			}
+		} else {
+			statuses[i] = domain.RunStatusUnknown
+		}
 	}
 
-	return domain.RunStatusUnknown, nil
+	allRunning := true
+	anyRunning := false
+	for _, status := range statuses {
+		if status != domain.RunStatusRunning {
+			allRunning = false
+		}
+		if status == domain.RunStatusRunning {
+			anyRunning = true
+		}
+	}
+
+	if allRunning {
+		return domain.RunStatusRunning, nil
+	}
+
+	if anyRunning {
+		return domain.RunStatusPartiallyRunning, nil
+	}
+
+	return domain.RunStatusNotRunning, nil
 }

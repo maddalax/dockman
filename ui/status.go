@@ -1,18 +1,24 @@
 package ui
 
-import "github.com/maddalax/htmgo/framework/h"
+import (
+	"github.com/maddalax/htmgo/framework/h"
+	"paas/domain"
+)
 
 type StatusIndicatorProps struct {
-	IsRunning bool
+	RunStatus domain.RunStatus
 }
 
 func StatusIndicator(props StatusIndicatorProps) h.Ren {
 	var colorClass string
 	var animationClass string
 
-	if props.IsRunning {
+	if props.RunStatus == domain.RunStatusRunning {
 		colorClass = "bg-green-500"
-		animationClass = "animate-pulse" // Tailwind animation class for slow pulsing
+		animationClass = "animate-pulse"
+	} else if props.RunStatus == domain.RunStatusPartiallyRunning {
+		colorClass = "bg-amber-500"
+		animationClass = "animation-pulse"
 	} else {
 		colorClass = "bg-red-500"
 		animationClass = "" // No animation for stopped
@@ -25,15 +31,19 @@ func StatusIndicator(props StatusIndicatorProps) h.Ren {
 		),
 		h.Span(
 			h.Class("text-sm"),
-			h.TextF("%s", statusText(props.IsRunning)),
+			h.TextF("%s", statusText(props.RunStatus)),
 		),
 	)
 }
 
 // statusText returns the textual representation of the status.
-func statusText(isRunning bool) string {
-	if isRunning {
+func statusText(status domain.RunStatus) string {
+	switch status {
+	case domain.RunStatusRunning:
 		return "Running"
+	case domain.RunStatusPartiallyRunning:
+		return "Partially Running"
+	default:
+		return "Stopped"
 	}
-	return "Stopped"
 }

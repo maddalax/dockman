@@ -33,23 +33,24 @@ func (b *ConfigBuilder) Append(resource *domain.Resource, block *RouteBlock) err
 	case domain.RunTypeDockerBuild:
 		fallthrough
 	case domain.RunTypeDockerRegistry:
-		err := b.appendDockerUpstreams(resource, block)
-		if err != nil {
-			return err
+		for i := range resource.InstancesPerServer {
+			err := b.appendDockerUpstreams(resource, i, block)
+			if err != nil {
+				return err
+			}
 		}
 	default:
 	}
-
 	return nil
 }
 
-func (b *ConfigBuilder) appendDockerUpstreams(resource *domain.Resource, block *RouteBlock) error {
+func (b *ConfigBuilder) appendDockerUpstreams(resource *domain.Resource, index int, block *RouteBlock) error {
 	dockerClient, err := docker.Connect()
 	if err != nil {
 		return domain.DockerConnectionError
 	}
 
-	container, err := dockerClient.GetContainer(resource)
+	container, err := dockerClient.GetContainer(resource, index)
 	if err != nil {
 		return err
 	}

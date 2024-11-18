@@ -28,7 +28,9 @@ func GetStatusPartial(ctx *h.RequestContext) *h.Partial {
 
 func StartResource(ctx *h.RequestContext) *h.Partial {
 	id := ctx.QueryParam("id")
-	resource, err := resources.Start(ctx.ServiceLocator(), id)
+	resource, err := resources.Start(ctx.ServiceLocator(), id, resources.StartOpts{
+		IgnoreIfRunning: false,
+	})
 
 	if err != nil {
 		// resource just hasn't been built yet, lets build it instead

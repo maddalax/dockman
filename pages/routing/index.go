@@ -78,7 +78,7 @@ func Setup(ctx *h.RequestContext) *h.Page {
 
 				h.Div(
 					h.Class("flex flex-col gap-4 pr-8 mt-6 w-full"),
-					ui.ErrorAlertPlaceholder(),
+					ui.AlertPlaceholder(),
 					h.Div(
 						h.Class("flex justify-between items-center mb-6"),
 						h.H2F("Route Table", h.Class("text-xl font-bold")),

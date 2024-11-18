@@ -3,13 +3,14 @@ package domain
 import "fmt"
 
 type Resource struct {
-	Id          string            `json:"id"`
-	Name        string            `json:"name"`
-	Environment string            `json:"environment"`
-	RunType     RunType           `json:"run_type"`
-	BuildMeta   any               `json:"build_meta"`
-	Env         map[string]string `json:"env"`
-	RunStatus   RunStatus         `json:"run_status"`
+	Id                 string            `json:"id"`
+	Name               string            `json:"name"`
+	Environment        string            `json:"environment"`
+	RunType            RunType           `json:"run_type"`
+	InstancesPerServer int               `json:"instances_per_server"`
+	BuildMeta          any               `json:"build_meta"`
+	Env                map[string]string `json:"env"`
+	RunStatus          RunStatus         `json:"run_status"`
 }
 
 func (resource *Resource) BucketKey() string {
@@ -22,6 +23,7 @@ const (
 	RunStatusUnknown RunStatus = iota
 	RunStatusNotRunning
 	RunStatusRunning
+	RunStatusPartiallyRunning
 )
 
 func NewResource(id string) *Resource {

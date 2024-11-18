@@ -29,7 +29,7 @@ func SuccessAlertPartial(ctx *h.RequestContext, title string, message string) *h
 	)
 }
 
-func ErrorAlertPlaceholder() *h.Element {
+func AlertPlaceholder() *h.Element {
 	return h.Div(
 		h.Id("ui-alert"),
 	)

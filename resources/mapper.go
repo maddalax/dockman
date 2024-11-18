@@ -22,5 +22,9 @@ func MapToResource(bucket nats.KeyValue) (*domain.Resource, error) {
 		resource.BuildMeta = domain.EmptyBuildMeta{}
 	}
 
+	if resource.InstancesPerServer == 0 {
+		resource.InstancesPerServer = 1
+	}
+
 	return resource, nil
 }

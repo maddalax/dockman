@@ -12,24 +12,36 @@ import (
 )
 
 // IsRunnable checks if a resource is runnable
-// in the case of docker, the container must exist
-func IsRunnable(resource *domain.Resource) bool {
+// in the case of docker, the container must exist for each instance
+func IsRunnable(resource *domain.Resource) (bool, error) {
 	switch resource.RunType {
 	case domain.RunTypeDockerBuild:
 		fallthrough
 	case domain.RunTypeDockerRegistry:
 		client, err := docker.Connect()
 		if err != nil {
-			return false
+			return false, err
 		}
-		_, err = client.GetContainer(resource)
-		return err == nil
+		for i := range resource.InstancesPerServer {
+			_, err = client.GetContainer(resource, i)
+			if err != nil {
+				return false, nil
+			}
+		}
+		return true, nil
 	default:
-		return false
+		return false, nil
 	}
 }
 
-func Start(locator *service.Locator, resourceId string) (*domain.Resource, error) {
+type StartOpts struct {
+	// Whether to ignore if the resource is already running
+	IgnoreIfRunning bool
+	// Whether to remove the existing instances before running a new one with the same id
+	RemoveExisting bool
+}
+
+func Start(locator *service.Locator, resourceId string, opts StartOpts) (*domain.Resource, error) {
 	lock := GetStatusLock(locator, resourceId)
 	err := lock.Lock()
 	if err != nil {
@@ -53,7 +65,8 @@ func Start(locator *service.Locator, resourceId string) (*domain.Resource, error
 			return nil, err
 		}
 		err = client.Run(resource, docker.RunOptions{
-			RemoveExisting: false,
+			RemoveExisting:  opts.RemoveExisting,
+			IgnoreIfRunning: opts.IgnoreIfRunning,
 		})
 		if err != nil {
 			return nil, err
