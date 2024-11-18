@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
-	"paas/sanitize"
+	"paas/util"
 	"strings"
 )
 
@@ -62,7 +62,7 @@ func LogLine(data string) *h.Element {
 			swap,
 			h.P(
 				h.Class("text-red-800"),
-				h.UnsafeRaw(sanitize.Text(data)),
+				h.UnsafeRaw(util.Sanitize(data)),
 			),
 		)
 	}
@@ -70,7 +70,7 @@ func LogLine(data string) *h.Element {
 	return h.Div(
 		swap,
 		h.P(
-			h.UnsafeRaw(sanitize.Text(data)),
+			h.UnsafeRaw(util.Sanitize(data)),
 		),
 	)
 }

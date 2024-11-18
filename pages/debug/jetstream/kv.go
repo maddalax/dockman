@@ -4,7 +4,7 @@ import (
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
-	"paas/kv"
+	"paas/app"
 	"paas/pages"
 )
 
@@ -40,7 +40,7 @@ func EmptyDetails() *h.Element {
 }
 
 func BucketSidebar(ctx *h.RequestContext) *h.Element {
-	client := kv.GetClientFromCtx(ctx)
+	client := app.GetClientFromCtx(ctx)
 	buckets := client.GetBuckets()
 	return h.Div(
 		h.Id("bucket-list"),
@@ -59,7 +59,7 @@ func BucketSidebar(ctx *h.RequestContext) *h.Element {
 }
 
 func BucketCard(ctx *h.RequestContext, bucketStatus nats.KeyValueStatus) *h.Element {
-	client := kv.GetClientFromCtx(ctx)
+	client := app.GetClientFromCtx(ctx)
 	deleteButton := h.Button(
 		h.Class("text-blue underline"),
 		h.Text("Delete"),
@@ -86,7 +86,7 @@ func BucketCard(ctx *h.RequestContext, bucketStatus nats.KeyValueStatus) *h.Elem
 }
 
 func BucketDetails(ctx *h.RequestContext, bucketStatus nats.KeyValueStatus) *h.Element {
-	client := kv.GetClientFromCtx(ctx)
+	client := app.GetClientFromCtx(ctx)
 	bucket, err := client.GetBucket(bucketStatus.Bucket())
 
 	if err != nil {

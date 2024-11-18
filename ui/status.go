@@ -2,21 +2,21 @@ package ui
 
 import (
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/domain"
+	"paas/app"
 )
 
 type StatusIndicatorProps struct {
-	RunStatus domain.RunStatus
+	RunStatus app.RunStatus
 }
 
 func StatusIndicator(props StatusIndicatorProps) h.Ren {
 	var colorClass string
 	var animationClass string
 
-	if props.RunStatus == domain.RunStatusRunning {
+	if props.RunStatus == app.RunStatusRunning {
 		colorClass = "bg-green-500"
 		animationClass = "animate-pulse"
-	} else if props.RunStatus == domain.RunStatusPartiallyRunning {
+	} else if props.RunStatus == app.RunStatusPartiallyRunning {
 		colorClass = "bg-amber-500"
 		animationClass = "animation-pulse"
 	} else {
@@ -37,11 +37,11 @@ func StatusIndicator(props StatusIndicatorProps) h.Ren {
 }
 
 // statusText returns the textual representation of the status.
-func statusText(status domain.RunStatus) string {
+func statusText(status app.RunStatus) string {
 	switch status {
-	case domain.RunStatusRunning:
+	case app.RunStatusRunning:
 		return "Running"
-	case domain.RunStatusPartiallyRunning:
+	case app.RunStatusPartiallyRunning:
 		return "Partially Running"
 	default:
 		return "Stopped"

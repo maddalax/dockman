@@ -3,8 +3,7 @@ package ui
 import (
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
-	"paas/domain"
-	"paas/resources"
+	"paas/app"
 	"paas/urls"
 )
 
@@ -114,10 +113,10 @@ func MobileSidebar(ctx *h.RequestContext) *h.Element {
 }
 
 func ResourceList(ctx *h.RequestContext) *h.Element {
-	list, err := resources.List(ctx.ServiceLocator())
+	list, err := app.List(ctx.ServiceLocator())
 
 	if err != nil {
-		list = []*domain.Resource{}
+		list = []*app.Resource{}
 	}
 
 	return h.Div(
@@ -136,7 +135,7 @@ func ResourceList(ctx *h.RequestContext) *h.Element {
 		),
 		h.Div(
 			h.Class("flex flex-col gap-2"),
-			h.List(list, func(resource *domain.Resource, index int) *h.Element {
+			h.List(list, func(resource *app.Resource, index int) *h.Element {
 				return h.A(
 					h.Href(urls.ResourceUrl(resource.Id)),
 					h.Text(resource.Name),

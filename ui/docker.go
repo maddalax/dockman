@@ -5,18 +5,15 @@ import (
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
-	"paas/builder"
-	"paas/domain"
-	"paas/kv"
-	"paas/kv/subject"
+	"paas/app"
+	"paas/subject"
 	"paas/urls"
-	"paas/wsutil"
 )
 
-func DockerBuildLogs(ctx *h.RequestContext, resource *domain.Resource, buildId string) *h.Element {
-	natsClient := kv.GetClientFromCtx(ctx)
+func DockerBuildLogs(ctx *h.RequestContext, resource *app.Resource, buildId string) *h.Element {
+	natsClient := app.GetClientFromCtx(ctx)
 
-	wsutil.OnceWithAliveContext(ctx, func(context context.Context) {
+	app.OnceWithAliveContext(ctx, func(context context.Context) {
 		sb := subject.BuildLogForResource(resource.Id, buildId)
 		natsClient.SubscribeStreamAndReplayAll(context, sb, func(msg *nats.Msg) {
 			data := string(msg.Data)
@@ -40,7 +37,7 @@ func DockerBuildLogs(ctx *h.RequestContext, resource *domain.Resource, buildId s
 				Text: "Cancel Build",
 				Children: []h.Ren{
 					ws.OnClick(ctx, func(data ws.HandlerData) {
-						b := builder.GetBuilder(resource.Id, buildId)
+						b := app.GetBuilder(resource.Id, buildId)
 						if b != nil {
 							b.CancelBuild()
 						}

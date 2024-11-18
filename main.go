@@ -11,9 +11,7 @@ import (
 	"io/fs"
 	"net/http"
 	"paas/__htmgo"
-	"paas/kv"
-	"paas/monitor"
-	"paas/router"
+	"paas/app"
 )
 
 import _ "net/http/pprof"
@@ -22,8 +20,8 @@ func main() {
 	locator := service.NewLocator()
 	cfg := config.Get()
 
-	service.Set[kv.Client](locator, service.Singleton, func() *kv.Client {
-		client, err := kv.Connect(kv.Options{
+	service.Set[app.KvClient](locator, service.Singleton, func() *app.KvClient {
+		client, err := app.NatsConnect(app.Options{
 			Port: 4222,
 		})
 		if err != nil {
@@ -32,16 +30,16 @@ func main() {
 		return client
 	})
 
-	_, err := kv.StartServer()
+	_, err := app.StartServer()
 
 	if err != nil {
 		panic(err)
 	}
 
-	router.StartProxy(locator)
+	app.StartProxy(locator)
 
-	m := monitor.NewMonitor(locator)
-	service.Set(locator, service.Singleton, func() *monitor.Monitor {
+	m := app.NewMonitor(locator)
+	service.Set(locator, service.Singleton, func() *app.Monitor {
 		return m
 	})
 

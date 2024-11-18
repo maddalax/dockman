@@ -3,9 +3,8 @@ package deployment
 import (
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/builder"
+	"paas/app"
 	"paas/pages"
-	"paas/resources"
 	"paas/urls"
 	"time"
 )
@@ -25,7 +24,7 @@ func StartNewDeployment(ctx *h.RequestContext) *h.Page {
 		buildId = uuid.NewString()
 	}
 
-	resource, err := resources.Get(ctx.ServiceLocator(), resourceId)
+	resource, err := app.ResourceGet(ctx.ServiceLocator(), resourceId)
 
 	// todo better error handling
 	if err != nil {
@@ -34,7 +33,7 @@ func StartNewDeployment(ctx *h.RequestContext) *h.Page {
 		))
 	}
 
-	b := builder.NewResourceBuilder(ctx.ServiceLocator(), resource, buildId)
+	b := app.NewResourceBuilder(ctx.ServiceLocator(), resource, buildId)
 
 	if isExistingBuild {
 		// starting a new build, clear any previous logs for this build

@@ -3,10 +3,8 @@ package routing
 import (
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
+	"paas/app"
 	"paas/pages"
-	"paas/resources"
-	"paas/router"
-	"paas/slices"
 	"paas/ui"
 	"paas/ui/icons"
 	"paas/util"
@@ -16,7 +14,7 @@ import (
 func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
 	return util.DelayedPartial(time.Millisecond*800, func() *h.Partial {
 		index := 0
-		var blocks []router.RouteBlock
+		var blocks []app.RouteBlock
 
 		for {
 			hostname := ctx.FormValue(fmt.Sprintf("hostname-%d", index))
@@ -28,7 +26,7 @@ func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
 				break
 			}
 
-			blocks = append(blocks, router.RouteBlock{
+			blocks = append(blocks, app.RouteBlock{
 				Hostname:          hostname,
 				Path:              path,
 				ResourceId:        resourceId,
@@ -39,7 +37,7 @@ func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
 		}
 
 		// TODO should we automatically apply the blocks here or just save them?
-		err := router.ApplyBlocks(ctx.ServiceLocator(), blocks)
+		err := app.ApplyBlocks(ctx.ServiceLocator(), blocks)
 
 		if err != nil {
 			return ui.GenericErrorAlertPartial(ctx, err)
@@ -51,15 +49,15 @@ func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
 
 func Setup(ctx *h.RequestContext) *h.Page {
 	locator := ctx.ServiceLocator()
-	resourceNames := resources.GetNames(locator)
-	table, err := router.GetRouteTable(locator)
+	list, err := app.List(locator)
+	table, err := app.GetRouteTable(locator)
 
 	if err != nil {
-		table = []router.RouteBlock{}
+		table = []app.RouteBlock{}
 	}
 
 	if len(table) == 0 {
-		table = []router.RouteBlock{
+		table = []app.RouteBlock{
 			{
 				Hostname: "",
 			},
@@ -92,14 +90,14 @@ func Setup(ctx *h.RequestContext) *h.Page {
 				),
 
 				ui.Repeater(ctx, ui.RepeaterProps{
-					DefaultItems: slices.Map(table, func(rb router.RouteBlock, index int) *h.Element {
+					DefaultItems: util.MapSlice(table, func(rb app.RouteBlock, index int) *h.Element {
 						return block(blockProps{
 							index:             index,
 							path:              rb.Path,
 							resourceId:        rb.ResourceId,
 							pathMatchModifier: rb.PathMatchModifier,
 							hostname:          rb.Hostname,
-							resourceNames:     resourceNames,
+							resources:         list,
 						})
 					}),
 					RemoveButton: func(index int, children ...h.Ren) *h.Element {
@@ -112,8 +110,8 @@ func Setup(ctx *h.RequestContext) *h.Page {
 					},
 					Item: func(index int) *h.Element {
 						return block(blockProps{
-							index:         index,
-							resourceNames: resourceNames,
+							index:     index,
+							resources: list,
 						})
 					},
 					AddButton: h.Div(
@@ -135,7 +133,7 @@ type blockProps struct {
 	path              string
 	pathMatchModifier string
 	resourceId        string
-	resourceNames     []resources.ResourceName
+	resources         []*app.Resource
 }
 
 func block(props blockProps) *h.Element {
@@ -272,7 +270,7 @@ func block(props blockProps) *h.Element {
 				Required: true,
 				Value:    props.resourceId,
 				Name:     fmt.Sprintf("resource-%d", props.index),
-				Items: h.Map(props.resourceNames, func(name resources.ResourceName) ui.Item {
+				Items: h.Map(props.resources, func(name *app.Resource) ui.Item {
 					return ui.Item{
 						Value: name.Id,
 						Text:  name.Name,
