@@ -20,7 +20,8 @@ func GetStatusPartial(ctx *h.RequestContext) *h.Partial {
 			panic(err)
 		}
 
-		return h.NewPartial(
+		return h.SwapPartial(
+			ctx,
 			PageHeader(ctx, resource),
 		)
 	})

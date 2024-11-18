@@ -1,6 +1,8 @@
 package must
 
-import "net/url"
+import (
+	"net/url"
+)
 
 func Url(r string) *url.URL {
 	u, err := url.Parse(r)

@@ -86,6 +86,7 @@ func (c *Client) Build(out io.Writer, path string, opts types.ImageBuildOptions,
 	buildContext, _ := archive.TarWithOptions(projectDir, &archive.TarOptions{
 		ExcludePatterns: ignored,
 	})
+	defer buildContext.Close()
 
 	response, err := c.cli.ImageBuild(ctx, buildContext, opts)
 
@@ -111,5 +112,6 @@ func (c *Client) Build(out io.Writer, path string, opts types.ImageBuildOptions,
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

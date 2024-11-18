@@ -76,16 +76,16 @@ func SubmitHandler(ctx *h.RequestContext) *h.Partial {
 		runType = domain.RunTypeDockerBuild
 	}
 
-	var createBuildMeta = func() any {
+	var createBuildMeta = func() domain.BuildMeta {
 		if runType == domain.RunTypeDockerBuild {
-			return domain.DockerBuildMeta{
+			return &domain.DockerBuildMeta{
 				RepositoryUrl:     values.Get("git-repository"),
 				Dockerfile:        values.Get("dockerfile"),
 				GithubAccessToken: values.Get("github-access-token"),
 				Tags:              []string{},
 			}
 		}
-		return domain.EmptyBuildMeta{}
+		return &domain.EmptyBuildMeta{}
 	}
 
 	id, err := resources.Create(ctx.ServiceLocator(), resources.CreateOptions{

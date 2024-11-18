@@ -20,8 +20,9 @@ func SaveResourceDetails(ctx *h.RequestContext) *h.Partial {
 		return ui.GenericErrorAlertPartial(ctx, err)
 	}
 
-	err = resources.Patch(locator, resource.Id, map[string]any{
-		"instances_per_server": instancesPerServer,
+	err = resources.Patch(locator, resource.Id, func(resource *domain.Resource) *domain.Resource {
+		resource.InstancesPerServer = instancesPerServer
+		return resource
 	})
 
 	if err != nil {

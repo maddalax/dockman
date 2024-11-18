@@ -114,6 +114,9 @@ func (c *Client) doRun(resource *domain.Resource, index int, opts RunOptions) er
 
 	hostConfig := &container.HostConfig{
 		PortBindings: portBindings,
+		RestartPolicy: container.RestartPolicy{
+			Name: container.RestartPolicyUnlessStopped,
+		},
 		LogConfig: container.LogConfig{
 			Type: "json-file",
 			Config: map[string]string{

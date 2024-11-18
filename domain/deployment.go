@@ -23,8 +23,8 @@ type UpdateDeploymentStatusRequest struct {
 }
 
 type Deployment struct {
-	ResourceId string
-	CreatedAt  time.Time
-	BuildId    string
-	Status     DeploymentStatus
+	ResourceId string           `json:"resourceId"`
+	CreatedAt  time.Time        `json:"createdAt"`
+	BuildId    string           `json:"buildId"`
+	Status     DeploymentStatus `json:"status"`
 }

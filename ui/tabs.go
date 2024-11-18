@@ -22,7 +22,7 @@ func compareLinks(a string, b string) bool {
 }
 
 func LinkTabs(ctx *h.RequestContext, props LinkTabsProps) *h.Element {
-	currentHref := ctx.Request.URL.Path
+	currentHref := h.CurrentPath(ctx)
 	activeLink := -1
 	for i, link := range props.Links {
 		if compareLinks(currentHref, link.Href) {

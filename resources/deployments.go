@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"encoding/json"
 	"github.com/maddalax/htmgo/framework/service"
 	"paas/domain"
 	"paas/kv"
@@ -51,9 +52,9 @@ func GetDeployments(locator *service.Locator, resourceId string) ([]domain.Deplo
 		if err != nil {
 			continue
 		}
-		json := string(value.Value())
-		d := kv.MustMapStringToStructure[domain.Deployment](json)
-		if d == nil {
+		d := &domain.Deployment{}
+		err = json.Unmarshal(value.Value(), d)
+		if err != nil {
 			continue
 		}
 		mapped = append(mapped, *d)
@@ -75,8 +76,12 @@ func GetDeployment(locator *service.Locator, resourceId string, buildId string) 
 		return nil, err
 	}
 
-	json := string(build.Value())
-	d := kv.MustMapStringToStructure[domain.Deployment](json)
+	d := &domain.Deployment{}
+	err = json.Unmarshal(build.Value(), d)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return d, nil
 }

@@ -14,7 +14,6 @@ require (
 	github.com/maddalax/htmgo/framework v1.0.3-0.20241116145258-909d38c7f412
 	github.com/maddalax/multiproxy v0.0.0-20241118131035-7aa987133a08
 	github.com/microcosm-cc/bluemonday v1.0.27
-	github.com/mitchellh/mapstructure v1.5.0
 	github.com/nats-io/nats-server/v2 v2.10.22
 	github.com/nats-io/nats.go v1.37.0
 	golang.org/x/crypto v0.29.0

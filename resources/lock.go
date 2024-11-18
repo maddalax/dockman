@@ -13,6 +13,12 @@ func GetStatusLock(locator *service.Locator, resourceId string) *kv.Lock {
 	return lock
 }
 
+func GetPatchLock(locator *service.Locator, resourceId string) *kv.Lock {
+	key := fmt.Sprintf("resource-patch-lock-%s", resourceId)
+	lock := kv.GetClientFromLocator(locator).NewLock(key, 10*time.Second)
+	return lock
+}
+
 func WithStatusLock[T any](locator *service.Locator, resourceId string, f func(err error) T) T {
 	lock := GetStatusLock(locator, resourceId)
 	err := lock.Lock()

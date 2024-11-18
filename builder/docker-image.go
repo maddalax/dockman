@@ -7,7 +7,7 @@ import (
 	"github.com/maddalax/htmgo/framework/h"
 	"paas/docker"
 	"paas/domain"
-	"paas/resources"
+	"paas/git"
 	"paas/urls"
 )
 
@@ -28,7 +28,7 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *domain.DockerBuildMet
 
 	b.UpdateDeployStatus(domain.DeploymentStatusRunning)
 
-	result, err := resources.Clone(resources.CloneRequest{
+	result, err := git.Clone(git.CloneRequest{
 		Meta:     buildMeta,
 		Progress: b.BuildOutputStream,
 	})

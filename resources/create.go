@@ -1,7 +1,6 @@
 package resources
 
 import (
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
@@ -9,13 +8,14 @@ import (
 	"paas/history"
 	"paas/kv"
 	"paas/kv/subject"
+	"paas/validation"
 )
 
 type CreateOptions struct {
 	Name               string            `json:"name"`
 	Environment        string            `json:"environment"`
 	RunType            domain.RunType    `json:"run_type"`
-	BuildMeta          any               `json:"build_meta"`
+	BuildMeta          domain.BuildMeta  `json:"build_meta"`
 	Env                map[string]string `json:"env"`
 	InstancesPerServer int               `json:"instances_per_server"`
 }
@@ -35,12 +35,12 @@ func Create(locator *service.Locator, options CreateOptions) (string, error) {
 		resource.InstancesPerServer = 1
 	}
 
-	validators := []Validator{
-		BuildMetaValidator{
-			meta: resource.BuildMeta,
+	validators := []validation.Validator{
+		validation.BuildMetaValidator{
+			Meta: resource.BuildMeta,
 		},
-		RequiredFieldsValidator{
-			resource: resource,
+		validation.RequiredFieldsValidator{
+			Resource: resource,
 		},
 	}
 
@@ -51,46 +51,11 @@ func Create(locator *service.Locator, options CreateOptions) (string, error) {
 		}
 	}
 
-	bucket, _ := client.GetBucket(resource.BucketKey())
-
-	if bucket != nil {
-		return "", fmt.Errorf("resource already exists")
-	}
-
 	bucket, err := client.GetOrCreateBucket(&nats.KeyValueConfig{
-		Bucket: resource.BucketKey(),
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	err = kv.AtomicPutMany(bucket, func(m map[string]any) error {
-		m["id"] = resource.Id
-		m["environment"] = resource.Environment
-		m["run_type"] = resource.RunType
-		m["build_meta"] = resource.BuildMeta
-		m["name"] = resource.Name
-		for k, v := range resource.Env {
-			m[fmt.Sprintf("env/%s", k)] = v
-		}
-		return nil
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	bucket, err = client.GetOrCreateBucket(&nats.KeyValueConfig{
 		Bucket: "resources",
 	})
 
-	if err != nil {
-		return "", err
-	}
-
-	// add it to the resources bucket for listing
-	_, err = bucket.Create(resource.BucketKey(), []byte{})
+	err = kv.PutJson(bucket, resource.Id, resource)
 
 	if err != nil {
 		return "", err

@@ -23,6 +23,7 @@ func Page(ctx *h.RequestContext, children func(resource *domain.Resource) *h.Ele
 		ctx,
 		h.Div(
 			h.Class("flex flex-col gap-2 px-8"),
+			PageHeader(ctx, resource),
 			h.Div(
 				h.GetPartialWithQs(GetStatusPartial, h.NewQs("id", resource.Id), "load, every 3s"),
 			),

@@ -4,42 +4,43 @@ import (
 	"errors"
 	"github.com/maddalax/htmgo/framework/service"
 	"paas/domain"
-	"paas/history"
+	"paas/json2"
 	"paas/kv"
-	"paas/kv/subject"
+	"paas/validation"
 )
 
 func SetRunStatus(locator *service.Locator, resourceId string, status domain.RunStatus) error {
-	return Patch(locator, resourceId, map[string]any{
-		"run_status": status,
+	return Patch(locator, resourceId, func(resource *domain.Resource) *domain.Resource {
+		resource.RunStatus = status
+		return resource
 	})
 }
 
-func Patch(locator *service.Locator, id string, patch map[string]any) error {
+func Patch(locator *service.Locator, id string, cb func(resource *domain.Resource) *domain.Resource) error {
+	lock := GetPatchLock(locator, id)
+	err := lock.Lock()
+
+	if err != nil {
+		return err
+	}
+
+	defer lock.Unlock()
+
 	resource, err := Get(locator, id)
 	if err != nil {
 		return err
 	}
 
-	if patch["run_status"] != nil {
-		resource.RunStatus = patch["run_status"].(domain.RunStatus)
+	updated := cb(resource)
+	current, err := Get(locator, id)
+
+	if err != nil {
+		return err
 	}
 
-	if patch["instances_per_server"] != nil {
-		resource.InstancesPerServer = patch["instances_per_server"].(int)
-	}
-
-	if patch["name"] != nil {
-		return errors.New("name cannot be changed")
-	}
-
-	if patch["build_meta"] != nil {
-		return errors.New("build meta cannot be changed")
-	}
-
-	validators := []Validator{
-		RequiredFieldsValidator{
-			resource: resource,
+	validators := []validation.Validator{
+		validation.RequiredFieldsValidator{
+			Resource: resource,
 		},
 	}
 
@@ -50,26 +51,31 @@ func Patch(locator *service.Locator, id string, patch map[string]any) error {
 		}
 	}
 
-	client := service.Get[kv.Client](locator)
-	bucket, err := client.GetBucket(resource.BucketKey())
+	if updated.Name != current.Name {
+		return errors.New("name cannot be changed")
+	}
+
+	_, err = current.BuildMeta.ValidatePatch(updated.BuildMeta)
 
 	if err != nil {
 		return err
 	}
 
-	err = kv.AtomicPutMany(bucket, func(m map[string]any) error {
-		for k, v := range patch {
-			m[k] = v
-		}
-		return nil
-	})
+	client := kv.GetClientFromLocator(locator)
+
+	resources, err := client.GetBucket("resources")
 
 	if err != nil {
 		return err
 	}
 
-	patch["resource_id"] = resource.Id
-	history.LogChange(locator, subject.ResourcePatched, patch)
+	serialized, err := json2.Serialize(updated)
 
-	return nil
+	if err != nil {
+		return err
+	}
+
+	_, err = resources.Put(id, serialized)
+
+	return err
 }
