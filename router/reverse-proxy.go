@@ -3,7 +3,6 @@ package router
 import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
-	"github.com/gobwas/glob"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
 	"log/slog"
@@ -11,7 +10,6 @@ import (
 	"paas/docker"
 	"paas/must"
 	"paas/resources"
-	"strings"
 	"time"
 )
 
@@ -29,8 +27,8 @@ func StartProxy(locator *service.Locator) {
 		}
 	}()
 
-	upstreams := loadUpstreams(locator)
-	lb.SetUpstreams(upstreams)
+	config := loadConfig(locator)
+	lb.SetUpstreams(config.Upstreams)
 
 	handler := multiproxy.NewReverseProxyHandler(lb)
 
@@ -54,16 +52,24 @@ func StartProxy(locator *service.Locator) {
 func ReloadConfig(locator *service.Locator) {
 	lb := service.Get[multiproxy.LoadBalancer](locator)
 	slog.Info("Reloading reverse proxy upstream config")
-	lb.SetUpstreams(loadUpstreams(locator))
+	config := loadConfig(locator)
+	lb.SetUpstreams(config.Upstreams)
 }
 
-func loadUpstreams(locator *service.Locator) []*multiproxy.Upstream {
+func loadConfig(locator *service.Locator) Config {
 	var upstreams []*multiproxy.Upstream
 	table, err := GetRouteTable(locator)
 	if err != nil {
-		return []*multiproxy.Upstream{}
+		return Config{
+			Upstreams: upstreams,
+			Matcher:   &Matcher{},
+		}
 	}
+
+	matcher := &Matcher{}
+
 	for _, block := range table {
+
 		resource, err := resources.Get(locator, block.ResourceId)
 		if err != nil {
 			slog.Error("Failed to get resource", slog.String("resourceId", block.ResourceId), slog.String("error", err.Error()))
@@ -83,57 +89,31 @@ func loadUpstreams(locator *service.Locator) []*multiproxy.Upstream {
 		for port, binding := range container.NetworkSettings.Ports {
 			if port.Proto() == "tcp" {
 				for _, portBinding := range binding {
-					upstreams = append(upstreams, &multiproxy.Upstream{
+
+					upstream := &multiproxy.Upstream{
 						Url: must.Url(fmt.Sprintf("http://%s:%s", portBinding.HostIP, portBinding.HostPort)),
-						PathMatchesFunc: func(path string, match *multiproxy.Match) bool {
-
-							if block.PathMatchModifier == "" {
-								block.PathMatchModifier = "starts-with"
-							}
-
-							if block.Path == "" {
-								return true
-							}
-
-							switch block.PathMatchModifier {
-							case "starts-with":
-								return strings.HasPrefix(path, block.Path)
-							case "not-starts-with":
-								return !strings.HasPrefix(path, block.Path)
-							case "not-equals":
-								return path != block.Path
-							case "not-ends-with":
-								return !strings.HasSuffix(path, block.Path)
-							case "ends-with":
-								return strings.HasSuffix(path, block.Path)
-							case "contains":
-								return strings.Contains(path, block.Path)
-							case "is":
-								return path == block.Path
-							case "glob":
-								// todo precompile these
-								g, err := glob.Compile(match.Path)
-								if err != nil {
-									slog.Error("Failed to compile glob", slog.String("error", err.Error()))
-									return false
-								}
-								return g.Match(path)
-							default:
-								// should never happen
-								return false
-
-							}
+						MatchesFunc: func(req *http.Request, match *multiproxy.Match) bool {
+							return matcher.Matches(req)
 						},
+
+						// really doesn't matter since we are overriding the MatchesFunc
 						Matches: []multiproxy.Match{
 							{
-								Host: block.Hostname,
-								Path: block.Path,
+								Host: "*",
+								Path: "*",
 							},
 						},
-					})
+					}
+
+					matcher.AddUpstream(upstream, &block)
+					upstreams = append(upstreams, upstream)
 				}
 			}
 		}
 	}
-	return upstreams
+
+	return Config{
+		Upstreams: upstreams,
+		Matcher:   matcher,
+	}
 }

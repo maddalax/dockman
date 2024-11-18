@@ -2,8 +2,6 @@ package router
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
 	"paas/kv"
@@ -35,18 +33,12 @@ func ApplyBlocks(locator *service.Locator, blocks []RouteBlock) error {
 }
 
 func ValidateBlocks(blocks []RouteBlock) error {
-	// Validate blocks
-
-	for i, block := range blocks {
-		if block.Hostname == "" {
-			return errors.New(fmt.Sprintf("Hostname is required for block %d", i))
+	for _, block := range blocks {
+		err := ValidateBlock(&block)
+		if err != nil {
+			return err
 		}
-		if block.ResourceId == "" {
-			return errors.New(fmt.Sprintf("resource id is required for block %d", i))
-		}
-		// TODO ensure the resource exists
 	}
-
 	return nil
 }
 

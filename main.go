@@ -16,6 +16,8 @@ import (
 	"paas/router"
 )
 
+import _ "net/http/pprof"
+
 func main() {
 	locator := service.NewLocator()
 	cfg := config.Get()
@@ -44,6 +46,13 @@ func main() {
 	})
 
 	go m.StartRunStatusMonitor()
+
+	if h.IsDevelopment() {
+		// pprof
+		go func() {
+			http.ListenAndServe("localhost:6060", nil)
+		}()
+	}
 
 	h.Start(h.AppOpts{
 		ServiceLocator: locator,
