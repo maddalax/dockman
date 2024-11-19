@@ -39,7 +39,7 @@ func (monitor *ResourceMonitor) StartRunStatusMonitor() {
 
 func (monitor *ResourceMonitor) OnStatusChange(resource *Resource, status RunStatus) {
 	ctx, cancel := context.WithCancel(context.Background())
-	natsClient := GetClientFromLocator(monitor.locator)
+	natsClient := KvFromLocator(monitor.locator)
 	writer := natsClient.CreateEphemeralWriterSubscriber(ctx, subject.RunLogsForResource(resource.Id), NatsWriterCreateOptions{})
 
 	message := ""

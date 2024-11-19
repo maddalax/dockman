@@ -20,7 +20,7 @@ func StartNatsServer() (*server.Server, error) {
 		return nil, err
 	}
 
-	// Start the NATS server in a goroutine
+	// ResourceStart the NATS server in a goroutine
 	go natsServer.Start()
 
 	// Check if the server is ready

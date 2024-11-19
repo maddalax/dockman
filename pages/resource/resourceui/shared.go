@@ -32,7 +32,7 @@ func Page(ctx *h.RequestContext, children func(resource *internal.Resource) *h.E
 }
 
 func PageHeader(ctx *h.RequestContext, resource *internal.Resource) *h.Element {
-	_, err := internal.IsRunnable(resource)
+	_, err := internal.IsResourceRunnable(resource)
 
 	return h.Div(
 		h.Class("flex flex-col gap-6"),
@@ -74,7 +74,7 @@ func ResourceStatusContainer(resource *internal.Resource) *h.Element {
 }
 
 func ResourceStatus(resource *internal.Resource) *h.Element {
-	runnable, err := internal.IsRunnable(resource)
+	runnable, err := internal.IsResourceRunnable(resource)
 
 	if err != nil {
 		return h.Empty()
@@ -88,7 +88,7 @@ func ResourceStatus(resource *internal.Resource) *h.Element {
 	var stopButton = ui.SubmitButton(ui.SubmitButtonProps{
 		Post:           h.GetPartialPathWithQs(StopResource, h.NewQs("id", resource.Id)),
 		SubmittingText: "Stopping...",
-		Text:           "Stop",
+		Text:           "ResourceStop",
 	})
 
 	var redeployButton = ui.PrimaryButton(ui.ButtonProps{
@@ -99,7 +99,7 @@ func ResourceStatus(resource *internal.Resource) *h.Element {
 	var startButton = ui.SubmitButton(ui.SubmitButtonProps{
 		Post:           h.GetPartialPathWithQs(StartResource, h.NewQs("id", resource.Id)),
 		SubmittingText: "Starting...",
-		Text:           "Start",
+		Text:           "ResourceStart",
 	})
 
 	var restartButton = ui.SubmitButton(ui.SubmitButtonProps{

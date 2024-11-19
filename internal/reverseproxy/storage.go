@@ -16,7 +16,7 @@ func ApplyBlocks(locator *service.Locator, blocks []RouteBlock) error {
 	}
 
 	// Save block to database
-	client := internal.GetClientFromLocator(locator)
+	client := internal.KvFromLocator(locator)
 	bucket, err := client.GetOrCreateBucket(&nats.KeyValueConfig{
 		Bucket: "route-table",
 	})
@@ -44,7 +44,7 @@ func ValidateBlocks(blocks []RouteBlock) error {
 }
 
 func GetRouteTable(locator *service.Locator) ([]RouteBlock, error) {
-	client := internal.GetClientFromLocator(locator)
+	client := internal.KvFromLocator(locator)
 	bucket, err := client.GetBucket("route-table")
 	if err != nil {
 		return nil, err

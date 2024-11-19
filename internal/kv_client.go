@@ -21,13 +21,17 @@ type KvClient struct {
 	js nats.JetStreamContext
 }
 
-func GetClientFromCtx(ctx *h.RequestContext) *KvClient {
-	return GetClientFromLocator(ctx.ServiceLocator())
+func KvFromCtx(ctx *h.RequestContext) *KvClient {
+	return KvFromLocator(ctx.ServiceLocator())
 }
 
-func GetClientFromLocator(locator *service.Locator) *KvClient {
+func KvFromLocator(locator *service.Locator) *KvClient {
 	client := service.Get[KvClient](locator)
 	return client
+}
+
+func (c *KvClient) Ping() error {
+	return c.nc.Flush()
 }
 
 func (c *KvClient) PurgeStream(stream string) error {

@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-// IsRunnable checks if a resource is runnable
+// IsResourceRunnable checks if a resource is runnable
 // in the case of docker, the container must exist for each instance
-func IsRunnable(resource *Resource) (bool, error) {
+func IsResourceRunnable(resource *Resource) (bool, error) {
 	switch resource.RunType {
 	case RunTypeDockerBuild:
 		fallthrough
@@ -38,7 +38,7 @@ type StartOpts struct {
 	RemoveExisting bool
 }
 
-func Start(locator *service.Locator, resourceId string, opts StartOpts) (*Resource, error) {
+func ResourceStart(locator *service.Locator, resourceId string, opts StartOpts) (*Resource, error) {
 	lock := ResourceStatusLock(locator, resourceId)
 	err := lock.Lock()
 	if err != nil {
@@ -82,7 +82,7 @@ func Start(locator *service.Locator, resourceId string, opts StartOpts) (*Resour
 	}
 }
 
-func Stop(locator *service.Locator, resourceId string) (*Resource, error) {
+func ResourceStop(locator *service.Locator, resourceId string) (*Resource, error) {
 	lock := ResourceStatusLock(locator, resourceId)
 	err := lock.Lock()
 	if err != nil {

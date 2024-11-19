@@ -11,7 +11,7 @@ import (
 )
 
 func DockerBuildLogs(ctx *h.RequestContext, resource *internal.Resource, buildId string) *h.Element {
-	natsClient := internal.GetClientFromCtx(ctx)
+	natsClient := internal.KvFromCtx(ctx)
 
 	internal.OnceWithAliveContext(ctx, func(context context.Context) {
 		sb := subject.BuildLogForResource(resource.Id, buildId)

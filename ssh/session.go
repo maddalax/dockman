@@ -36,52 +36,50 @@ func (e PasswordRequiredError) Error() string {
 	return "Error: Password authentication required."
 }
 
-type Session struct {
+type Client struct {
 	client *ssh.Client
-	s      *ssh.Session
 }
 
-func (s *Session) Disconnect() {
-	s.s.Close()
+func (s *Client) Disconnect() {
 	s.client.Close()
 }
 
-func (s *Session) RunWithOutput(command string) (string, error) {
-	output, err := s.s.CombinedOutput(command)
+func (s *Client) RunWithOutput(command string) (string, error) {
+	session, err := s.client.NewSession()
+	if err != nil {
+		return "", ErrorCreatingSession{Err: err}
+	}
+	output, err := session.CombinedOutput(command)
 	if err != nil {
 		return "", err
 	}
 	return string(output), nil
 }
 
-func (s *Session) RunWithOutputStream(command string, stdOut, stdErr io.Writer) error {
-	// Set up pipes to capture the output
-	stdout, err := s.s.StdoutPipe()
+func (s *Client) RunWithOutputStream(command string, stdOut, stdErr io.Writer) error {
+	session, err := s.client.NewSession()
+
 	if err != nil {
+		return ErrorCreatingSession{Err: err}
+	}
+
+	outPipe, err := session.StdoutPipe()
+	if err == nil {
+		go streamOutput(outPipe, stdOut)
+	}
+	errPipe, err := session.StderrPipe()
+	if err == nil {
+		go streamOutput(errPipe, stdErr)
+	}
+
+	if err := session.Run(command); err != nil {
 		return err
 	}
 
-	stderr, err := s.s.StderrPipe()
-	if err != nil {
-		return err
-	}
-
-	if err := s.s.Start(command); err != nil {
-		return err
-	}
-
-	// Stream stdout and stderr
-	go streamOutput(stdout, stdOut)
-	go streamOutput(stderr, stdErr)
-
-	// Wait for the command to complete
-	if err := s.s.Wait(); err != nil {
-		return err
-	}
 	return err
 }
 
-func OpenSession(opts SessionOpts) (*Session, error) {
+func OpenClient(opts SessionOpts) (*Client, error) {
 
 	if !strings.Contains(opts.ServerAddress, ":") {
 		opts.ServerAddress = fmt.Sprintf("%s:22", opts.ServerAddress)
@@ -109,14 +107,7 @@ func OpenSession(opts SessionOpts) (*Session, error) {
 		}
 	}
 
-	session, err := client.NewSession()
-
-	if err != nil {
-		return nil, ErrorCreatingSession{Err: err}
-	}
-
-	return &Session{
+	return &Client{
 		client: client,
-		s:      session,
 	}, nil
 }

@@ -30,7 +30,7 @@ func Deployment(ctx *h.RequestContext) *h.Page {
 			h.Div(
 				h.Class("flex gap-2 items-center"),
 				ui.PrimaryButton(ui.ButtonProps{
-					Text: "Start Build",
+					Text: "ResourceStart Build",
 					Href: urls.ResourceStartDeploymentPath(resource.Id, ""),
 				}),
 			),

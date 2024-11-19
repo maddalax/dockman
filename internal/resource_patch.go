@@ -58,7 +58,7 @@ func ResourcePatch(locator *service.Locator, id string, cb func(resource *Resour
 		return err
 	}
 
-	client := GetClientFromLocator(locator)
+	client := KvFromLocator(locator)
 
 	resources, err := client.GetBucket("resources")
 

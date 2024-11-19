@@ -16,7 +16,7 @@ func StreamResourceLogs(locator *service.Locator, context context.Context, resou
 }
 
 func doStream(locator *service.Locator, context context.Context, resource *Resource, cb func(msg *nats.Msg), lastMessageTime time.Time) {
-	natsClient := GetClientFromLocator(locator)
+	natsClient := KvFromLocator(locator)
 	restartStream := false
 
 	writer := natsClient.CreateEphemeralWriterSubscriber(context, subject.RunLogsForResource(resource.Id), NatsWriterCreateOptions{

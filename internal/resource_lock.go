@@ -8,13 +8,13 @@ import (
 
 func ResourceStatusLock(locator *service.Locator, resourceId string) *DistributedLock {
 	key := fmt.Sprintf("resource-status-builderRegistryLock-%s", resourceId)
-	lock := GetClientFromLocator(locator).NewLock(key, 10*time.Second)
+	lock := KvFromLocator(locator).NewLock(key, 10*time.Second)
 	return lock
 }
 
 func ResourcePatchLock(locator *service.Locator, resourceId string) *DistributedLock {
 	key := fmt.Sprintf("resource-patch-builderRegistryLock-%s", resourceId)
-	lock := GetClientFromLocator(locator).NewLock(key, 10*time.Second)
+	lock := KvFromLocator(locator).NewLock(key, 10*time.Second)
 	return lock
 }
 

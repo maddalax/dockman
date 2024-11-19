@@ -30,7 +30,7 @@ func SaveResourceDetails(ctx *h.RequestContext) *h.Partial {
 
 	// changed instances per server, start the resource
 	if resource.InstancesPerServer != instancesPerServer {
-		go internal.Start(locator, resource.Id, internal.StartOpts{
+		go internal.ResourceStart(locator, resource.Id, internal.StartOpts{
 			IgnoreIfRunning: true,
 			// if we change the instances and existing containers already exist for the new instance indexes, remove them
 			RemoveExisting: true,

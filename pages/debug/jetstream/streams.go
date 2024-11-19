@@ -36,7 +36,7 @@ func StreamsDebugPage(ctx *h.RequestContext) *h.Page {
 }
 
 func StreamsSidebar(ctx *h.RequestContext) *h.Element {
-	client := internal.GetClientFromCtx(ctx)
+	client := internal.KvFromCtx(ctx)
 	buckets := client.GetStreams()
 	return h.Div(
 		h.Id("bucket-list"),
@@ -55,7 +55,7 @@ func StreamsSidebar(ctx *h.RequestContext) *h.Element {
 }
 
 func StreamCard(ctx *h.RequestContext, streamStatus *nats.StreamInfo) *h.Element {
-	client := internal.GetClientFromCtx(ctx)
+	client := internal.KvFromCtx(ctx)
 	deleteButton := h.Button(
 		h.Class("text-blue underline"),
 		h.Text("Delete"),
@@ -83,7 +83,7 @@ func StreamCard(ctx *h.RequestContext, streamStatus *nats.StreamInfo) *h.Element
 
 func StreamDetails(ctx *h.RequestContext, stream *nats.StreamInfo) *h.Element {
 
-	client := internal.GetClientFromCtx(ctx)
+	client := internal.KvFromCtx(ctx)
 
 	internal.OnceWithAliveContext(ctx, func(context context.Context) {
 		for _, subject := range stream.Config.Subjects {

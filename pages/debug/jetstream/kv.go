@@ -1,6 +1,7 @@
 package jetstream
 
 import (
+	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
@@ -40,7 +41,7 @@ func EmptyDetails() *h.Element {
 }
 
 func BucketSidebar(ctx *h.RequestContext) *h.Element {
-	client := internal.GetClientFromCtx(ctx)
+	client := internal.KvFromCtx(ctx)
 	buckets := client.GetBuckets()
 	return h.Div(
 		h.Id("bucket-list"),
@@ -59,7 +60,7 @@ func BucketSidebar(ctx *h.RequestContext) *h.Element {
 }
 
 func BucketCard(ctx *h.RequestContext, bucketStatus nats.KeyValueStatus) *h.Element {
-	client := internal.GetClientFromCtx(ctx)
+	client := internal.KvFromCtx(ctx)
 	deleteButton := h.Button(
 		h.Class("text-blue underline"),
 		h.Text("Delete"),
@@ -86,7 +87,7 @@ func BucketCard(ctx *h.RequestContext, bucketStatus nats.KeyValueStatus) *h.Elem
 }
 
 func BucketDetails(ctx *h.RequestContext, bucketStatus nats.KeyValueStatus) *h.Element {
-	client := internal.GetClientFromCtx(ctx)
+	client := internal.KvFromCtx(ctx)
 	bucket, err := client.GetBucket(bucketStatus.Bucket())
 
 	if err != nil {
@@ -110,7 +111,13 @@ func BucketDetails(ctx *h.RequestContext, bucketStatus nats.KeyValueStatus) *h.E
 		h.List(
 			keys,
 			func(key string, index int) *h.Element {
-				value, _ := bucket.Get(key)
+				value, err := bucket.Get(key)
+
+				if err != nil {
+					return h.Div()
+				}
+
+				serialized := fmt.Sprintf("%q", value.Value())
 
 				deleteButton := h.Button(
 					h.Class("text-blue underline"),
@@ -130,7 +137,10 @@ func BucketDetails(ctx *h.RequestContext, bucketStatus nats.KeyValueStatus) *h.E
 							h.Text(key),
 						),
 						h.Span(
-							h.Text(string(value.Value())),
+							h.Class("max-w-[300px]"),
+							h.Pre(
+								h.UnsafeRaw(serialized),
+							),
 						),
 					),
 					deleteButton,

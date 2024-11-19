@@ -1,12 +1,15 @@
 package main
 
-import "os"
+import (
+	"os"
+	"time"
+)
 
 func main() {
-	session, err := OpenSession(SessionOpts{
+	client, err := OpenClient(SessionOpts{
 		Username:      "root",
 		Password:      "subluxation",
-		ServerAddress: "100.69.2.76",
+		ServerAddress: "fedora-server",
 	})
 
 	if err != nil {
@@ -19,11 +22,19 @@ func main() {
 		panic(err)
 	}
 
-	err = session.RunWithOutputStream("ls -la", file, file)
+	err = client.RunWithOutputStream("ls -la", file, file)
 
 	if err != nil {
 		panic(err)
 	}
 
-	session.Disconnect()
+	for {
+		err = client.RunWithOutputStream("ls -la", os.Stdout, os.Stderr)
+		if err != nil {
+			panic(err)
+		}
+		time.Sleep(time.Second)
+	}
+
+	client.Disconnect()
 }

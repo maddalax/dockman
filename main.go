@@ -20,19 +20,10 @@ import _ "net/http/pprof"
 func main() {
 	locator := service.NewLocator()
 	cfg := config.Get()
+	agent := internal.NewAgent(locator)
 
 	service.Set[internal.BuilderRegistry](locator, service.Singleton, func() *internal.BuilderRegistry {
 		return internal.NewBuilderRegistry()
-	})
-
-	service.Set[internal.KvClient](locator, service.Singleton, func() *internal.KvClient {
-		client, err := internal.NatsConnect(internal.NatsConnectOptions{
-			Port: 4222,
-		})
-		if err != nil {
-			panic(err)
-		}
-		return client
 	})
 
 	_, err := internal.StartNatsServer()
@@ -40,6 +31,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	agent.Setup()
+
+	//go agent.Run()
 
 	reverseproxy.StartProxy(locator)
 
