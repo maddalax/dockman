@@ -6,6 +6,7 @@ import (
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
 	"paas/app"
+	"paas/app/subject"
 	"paas/app/ui"
 	"paas/pages/resource/resourceui"
 )
@@ -21,7 +22,9 @@ func RunLog(ctx *h.RequestContext) *h.Page {
 
 	app.OnceWithAliveContext(ctx, func(context context.Context) {
 
-		app.StreamResourceLogs(ctx.ServiceLocator(), context, resource, func(msg *nats.Msg) {
+		kv := app.KvFromLocator(ctx.ServiceLocator())
+		streamName := subject.RunLogsForResource(resource.Id)
+		_, err = kv.SubscribeStreamAndReplayAll(context, streamName, func(msg *nats.Msg) {
 			data := string(msg.Data)
 			ws.PushElementCtx(ctx, ui.LogLine(data))
 		})
