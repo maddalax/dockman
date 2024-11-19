@@ -2,8 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
-	"log/slog"
 )
 
 type DockerLog struct {
@@ -18,14 +16,10 @@ func (a *Agent) WriteContainerLog(log string) {
 	dockerLog := DockerLog{}
 	err := json.Unmarshal([]byte(log), &dockerLog)
 	if err != nil {
-		slog.Error("Failed to unmarshal log", slog.String("error", err.Error()), slog.String("log", log))
+		// don't want to log this error since it will be a lot of noise
 		return
 	}
 	if dockerLog.Log != "" && dockerLog.ResourceId != "" {
-		err = a.kv.CreateRunLogStream(dockerLog.ResourceId)
-		if err != nil {
-			fmt.Printf("Failed to create run log stream: %s\n", err.Error())
-		}
 		a.kv.LogRunMessage(dockerLog.ResourceId, dockerLog.Log)
 	}
 }

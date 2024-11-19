@@ -134,7 +134,7 @@ func (m *FluentdManager) StreamLogs() error {
 	}
 
 	execConfig := container.ExecOptions{
-		Cmd:          strslice.StrSlice{"bin/bash", "-c", "cd /fluentd/log && find . -type f -name \"docker.log*\" -exec tail -n 1000 -f {} +\n"},
+		Cmd:          strslice.StrSlice{"bin/bash", "-c", "cd /fluentd/log && find . -type f -name \"docker.log*\" -exec tail -n 0 -f {} +\n"},
 		AttachStdout: true,
 		AttachStderr: true,
 	}

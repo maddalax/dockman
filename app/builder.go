@@ -114,6 +114,12 @@ func (b *ResourceBuilder) Build() error {
 		return err
 	}
 
+	err = b.NatsClient.CreateRunLogStream(b.Resource.Id)
+
+	if err != nil {
+		return err
+	}
+
 	b.BuildOutputStream = b.NatsClient.NewNatsWriter(subject.BuildLogForResource(b.Resource.Id, b.BuildId))
 	b.RunOutputStream = b.NatsClient.NewEphemeralNatsWriter(subject.RunLogsForResource(b.Resource.Id))
 
