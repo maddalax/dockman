@@ -8,11 +8,12 @@ import (
 	"github.com/maddalax/htmgo/framework/config"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
+	"io"
 	"io/fs"
 	"net/http"
 	"paas/__htmgo"
-	"paas/internal"
-	"paas/internal/reverseproxy"
+	"paas/app"
+	"paas/app/reverseproxy"
 )
 
 import _ "net/http/pprof"
@@ -20,13 +21,13 @@ import _ "net/http/pprof"
 func main() {
 	locator := service.NewLocator()
 	cfg := config.Get()
-	agent := internal.NewAgent(locator)
+	agent := app.NewAgent(locator)
 
-	service.Set[internal.BuilderRegistry](locator, service.Singleton, func() *internal.BuilderRegistry {
-		return internal.NewBuilderRegistry()
+	service.Set[app.BuilderRegistry](locator, service.Singleton, func() *app.BuilderRegistry {
+		return app.NewBuilderRegistry()
 	})
 
-	_, err := internal.StartNatsServer()
+	_, err := app.StartNatsServer()
 
 	if err != nil {
 		panic(err)
@@ -38,8 +39,8 @@ func main() {
 
 	reverseproxy.StartProxy(locator)
 
-	m := internal.NewMonitor(locator)
-	service.Set(locator, service.Singleton, func() *internal.ResourceMonitor {
+	m := app.NewMonitor(locator)
+	service.Set(locator, service.Singleton, func() *app.ResourceMonitor {
 		return m
 	})
 
@@ -75,6 +76,17 @@ func main() {
 			}
 
 			http.FileServerFS(sub)
+
+			app.Router.Handle("/api/docker/logs", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				body, err := io.ReadAll(r.Body)
+				if err != nil {
+					w.WriteHeader(500)
+					return
+				}
+				fmt.Printf("Received logs: %s\n", string(body))
+				w.WriteHeader(200)
+				return
+			}))
 
 			// change this in htmgo.yml (public_asset_path)
 			app.Router.Handle(fmt.Sprintf("%s/*", cfg.PublicAssetPath),

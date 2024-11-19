@@ -2,8 +2,8 @@ package create
 
 import (
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/internal/ui"
-	"paas/internal/ui/icons"
+	"paas/app/ui"
+	"paas/app/ui/icons"
 )
 
 func DeploymentChoiceSelector() *h.Element {

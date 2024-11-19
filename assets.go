@@ -5,7 +5,7 @@ package main
 
 import (
 	"io/fs"
-	"paas/internal/embedded"
+	"paas/app/embedded"
 )
 
 func GetStaticAssets() fs.FS {

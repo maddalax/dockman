@@ -3,7 +3,7 @@ package pages
 import (
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
-	"paas/internal/ui"
+	"paas/app/ui"
 	"strings"
 )
 

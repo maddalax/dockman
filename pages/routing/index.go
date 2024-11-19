@@ -3,11 +3,11 @@ package routing
 import (
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/internal"
-	"paas/internal/reverseproxy"
-	"paas/internal/ui"
-	"paas/internal/ui/icons"
-	"paas/internal/util"
+	"paas/app"
+	"paas/app/reverseproxy"
+	"paas/app/ui"
+	"paas/app/ui/icons"
+	"paas/app/util"
 	"paas/pages"
 	"time"
 )
@@ -50,7 +50,7 @@ func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
 
 func Setup(ctx *h.RequestContext) *h.Page {
 	locator := ctx.ServiceLocator()
-	list, err := internal.ResourceList(locator)
+	list, err := app.ResourceList(locator)
 	table, err := reverseproxy.GetRouteTable(locator)
 
 	if err != nil {
@@ -134,7 +134,7 @@ type blockProps struct {
 	path              string
 	pathMatchModifier string
 	resourceId        string
-	resources         []*internal.Resource
+	resources         []*app.Resource
 }
 
 func block(props blockProps) *h.Element {
@@ -271,7 +271,7 @@ func block(props blockProps) *h.Element {
 				Required: true,
 				Value:    props.resourceId,
 				Name:     fmt.Sprintf("resource-%d", props.index),
-				Items: h.Map(props.resources, func(name *internal.Resource) ui.Item {
+				Items: h.Map(props.resources, func(name *app.Resource) ui.Item {
 					return ui.Item{
 						Value: name.Id,
 						Text:  name.Name,

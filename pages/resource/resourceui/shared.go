@@ -3,15 +3,15 @@ package resourceui
 import (
 	"errors"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/internal"
-	"paas/internal/ui"
-	"paas/internal/urls"
+	"paas/app"
+	"paas/app/ui"
+	"paas/app/urls"
 	"paas/pages"
 )
 
-func Page(ctx *h.RequestContext, children func(resource *internal.Resource) *h.Element) *h.Page {
+func Page(ctx *h.RequestContext, children func(resource *app.Resource) *h.Element) *h.Page {
 	id := ctx.QueryParam("id")
-	resource, err := internal.ResourceGet(ctx.ServiceLocator(), id)
+	resource, err := app.ResourceGet(ctx.ServiceLocator(), id)
 
 	if err != nil {
 		ctx.Redirect("/", 302)
@@ -31,8 +31,8 @@ func Page(ctx *h.RequestContext, children func(resource *internal.Resource) *h.E
 	)
 }
 
-func PageHeader(ctx *h.RequestContext, resource *internal.Resource) *h.Element {
-	_, err := internal.IsResourceRunnable(resource)
+func PageHeader(ctx *h.RequestContext, resource *app.Resource) *h.Element {
+	_, err := app.IsResourceRunnable(resource)
 
 	return h.Div(
 		h.Class("flex flex-col gap-6"),
@@ -59,13 +59,13 @@ func ResourceStatusError(err error) *h.Element {
 		return h.Empty()
 	}
 	switch {
-	case errors.Is(err, internal.DockerConnectionError):
+	case errors.Is(err, app.DockerConnectionError):
 		return ui.ErrorAlert(h.Pf("Failed to connect to docker"), h.Pf("Please check your docker connection"))
 	}
 	return ui.ErrorAlert(h.Pf("Failed to load resource status"), h.Pf(err.Error()))
 }
 
-func ResourceStatusContainer(resource *internal.Resource) *h.Element {
+func ResourceStatusContainer(resource *app.Resource) *h.Element {
 	return h.Div(
 		h.Id("resource-status"),
 		h.Class("flex gap-2 absolute -top-3 right-0"),
@@ -73,8 +73,8 @@ func ResourceStatusContainer(resource *internal.Resource) *h.Element {
 	)
 }
 
-func ResourceStatus(resource *internal.Resource) *h.Element {
-	runnable, err := internal.IsResourceRunnable(resource)
+func ResourceStatus(resource *app.Resource) *h.Element {
+	runnable, err := app.IsResourceRunnable(resource)
 
 	if err != nil {
 		return h.Empty()
@@ -88,7 +88,7 @@ func ResourceStatus(resource *internal.Resource) *h.Element {
 	var stopButton = ui.SubmitButton(ui.SubmitButtonProps{
 		Post:           h.GetPartialPathWithQs(StopResource, h.NewQs("id", resource.Id)),
 		SubmittingText: "Stopping...",
-		Text:           "ResourceStop",
+		Text:           "Stop",
 	})
 
 	var redeployButton = ui.PrimaryButton(ui.ButtonProps{
@@ -99,7 +99,7 @@ func ResourceStatus(resource *internal.Resource) *h.Element {
 	var startButton = ui.SubmitButton(ui.SubmitButtonProps{
 		Post:           h.GetPartialPathWithQs(StartResource, h.NewQs("id", resource.Id)),
 		SubmittingText: "Starting...",
-		Text:           "ResourceStart",
+		Text:           "Start",
 	})
 
 	var restartButton = ui.SubmitButton(ui.SubmitButtonProps{
@@ -111,13 +111,13 @@ func ResourceStatus(resource *internal.Resource) *h.Element {
 	return h.Div(
 		h.Class("flex gap-2 w-full"),
 		h.IfElse(!runnable, deployButton, redeployButton),
-		h.If(resource.RunStatus == internal.RunStatusRunning, stopButton),
-		h.If(resource.RunStatus == internal.RunStatusRunning, restartButton),
-		h.If(resource.RunStatus != internal.RunStatusRunning && runnable, startButton),
+		h.If(resource.RunStatus == app.RunStatusRunning, stopButton),
+		h.If(resource.RunStatus == app.RunStatusRunning, restartButton),
+		h.If(resource.RunStatus != app.RunStatusRunning && runnable, startButton),
 	)
 }
 
-func TopTabs(ctx *h.RequestContext, resource *internal.Resource, props ui.LinkTabsProps) *h.Element {
+func TopTabs(ctx *h.RequestContext, resource *app.Resource, props ui.LinkTabsProps) *h.Element {
 	props.Links = []ui.Link{
 		{
 			Text: "Overview",
