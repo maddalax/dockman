@@ -3,18 +3,19 @@ package routing
 import (
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
+	"paas/internal"
+	"paas/internal/reverseproxy"
+	"paas/internal/ui"
+	"paas/internal/ui/icons"
+	"paas/internal/util"
 	"paas/pages"
-	"paas/ui"
-	"paas/ui/icons"
-	"paas/util"
 	"time"
 )
 
 func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
 	return util.DelayedPartial(time.Millisecond*800, func() *h.Partial {
 		index := 0
-		var blocks []app.RouteBlock
+		var blocks []reverseproxy.RouteBlock
 
 		for {
 			hostname := ctx.FormValue(fmt.Sprintf("hostname-%d", index))
@@ -26,7 +27,7 @@ func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
 				break
 			}
 
-			blocks = append(blocks, app.RouteBlock{
+			blocks = append(blocks, reverseproxy.RouteBlock{
 				Hostname:          hostname,
 				Path:              path,
 				ResourceId:        resourceId,
@@ -37,7 +38,7 @@ func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
 		}
 
 		// TODO should we automatically apply the blocks here or just save them?
-		err := app.ApplyBlocks(ctx.ServiceLocator(), blocks)
+		err := reverseproxy.ApplyBlocks(ctx.ServiceLocator(), blocks)
 
 		if err != nil {
 			return ui.GenericErrorAlertPartial(ctx, err)
@@ -49,15 +50,15 @@ func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
 
 func Setup(ctx *h.RequestContext) *h.Page {
 	locator := ctx.ServiceLocator()
-	list, err := app.List(locator)
-	table, err := app.GetRouteTable(locator)
+	list, err := internal.ResourceList(locator)
+	table, err := reverseproxy.GetRouteTable(locator)
 
 	if err != nil {
-		table = []app.RouteBlock{}
+		table = []reverseproxy.RouteBlock{}
 	}
 
 	if len(table) == 0 {
-		table = []app.RouteBlock{
+		table = []reverseproxy.RouteBlock{
 			{
 				Hostname: "",
 			},
@@ -90,7 +91,7 @@ func Setup(ctx *h.RequestContext) *h.Page {
 				),
 
 				ui.Repeater(ctx, ui.RepeaterProps{
-					DefaultItems: util.MapSlice(table, func(rb app.RouteBlock, index int) *h.Element {
+					DefaultItems: util.MapSlice(table, func(rb reverseproxy.RouteBlock, index int) *h.Element {
 						return block(blockProps{
 							index:             index,
 							path:              rb.Path,
@@ -133,7 +134,7 @@ type blockProps struct {
 	path              string
 	pathMatchModifier string
 	resourceId        string
-	resources         []*app.Resource
+	resources         []*internal.Resource
 }
 
 func block(props blockProps) *h.Element {
@@ -270,7 +271,7 @@ func block(props blockProps) *h.Element {
 				Required: true,
 				Value:    props.resourceId,
 				Name:     fmt.Sprintf("resource-%d", props.index),
-				Items: h.Map(props.resources, func(name *app.Resource) ui.Item {
+				Items: h.Map(props.resources, func(name *internal.Resource) ui.Item {
 					return ui.Item{
 						Value: name.Id,
 						Text:  name.Name,

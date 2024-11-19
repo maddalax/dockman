@@ -2,7 +2,7 @@ package pages
 
 import (
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/ui"
+	"paas/internal/ui"
 )
 
 func Index(ctx *h.RequestContext) *h.Page {

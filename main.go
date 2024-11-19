@@ -11,7 +11,8 @@ import (
 	"io/fs"
 	"net/http"
 	"paas/__htmgo"
-	"paas/app"
+	"paas/internal"
+	"paas/internal/reverseproxy"
 )
 
 import _ "net/http/pprof"
@@ -20,8 +21,12 @@ func main() {
 	locator := service.NewLocator()
 	cfg := config.Get()
 
-	service.Set[app.KvClient](locator, service.Singleton, func() *app.KvClient {
-		client, err := app.NatsConnect(app.Options{
+	service.Set[internal.BuilderRegistry](locator, service.Singleton, func() *internal.BuilderRegistry {
+		return internal.NewBuilderRegistry()
+	})
+
+	service.Set[internal.KvClient](locator, service.Singleton, func() *internal.KvClient {
+		client, err := internal.NatsConnect(internal.NatsConnectOptions{
 			Port: 4222,
 		})
 		if err != nil {
@@ -30,16 +35,16 @@ func main() {
 		return client
 	})
 
-	_, err := app.StartServer()
+	_, err := internal.StartNatsServer()
 
 	if err != nil {
 		panic(err)
 	}
 
-	app.StartProxy(locator)
+	reverseproxy.StartProxy(locator)
 
-	m := app.NewMonitor(locator)
-	service.Set(locator, service.Singleton, func() *app.Monitor {
+	m := internal.NewMonitor(locator)
+	service.Set(locator, service.Singleton, func() *internal.ResourceMonitor {
 		return m
 	})
 

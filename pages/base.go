@@ -3,7 +3,7 @@ package pages
 import (
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
-	"paas/ui"
+	"paas/internal/ui"
 	"strings"
 )
 
@@ -11,20 +11,6 @@ func Title(title string) *h.Element {
 	return h.H1(
 		h.Text(title),
 		h.Class("text-2xl font-bold"),
-	)
-}
-
-func SubTitle(title string) *h.Element {
-	return h.H2(
-		h.Text(title),
-		h.Class("text-xl font-bold"),
-	)
-}
-
-func StepTitle(title string) *h.Element {
-	return h.H2(
-		h.Text(title),
-		h.Class("text-lg font-bold"),
 	)
 }
 
@@ -51,28 +37,6 @@ func NextBlock(text string, url string) *h.Element {
 	)
 }
 
-func PrevBlock(text string, url string) *h.Element {
-	return h.A(
-		h.Href(url),
-		h.Class("w-[50%] border border-slate-300  p-4 rounded text-left hover:border-blue-400 cursor-pointer"),
-		h.P(
-			h.Text("Previous"),
-			h.Class("text-slate-600 text-sm"),
-		),
-		h.P(
-			h.Text(text),
-			h.Class("text-blue-500 hover:text-blue-400"),
-		),
-	)
-}
-
-func Image(src string) *h.Element {
-	return h.Img(
-		h.Src(src),
-		h.Class("rounded w-full"),
-	)
-}
-
 func Text(text string) *h.Element {
 	split := strings.Split(text, "\n")
 	return h.Div(
@@ -82,13 +46,6 @@ func Text(text string) *h.Element {
 				h.UnsafeRaw(item),
 			)
 		}),
-	)
-}
-
-func HelpText(text string) *h.Element {
-	return h.Div(
-		h.Class("text-slate-600 text-sm"),
-		h.UnsafeRaw(text),
 	)
 }
 

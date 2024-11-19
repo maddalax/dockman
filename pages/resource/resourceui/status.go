@@ -4,15 +4,15 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
-	"paas/ui"
-	"paas/urls"
+	"paas/internal"
+	"paas/internal/ui"
+	"paas/internal/urls"
 )
 
 func GetStatusPartial(ctx *h.RequestContext) *h.Partial {
-	return app.WithStatusLock(ctx.ServiceLocator(), ctx.QueryParam("id"), func(err error) *h.Partial {
+	return internal.WithStatusLock(ctx.ServiceLocator(), ctx.QueryParam("id"), func(err error) *h.Partial {
 		id := ctx.QueryParam("id")
-		resource, err := app.ResourceGet(ctx.ServiceLocator(), id)
+		resource, err := internal.ResourceGet(ctx.ServiceLocator(), id)
 
 		if err != nil {
 			// TODO
@@ -28,13 +28,13 @@ func GetStatusPartial(ctx *h.RequestContext) *h.Partial {
 
 func StartResource(ctx *h.RequestContext) *h.Partial {
 	id := ctx.QueryParam("id")
-	resource, err := app.Start(ctx.ServiceLocator(), id, app.StartOpts{
+	resource, err := internal.Start(ctx.ServiceLocator(), id, internal.StartOpts{
 		IgnoreIfRunning: false,
 	})
 
 	if err != nil {
 		// resource just hasn't been built yet, lets build it instead
-		if errors.Is(err, app.ResourceNotFoundError) {
+		if errors.Is(err, internal.ResourceNotFoundError) {
 			return h.RedirectPartial(urls.ResourceStartDeploymentPath(id, uuid.NewString()))
 		}
 
@@ -53,7 +53,7 @@ func RestartResource(ctx *h.RequestContext) *h.Partial {
 
 func StopResource(ctx *h.RequestContext) *h.Partial {
 	id := ctx.QueryParam("id")
-	resource, err := app.Stop(ctx.ServiceLocator(), id)
+	resource, err := internal.Stop(ctx.ServiceLocator(), id)
 
 	if err != nil {
 		return h.SwapPartial(ctx, h.Fragment(

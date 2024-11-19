@@ -3,10 +3,10 @@ package create
 import (
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
+	"paas/internal"
+	"paas/internal/ui"
+	"paas/internal/urls"
 	"paas/pages"
-	"paas/ui"
-	"paas/urls"
 )
 
 func New(ctx *h.RequestContext) *h.Page {
@@ -69,25 +69,25 @@ func SubmitHandler(ctx *h.RequestContext) *h.Partial {
 		index++
 	}
 
-	runType := app.RunTypeUnknown
+	runType := internal.RunTypeUnknown
 
 	if values.Get("deployment-type") == "dockerfile" {
-		runType = app.RunTypeDockerBuild
+		runType = internal.RunTypeDockerBuild
 	}
 
-	var createBuildMeta = func() app.BuildMeta {
-		if runType == app.RunTypeDockerBuild {
-			return &app.DockerBuildMeta{
+	var createBuildMeta = func() internal.BuildMeta {
+		if runType == internal.RunTypeDockerBuild {
+			return &internal.DockerBuildMeta{
 				RepositoryUrl:     values.Get("git-repository"),
 				Dockerfile:        values.Get("dockerfile"),
 				GithubAccessToken: values.Get("github-access-token"),
 				Tags:              []string{},
 			}
 		}
-		return &app.EmptyBuildMeta{}
+		return &internal.EmptyBuildMeta{}
 	}
 
-	id, err := app.Create(ctx.ServiceLocator(), app.ResourceCreateOptions{
+	id, err := internal.ResourceCreate(ctx.ServiceLocator(), internal.ResourceCreateOptions{
 		Name:        values.Get("name"),
 		Environment: values.Get("environment"),
 		RunType:     runType,

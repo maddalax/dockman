@@ -5,9 +5,9 @@ import (
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
-	"paas/app"
+	"paas/internal"
+	"paas/internal/ui"
 	"paas/pages"
-	"paas/ui"
 	"time"
 )
 
@@ -36,7 +36,7 @@ func StreamsDebugPage(ctx *h.RequestContext) *h.Page {
 }
 
 func StreamsSidebar(ctx *h.RequestContext) *h.Element {
-	client := app.GetClientFromCtx(ctx)
+	client := internal.GetClientFromCtx(ctx)
 	buckets := client.GetStreams()
 	return h.Div(
 		h.Id("bucket-list"),
@@ -55,7 +55,7 @@ func StreamsSidebar(ctx *h.RequestContext) *h.Element {
 }
 
 func StreamCard(ctx *h.RequestContext, streamStatus *nats.StreamInfo) *h.Element {
-	client := app.GetClientFromCtx(ctx)
+	client := internal.GetClientFromCtx(ctx)
 	deleteButton := h.Button(
 		h.Class("text-blue underline"),
 		h.Text("Delete"),
@@ -83,9 +83,9 @@ func StreamCard(ctx *h.RequestContext, streamStatus *nats.StreamInfo) *h.Element
 
 func StreamDetails(ctx *h.RequestContext, stream *nats.StreamInfo) *h.Element {
 
-	client := app.GetClientFromCtx(ctx)
+	client := internal.GetClientFromCtx(ctx)
 
-	app.OnceWithAliveContext(ctx, func(context context.Context) {
+	internal.OnceWithAliveContext(ctx, func(context context.Context) {
 		for _, subject := range stream.Config.Subjects {
 			client.SubscribeStreamUntilTimeout(context, subject, time.Second*3, func(msg *nats.Msg) {
 				data := string(msg.Data)

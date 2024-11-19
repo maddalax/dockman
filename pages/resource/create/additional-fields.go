@@ -2,7 +2,7 @@ package create
 
 import (
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/ui"
+	"paas/internal/ui"
 )
 
 func AdditionalCreateResourceFields(ctx *h.RequestContext) *h.Partial {

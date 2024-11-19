@@ -6,8 +6,8 @@ import (
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/hx"
 	"github.com/maddalax/htmgo/framework/js"
-	"paas/ui"
-	"paas/ui/icons"
+	"paas/internal/ui"
+	"paas/internal/ui/icons"
 )
 
 func EnvironmentVariables(ctx *h.RequestContext) *h.Element {

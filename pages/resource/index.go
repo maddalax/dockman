@@ -2,9 +2,9 @@ package resource
 
 import (
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
+	"paas/internal"
+	"paas/internal/ui"
 	"paas/pages/resource/resourceui"
-	"paas/ui"
 	"strconv"
 )
 
@@ -13,13 +13,13 @@ func SaveResourceDetails(ctx *h.RequestContext) *h.Partial {
 	id := h.GetQueryParam(ctx, "id")
 
 	locator := ctx.ServiceLocator()
-	resource, err := app.ResourceGet(locator, id)
+	resource, err := internal.ResourceGet(locator, id)
 
 	if err != nil {
 		return ui.GenericErrorAlertPartial(ctx, err)
 	}
 
-	err = app.Patch(locator, resource.Id, func(resource *app.Resource) *app.Resource {
+	err = internal.ResourcePatch(locator, resource.Id, func(resource *internal.Resource) *internal.Resource {
 		resource.InstancesPerServer = instancesPerServer
 		return resource
 	})
@@ -30,7 +30,7 @@ func SaveResourceDetails(ctx *h.RequestContext) *h.Partial {
 
 	// changed instances per server, start the resource
 	if resource.InstancesPerServer != instancesPerServer {
-		go app.Start(locator, resource.Id, app.StartOpts{
+		go internal.Start(locator, resource.Id, internal.StartOpts{
 			IgnoreIfRunning: true,
 			// if we change the instances and existing containers already exist for the new instance indexes, remove them
 			RemoveExisting: true,
@@ -41,7 +41,7 @@ func SaveResourceDetails(ctx *h.RequestContext) *h.Partial {
 }
 
 func Index(ctx *h.RequestContext) *h.Page {
-	return resourceui.Page(ctx, func(resource *app.Resource) *h.Element {
+	return resourceui.Page(ctx, func(resource *internal.Resource) *h.Element {
 		return h.Div(
 			h.Class("flex flex-col gap-4"),
 			ui.AlertPlaceholder(),
