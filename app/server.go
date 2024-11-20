@@ -4,7 +4,10 @@ import (
 	"errors"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
+	"paas/app/logger"
 	"paas/app/util/json2"
+	"slices"
+	"strings"
 	"time"
 )
 
@@ -105,11 +108,18 @@ func ServerList(locator *service.Locator) ([]*Server, error) {
 		server, err := ServerGet(locator, s)
 
 		if err != nil {
-			return nil, err
+			logger.ErrorWithFields("Error getting server", err, map[string]interface{}{
+				"id": s,
+			})
+			continue
 		}
 
 		servers = append(servers, server)
 	}
+
+	slices.SortFunc(servers, func(a, b *Server) int {
+		return strings.Compare(a.HostName, b.HostName)
+	})
 
 	return servers, nil
 }

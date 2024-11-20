@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"context"
-	"fmt"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
@@ -78,7 +77,6 @@ func (m *FluentdManager) StartContainer() error {
 	}
 
 	// Display the pull output
-	fmt.Println("Pulling image:", imageName)
 	_, err = io.Copy(io.Discard, out) // Use io.Discard to avoid verbose output
 
 	if err != nil {

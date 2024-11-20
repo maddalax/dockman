@@ -2,7 +2,7 @@ package reverseproxy
 
 import (
 	"github.com/maddalax/htmgo/framework/service"
-	"log/slog"
+	"paas/app/logger"
 	"time"
 )
 
@@ -15,7 +15,7 @@ func (r *ReverseProxy) StartUpstreamPortMonitor(locator *service.Locator) {
 		newConfig := loadConfig(locator)
 		// if the old config has a port difference with the new config, reload the config
 		if r.config.HasPortDifference(newConfig) {
-			slog.Info("Upstream config difference detected, reloading config")
+			logger.Info("Upstream config difference detected, reloading config")
 			ReloadConfig(locator)
 		}
 		time.Sleep(500 * time.Millisecond)

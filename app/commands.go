@@ -1,7 +1,7 @@
 package app
 
 import (
-	"fmt"
+	"paas/app/logger"
 )
 
 type RunResourceCommand struct {
@@ -22,7 +22,9 @@ func (c *RunResourceCommand) Execute(agent *Agent) {
 	if err != nil {
 		c.ResponseErr = err
 	}
-	fmt.Printf("Running resource: %s\n", c.ResourceId)
+	logger.InfoWithFields("Running resource", map[string]any{
+		"resource_id": c.ResourceId,
+	})
 	c.ResponseData = &RunResourceResponse{
 		Message: "Resource started",
 	}
@@ -48,7 +50,9 @@ func (c *StopResourceCommand) Execute(agent *Agent) {
 	if err != nil {
 		c.ResponseErr = err
 	}
-	fmt.Printf("Stopping resource: %s\n", c.ResourceId)
+	logger.InfoWithFields("stopping resource", map[string]any{
+		"resource_id": c.ResourceId,
+	})
 	c.ResponseData = &StopResourceResponse{
 		Message: "Resource stopped",
 	}

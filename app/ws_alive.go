@@ -5,7 +5,7 @@ import (
 	"github.com/maddalax/htmgo/extensions/websocket/session"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
-	"log/slog"
+	"paas/app/logger"
 	"time"
 )
 
@@ -37,7 +37,9 @@ func WithAliveContext(ctx *h.RequestContext) context.Context {
 					cancel()
 					return
 				}
-				slog.Debug("socket is alive, waiting for close", slog.String("socketId", string(socketId)))
+				logger.DebugWithFields("socket is alive, waiting for close", map[string]any{
+					"socketId": string(socketId),
+				})
 				time.Sleep(time.Second)
 			}
 		}()

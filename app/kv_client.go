@@ -8,7 +8,7 @@ import (
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
 	"log"
-	"log/slog"
+	"paas/app/logger"
 	"paas/app/subject"
 	"time"
 )
@@ -84,13 +84,17 @@ func (c *KvClient) SubscribeStreamUntilTimeout(context context.Context, subject 
 			select {
 			case <-context.Done():
 				if sub != nil {
-					slog.Debug("Unsubscribing from stream", slog.String("subject", subject))
+					logger.DebugWithFields("Unsubscribing from stream", map[string]any{
+						"subject": subject,
+					})
 					_ = sub.Unsubscribe()
 					return
 				}
 			default:
 				if time.Since(lastMessageTime) > timeout && sub != nil {
-					slog.Debug("Unsubscribing from stream", slog.String("subject", subject))
+					logger.DebugWithFields("Unsubscribing from stream due to timeout", map[string]any{
+						"subject": subject,
+					})
 					_ = sub.Unsubscribe()
 					return
 				}
@@ -98,7 +102,9 @@ func (c *KvClient) SubscribeStreamUntilTimeout(context context.Context, subject 
 		}
 	}()
 
-	slog.Debug("Subscribing to stream", slog.String("subject", subject))
+	logger.DebugWithFields("Subscribing to stream", map[string]any{
+		"subject": subject,
+	})
 	sub, err := c.js.Subscribe(subject, handle, nats.DeliverAll())
 	if err != nil {
 		return nil, err

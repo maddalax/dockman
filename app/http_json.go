@@ -3,7 +3,6 @@ package app
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -28,8 +27,6 @@ func Post[T any](url string, data any) (*T, error) {
 	if err != nil {
 		return nil, err
 	}
-	str := string(serialized)
-	fmt.Println(str)
 	client := getClient()
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(serialized))
 	req.Header.Set("Content-Type", "application/json")

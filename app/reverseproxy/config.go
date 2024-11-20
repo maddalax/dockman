@@ -4,13 +4,13 @@ import (
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
-	"log/slog"
 	"paas/app"
+	"paas/app/logger"
 )
 
 func ReloadConfig(locator *service.Locator) {
 	proxy := GetInstance(locator)
-	slog.Info("Reloading reverse proxy upstream config")
+	logger.Info("Reloading reverse proxy upstream config")
 	config := loadConfig(locator)
 	proxy.lb.SetUpstreams(h.Map(config.Upstreams, func(u *UpstreamWithResource) *multiproxy.Upstream {
 		return u.Upstream
@@ -31,7 +31,9 @@ func loadConfig(locator *service.Locator) *Config {
 
 		resource, err := app.ResourceGet(locator, block.ResourceId)
 		if err != nil {
-			slog.Error("Failed to get resource", slog.String("resourceId", block.ResourceId), slog.String("error", err.Error()))
+			logger.ErrorWithFields("Failed to to get resource", err, map[string]any{
+				"resourceId": block.ResourceId,
+			})
 			continue
 		}
 

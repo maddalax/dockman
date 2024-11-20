@@ -2,11 +2,11 @@ package app
 
 import (
 	"encoding/gob"
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
 	"os"
+	"paas/app/logger"
 	"time"
 )
 
@@ -105,7 +105,7 @@ func (a *Agent) Run() {
 	go a.StartServerMonitor()
 
 	for {
-		fmt.Printf("Agent is running\n")
+		logger.Debug("Agent is running")
 		time.Sleep(time.Second * 5)
 	}
 }

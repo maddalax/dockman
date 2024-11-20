@@ -3,8 +3,8 @@ package reverseproxy
 import (
 	"github.com/gobwas/glob"
 	"github.com/maddalax/multiproxy"
-	"log/slog"
 	"net/http"
+	"paas/app/logger"
 	"strings"
 )
 
@@ -20,7 +20,7 @@ func (u *UpstreamWithBlock) Compile() bool {
 	}
 	g, err := glob.Compile(u.Block.Path)
 	if err != nil {
-		slog.Error("Failed to compile glob", slog.String("error", err.Error()))
+		logger.Error("Failed to compile glob", err)
 		return false
 	}
 	u.GlobPatterns[u.Block.Path] = g

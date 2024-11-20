@@ -5,8 +5,8 @@ import (
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
-	"log/slog"
 	"net/http"
+	"paas/app/logger"
 	"time"
 )
 
@@ -58,7 +58,7 @@ func StartProxy(locator *service.Locator) {
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			slog.Error("Failed to start reverse proxy server", slog.String("error", err.Error()))
+			logger.Error("Failed to start reverse proxy server", err)
 			panic(err)
 		}
 	}()

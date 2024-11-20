@@ -8,7 +8,6 @@ import (
 	"github.com/maddalax/htmgo/framework/config"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
-	"io"
 	"io/fs"
 	"net/http"
 	"paas/__htmgo"
@@ -44,8 +43,7 @@ func main() {
 	service.Set(locator, service.Singleton, func() *app.ResourceMonitor {
 		return m
 	})
-
-	go m.StartRunStatusMonitor()
+	m.Start()
 
 	go func() {
 		http.ListenAndServe("localhost:6060", nil)
@@ -80,17 +78,6 @@ func main() {
 			}
 
 			http.FileServerFS(sub)
-
-			app.Router.Handle("/api/docker/logs", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				body, err := io.ReadAll(r.Body)
-				if err != nil {
-					w.WriteHeader(500)
-					return
-				}
-				fmt.Printf("Received logs: %s\n", string(body))
-				w.WriteHeader(200)
-				return
-			}))
 
 			// change this in htmgo.yml (public_asset_path)
 			app.Router.Handle(fmt.Sprintf("%s/*", cfg.PublicAssetPath),

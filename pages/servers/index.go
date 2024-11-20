@@ -35,14 +35,15 @@ func serverList(ctx *h.RequestContext) *h.Element {
 		h.Id("server-list"),
 		h.Class("flex flex-col gap-4"),
 		h.List(servers, func(server *app.Server, index int) *h.Element {
-			return serverBlock(server)
+			return ServerBlockDetails(server)
 		}),
 	)
 }
 
-func serverBlock(server *app.Server) *h.Element {
+func ServerBlockDetails(server *app.Server) *h.Element {
 	runStatus := app.RunStatusNotRunning
 	now := time.Now()
+
 	if now.Sub(server.LastSeen) < time.Second*10 {
 		runStatus = app.RunStatusRunning
 	}
@@ -81,6 +82,10 @@ func serverBlock(server *app.Server) *h.Element {
 		h.P(
 			ui.StatusIndicator(ui.StatusIndicatorProps{
 				RunStatus: runStatus,
+				TextMap: map[app.RunStatus]string{
+					app.RunStatusNotRunning: "Not Accessible",
+					app.RunStatusRunning:    "Connected",
+				},
 			}),
 			h.Class("text-slate-800"),
 		),

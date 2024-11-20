@@ -174,7 +174,7 @@ func ServerList(ctx *h.RequestContext) *h.Element {
 			h.List(list, func(server *app.Server, index int) *h.Element {
 				return h.A(
 					h.Href(urls.ServerUrl(server.Id)),
-					h.Text(server.Name),
+					h.Text(h.Ternary(server.Name != "", server.Name, server.HostName)),
 					h.Class("text-slate-900 hover:text-brand-400"),
 				)
 			}),

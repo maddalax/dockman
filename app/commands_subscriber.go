@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
-	"fmt"
+	"errors"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
+	"paas/app/logger"
 	"sync"
 	"time"
 )
@@ -22,7 +23,7 @@ func (a *Agent) SubscribeToCommands() {
 
 		decoder := gob.NewDecoder(buffer)
 		if err := decoder.Decode(&wrapper); err != nil {
-			fmt.Printf("Failed to decode command: %s\n", err.Error())
+			logger.Error("Failed to decode command: %s", err)
 			return
 		}
 
@@ -33,7 +34,7 @@ func (a *Agent) SubscribeToCommands() {
 		serialized, err := GobSerializeResponse(response)
 
 		if err != nil {
-			fmt.Printf("Failed to serialize response: %s\n", err.Error())
+			logger.Error("Failed to serialize response", err)
 			return
 		}
 
@@ -42,7 +43,7 @@ func (a *Agent) SubscribeToCommands() {
 		_, err = bucket.Put(wrapper.Id, serialized.Bytes())
 
 		if err != nil {
-			fmt.Printf("Failed to put response: %s\n", err.Error())
+			logger.Error("Failed to put response", err)
 		}
 	})
 
@@ -114,13 +115,13 @@ func SendCommand[T any](locator *service.Locator, opts SendCommandOpts) ([]*Send
 				err := decoder.Decode(&responseWrapper)
 
 				if err != nil {
-					fmt.Printf("Failed to decode response: %s\n", err.Error())
+					logger.Error("Failed to decode response", err)
 					return
 				}
 				details := responseWrapper.ServerDetails
 				cast, ok := responseWrapper.Response.(*T)
 				if !ok {
-					fmt.Printf("Failed to cast response\n")
+					logger.Error("unable to cast command response", errors.New("failed to cast response"))
 					return
 				}
 				responses = append(responses, &SendCommandResponse[T]{

@@ -7,6 +7,7 @@ import (
 
 type StatusIndicatorProps struct {
 	RunStatus app.RunStatus
+	TextMap   map[app.RunStatus]string
 }
 
 func StatusIndicator(props StatusIndicatorProps) h.Ren {
@@ -31,9 +32,8 @@ func StatusIndicator(props StatusIndicatorProps) h.Ren {
 		),
 		h.Span(
 			h.Class("text-sm"),
-			h.TextF("%s", statusText(props.RunStatus)),
-		),
-	)
+			h.TextF("%s", h.Ternary(len(props.TextMap) > 0, props.TextMap[props.RunStatus], statusText(props.RunStatus))),
+		))
 }
 
 // statusText returns the textual representation of the status.

@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/maddalax/htmgo/framework/service"
-	"log/slog"
+	"paas/app/logger"
 	"paas/app/subject"
 	"sync"
 	"time"
@@ -62,11 +62,11 @@ func NewResourceBuilder(serviceLocator *service.Locator, resource *Resource, bui
 				Status:     status,
 			})
 			if err != nil {
-				slog.Error("failed to update deployment status",
-					slog.String("resource", resource.Id),
-					slog.String("build", buildId),
-					slog.String("status", string(status)),
-					slog.String("error", err.Error()))
+				logger.ErrorWithFields("failed to update deployment status", err, map[string]any{
+					"resource": resource.Id,
+					"build":    buildId,
+					"status":   status,
+				})
 			}
 		},
 	}
@@ -75,7 +75,10 @@ func NewResourceBuilder(serviceLocator *service.Locator, resource *Resource, bui
 }
 
 func (b *ResourceBuilder) onFinish() {
-	slog.Info("Builder finished", slog.String("resource", b.Resource.Id), slog.String("build", b.BuildId))
+	logger.InfoWithFields("Builder finished", map[string]any{
+		"resource": b.Resource.Id,
+		"build":    b.BuildId,
+	})
 	b.Finished = true
 	b.BuilderRegistry.ClearBuilder(b.Resource.Id, b.BuildId)
 }
@@ -89,10 +92,10 @@ func (b *ResourceBuilder) ClearLogs() {
 		b.NatsClient.BuildLogStreamName(b.Resource.Id, b.BuildId),
 	)
 	if err != nil {
-		slog.Error("failed to clear build logs",
-			slog.String("resource", b.Resource.Id),
-			slog.String("build", b.BuildId),
-			slog.String("error", err.Error()))
+		logger.ErrorWithFields("failed to clear build logs", err, map[string]any{
+			"resource": b.Resource.Id,
+			"build":    b.BuildId,
+		})
 	}
 }
 
@@ -140,7 +143,10 @@ func (b *ResourceBuilder) Build() error {
 				return
 			}
 			if b.PendingCancel && b.CancelBuildFunc != nil {
-				slog.Info("Cancelling build", slog.String("resource", b.Resource.Id), slog.String("build", b.BuildId))
+				logger.InfoWithFields("Cancelling build", map[string]any{
+					"resource": b.Resource.Id,
+					"build":    b.BuildId,
+				})
 				err := b.CancelBuildFunc()
 				if err != nil {
 					b.LogBuildError(err)

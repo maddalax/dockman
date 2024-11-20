@@ -24,6 +24,11 @@ type ResourceServer struct {
 	LastUpdate time.Time `json:"last_update"`
 }
 
+type ResourceServerWithDetails struct {
+	ResourceServer *ResourceServer
+	Details        *Server
+}
+
 func (resource *Resource) MarshalJSON() ([]byte, error) {
 
 	if resource.Env == nil {

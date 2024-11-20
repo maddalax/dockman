@@ -2,8 +2,8 @@ package app
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
+	"paas/app/logger"
 	"paas/app/util/networkutil"
 	"runtime"
 	"time"
@@ -35,6 +35,8 @@ func (a *Agent) updateStatus() {
 	})
 
 	if err != nil {
-		slog.Error("Failed to update server status", slog.String("error", err.Error()), slog.String("server_id", a.serverId))
+		logger.ErrorWithFields("Failed to update server status", err, map[string]any{
+			"server_id": a.serverId,
+		})
 	}
 }

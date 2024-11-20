@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/maddalax/htmgo/framework/service"
-	"log/slog"
+	"paas/app/logger"
 	"paas/app/subject"
 	"paas/app/util/must"
 	"time"
@@ -12,13 +12,13 @@ func LogChange(locator *service.Locator, subject subject.Subject, data map[strin
 	client := service.Get[KvClient](locator)
 	err := client.CreateHistoryStream()
 	if err != nil {
-		slog.Error("failed to create history stream: %v", err)
+		logger.Error("failed to create history stream", err)
 		return
 	}
 	data["created_at"] = time.Now().Format(time.Stamp)
 	data["subject"] = subject
 	err = client.Publish(subject, must.Serialize(data))
 	if err != nil {
-		slog.Error("failed to publish history: %v", err)
+		logger.Error("failed to publish history log", err)
 	}
 }

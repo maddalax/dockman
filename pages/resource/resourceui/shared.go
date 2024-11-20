@@ -124,6 +124,10 @@ func TopTabs(ctx *h.RequestContext, resource *app.Resource, props ui.LinkTabsPro
 			Href: urls.ResourceUrl(resource.Id),
 		},
 		{
+			Text: "Servers",
+			Href: urls.ResourceServersUrl(resource.Id),
+		},
+		{
 			Text: "Deployment",
 			Href: urls.ResourceDeploymentUrl(resource.Id),
 		},

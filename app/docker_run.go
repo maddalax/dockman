@@ -8,7 +8,7 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
 	"io"
-	"log/slog"
+	"paas/app/logger"
 	"strconv"
 	"strings"
 )
@@ -160,7 +160,9 @@ func (c *DockerClient) doRun(resource *Resource, index int, opts RunOptions) err
 	if err != nil {
 		// another container may have taken the port, lets try a different one
 		if strings.Contains(err.Error(), "port is already allocated") {
-			slog.Error("Port is already allocated, trying a different one", slog.String("container_name", containerName))
+			logger.ErrorWithFields("Port is already allocated, trying a different one", err, map[string]any{
+				"container_name": containerName,
+			})
 			for i := 0; i < 50; i++ {
 				err = c.doRun(resource, index, opts)
 				if err == nil {

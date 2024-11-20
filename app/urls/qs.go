@@ -17,6 +17,10 @@ func ResourceUrl(id string) string {
 	return WithQs("/resource", "id", id)
 }
 
+func ResourceServersUrl(id string) string {
+	return WithQs("/resource/servers", "id", id)
+}
+
 func ServerUrl(id string) string {
 	return WithQs("/server", "id", id)
 }

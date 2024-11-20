@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"log/slog"
+	"paas/app/logger"
 	"strconv"
 	"strings"
 )
@@ -37,14 +37,21 @@ func (c *DockerClient) ReduceToMatchResourceCount(resource *Resource, count int)
 			continue
 		}
 		if containerIndex >= count {
-			slog.Info("Stopping container", slog.String("container_id", t.ID), slog.String("name", t.Names[0]))
+			logger.InfoWithFields("Stopping container", map[string]any{
+				"container_id": t.ID,
+				"name":         t.Names[0],
+			})
 			err = c.cli.ContainerStop(context.Background(), t.ID, container.StopOptions{})
 			if err != nil {
-				slog.Error("Error stopping container", slog.String("container_id", t.ID), slog.String("error", err.Error()))
+				logger.ErrorWithFields("Error stopping container", err, map[string]any{
+					"container_id": t.ID,
+				})
 			}
 			err = c.cli.ContainerRemove(context.Background(), t.ID, container.RemoveOptions{})
 			if err != nil {
-				slog.Error("Error removing container", slog.String("container_id", t.ID), slog.String("error", err.Error()))
+				logger.ErrorWithFields("Error removing container", err, map[string]any{
+					"container_id": t.ID,
+				})
 			}
 		}
 	}

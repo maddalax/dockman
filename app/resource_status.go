@@ -1,8 +1,8 @@
 package app
 
 import (
-	"fmt"
 	"github.com/maddalax/htmgo/framework/service"
+	"paas/app/logger"
 	"paas/app/subject"
 	"paas/app/util"
 	"time"
@@ -129,7 +129,10 @@ func waitForStatus(locator *service.Locator, resourceId string, status RunStatus
 		if err != nil {
 			return false
 		}
-		fmt.Printf("waiting for status %v, got %v\n", status, resource.RunStatus)
+		logger.DebugWithFields("waiting for status", map[string]any{
+			"status":      status,
+			"resource_id": resourceId,
+		})
 		return resource.RunStatus == status
 	})
 	return success

@@ -2,8 +2,8 @@ package app
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
+	"paas/app/logger"
 	"paas/app/util/filekv"
 	"path/filepath"
 )
@@ -35,7 +35,10 @@ func (m *ServerConfigManager) ConfigPath() string {
 func (m *ServerConfigManager) WriteConfig(key string, value string) {
 	err := filekv.WriteKeyValue(m.ConfigPath(), key, value, m.locker)
 	if err != nil {
-		slog.Error("Failed to write server config", slog.String("key", key), slog.String("value", value), slog.String("error", err.Error()))
+		logger.ErrorWithFields("Failed to write server config", err, map[string]interface{}{
+			"key":   key,
+			"value": value,
+		})
 	}
 }
 

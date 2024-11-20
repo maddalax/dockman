@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nats-io/nats.go"
-	"log/slog"
+	"paas/app/logger"
 	"paas/app/util"
 	"time"
 )
@@ -58,6 +58,8 @@ func (l *DistributedLock) Unlock() error {
 	if err != nil {
 		return err
 	}
-	slog.Debug("unlocking %s", slog.String("key", l.key))
+	logger.DebugWithFields("unlocking %s", map[string]any{
+		"key": l.key,
+	})
 	return bucket.Delete(l.key)
 }

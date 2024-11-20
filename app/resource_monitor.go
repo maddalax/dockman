@@ -2,7 +2,9 @@ package app
 
 import (
 	"context"
+	"errors"
 	"github.com/maddalax/htmgo/framework/service"
+	"paas/app/logger"
 	"paas/app/subject"
 	"time"
 )
@@ -17,6 +19,13 @@ func NewMonitor(locator *service.Locator) *ResourceMonitor {
 	}
 }
 
+func (monitor *ResourceMonitor) Start() {
+	go monitor.StartRunStatusMonitor()
+	go monitor.StartResourceServerCleanup()
+}
+
+// StartRunStatusMonitor Monitors the run status of resources and updates the status if necessary
+// Runs every 3s
 func (monitor *ResourceMonitor) StartRunStatusMonitor() {
 	for {
 		list, err := ResourceList(monitor.locator)
@@ -34,6 +43,36 @@ func (monitor *ResourceMonitor) StartRunStatusMonitor() {
 			}
 		}
 		time.Sleep(3 * time.Second)
+	}
+}
+
+// StartResourceServerCleanup Cleans up servers that are no longer exist on a resource
+// Runs every 60s
+func (monitor *ResourceMonitor) StartResourceServerCleanup() {
+	for {
+		list, err := ResourceList(monitor.locator)
+		if err != nil {
+			continue
+		}
+		for _, res := range list {
+			for _, detail := range res.ServerDetails {
+				_, err := ServerGet(monitor.locator, detail.ServerId)
+				if err != nil && errors.Is(err, NatsKeyNotFoundError) {
+					logger.WarnWithFields("server no longer exists, detaching it from resource", map[string]interface{}{
+						"server_id":   detail.ServerId,
+						"resource_id": res.Id,
+					})
+					err := DetachServerFromResource(monitor.locator, detail.ServerId, res.Id)
+					if err != nil {
+						logger.ErrorWithFields("Error detaching server from resource", err, map[string]interface{}{
+							"server_id":   detail.ServerId,
+							"resource_id": res.Id,
+						})
+					}
+				}
+			}
+		}
+		time.Sleep(time.Minute)
 	}
 }
 

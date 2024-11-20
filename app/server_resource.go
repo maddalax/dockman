@@ -50,3 +50,16 @@ func AttachServerToResource(locator *service.Locator, serverId string, resourceI
 		return r
 	})
 }
+
+func DetachServerFromResource(locator *service.Locator, serverId string, resourceId string) error {
+	return ResourcePatch(locator, resourceId, func(r *Resource) *Resource {
+		newDetails := make([]ResourceServer, 0)
+		for _, s := range r.ServerDetails {
+			if s.ServerId != serverId {
+				newDetails = append(newDetails, s)
+			}
+		}
+		r.ServerDetails = newDetails
+		return r
+	})
+}
