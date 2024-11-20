@@ -47,6 +47,7 @@ func DesktopSidebar(ctx *h.RequestContext) *h.Element {
 				),
 				RoutingSection(),
 				ResourceList(ctx),
+				ServerList(ctx),
 				DebugSection(),
 			),
 		),
@@ -106,6 +107,7 @@ func MobileSidebar(ctx *h.RequestContext) *h.Element {
 				),
 				RoutingSection(),
 				ResourceList(ctx),
+				ServerList(ctx),
 				DebugSection(),
 			),
 		),
@@ -139,6 +141,40 @@ func ResourceList(ctx *h.RequestContext) *h.Element {
 				return h.A(
 					h.Href(urls.ResourceUrl(resource.Id)),
 					h.Text(resource.Name),
+					h.Class("text-slate-900 hover:text-brand-400"),
+				)
+			}),
+		),
+	)
+}
+
+func ServerList(ctx *h.RequestContext) *h.Element {
+	list, err := app.ServerList(ctx.ServiceLocator())
+
+	if err != nil {
+		list = []*app.Server{}
+	}
+
+	return h.Div(
+		h.Class("flex flex-col gap-2"),
+		h.Div(
+			h.Class("flex justify-between items-center"),
+			h.P(
+				h.Text("Servers"),
+				h.Class("text-slate-800 font-bold"),
+			),
+			h.A(
+				h.Text("+ New"),
+				h.Href(urls.NewServerUrl()),
+				h.Class("bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-2 rounded"),
+			),
+		),
+		h.Div(
+			h.Class("flex flex-col gap-2"),
+			h.List(list, func(server *app.Server, index int) *h.Element {
+				return h.A(
+					h.Href(urls.ServerUrl(server.Id)),
+					h.Text(server.Name),
 					h.Class("text-slate-900 hover:text-brand-400"),
 				)
 			}),

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
+	"paas/app"
 	"paas/app/util"
 	"strings"
 )
@@ -49,6 +50,30 @@ func LogBody(opts LogBodyOptions) *h.Element {
         			self.scrollTop = self.scrollHeight;
     			}
 				`),
+		),
+	)
+}
+
+func DockerLogLine(log *app.DockerLog) *h.Element {
+	swap := h.Attribute("hx-swap-oob", "beforeend:#build-log")
+
+	return h.Div(
+		swap,
+		h.Div(
+			h.Class("flex gap-2 p-4 bg-gray-100 border border-gray-200 mb-4 w-full"),
+			h.Div(
+				h.Class("flex flex-col gap-1"),
+				h.Pf(
+					log.HostName,
+					h.Class("font-bold"),
+				),
+				h.Pf(
+					log.Time.Format("2006-01-02 15:04:05"),
+				),
+				h.P(
+					h.Text(log.Log),
+				),
+			),
 		),
 	)
 }

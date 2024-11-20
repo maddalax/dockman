@@ -3,7 +3,9 @@ package main
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
@@ -62,13 +64,30 @@ func (m *FluentdManager) StartContainer() error {
 	cli, err := client.NewClientWithOpts(env,
 		client.WithAPIVersionNegotiation(),
 	)
+
+	if err != nil {
+		return err
+	}
+
+	imageName := "fluent/fluentd:v1.17-debian-1"
+
+	out, err := cli.ImagePull(context.Background(), imageName, image.PullOptions{})
+
+	if err != nil {
+		return err
+	}
+
+	// Display the pull output
+	fmt.Println("Pulling image:", imageName)
+	_, err = io.Copy(io.Discard, out) // Use io.Discard to avoid verbose output
+
 	if err != nil {
 		return err
 	}
 
 	// Container configuration
 	config := &container.Config{
-		Image: "fluent/fluentd:v1.17-debian-1",
+		Image: imageName,
 		ExposedPorts: map[nat.Port]struct{}{
 			"24224/tcp": {},
 			"24224/udp": {},

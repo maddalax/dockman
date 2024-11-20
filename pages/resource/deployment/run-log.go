@@ -4,9 +4,7 @@ import (
 	"context"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
-	"github.com/nats-io/nats.go"
 	"paas/app"
-	"paas/app/subject"
 	"paas/app/ui"
 	"paas/pages/resource/resourceui"
 )
@@ -21,12 +19,8 @@ func RunLog(ctx *h.RequestContext) *h.Page {
 	}
 
 	app.OnceWithAliveContext(ctx, func(context context.Context) {
-
-		kv := app.KvFromLocator(ctx.ServiceLocator())
-		streamName := subject.RunLogsForResource(resource.Id)
-		_, err = kv.SubscribeStreamAndReplayAll(context, streamName, func(msg *nats.Msg) {
-			data := string(msg.Data)
-			ws.PushElementCtx(ctx, ui.LogLine(data))
+		_ = app.StreamResourceLogs(ctx.ServiceLocator(), context, resource, func(log *app.DockerLog) {
+			ws.PushElementCtx(ctx, ui.DockerLogLine(log))
 		})
 	})
 

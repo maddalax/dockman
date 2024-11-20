@@ -3,8 +3,10 @@ package app
 import (
 	"encoding/gob"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
+	"os"
 	"time"
 )
 
@@ -13,7 +15,9 @@ type Agent struct {
 	locator               *service.Locator
 	kv                    *KvClient
 	commandWriter         *EphemeralNatsWriter
+	serverConfigManager   *ServerConfigManager
 	commandResponseBucket nats.KeyValue
+	serverId              string
 }
 
 func NewAgent(locator *service.Locator) *Agent {
@@ -32,6 +36,7 @@ func (a *Agent) Setup() error {
 
 	service.Set[KvClient](a.locator, service.Singleton, func() *KvClient {
 		client, err := NatsConnect(NatsConnectOptions{
+			Host: os.Getenv("NATS_HOST"),
 			Port: 4222,
 		})
 		if err != nil {
@@ -40,8 +45,13 @@ func (a *Agent) Setup() error {
 		return client
 	})
 
+	service.Set[ServerConfigManager](a.locator, service.Singleton, func() *ServerConfigManager {
+		return NewServerConfigManager()
+	})
+
 	a.kv = KvFromLocator(a.locator)
 	a.commandWriter = a.kv.NewEphemeralNatsWriter("commands")
+	a.serverConfigManager = service.Get[ServerConfigManager](a.locator)
 
 	bucket, err := a.kv.GetOrCreateBucket(&nats.KeyValueConfig{
 		Bucket: "command_responses",
@@ -57,6 +67,16 @@ func (a *Agent) Setup() error {
 	service.Set(a.locator, service.Singleton, func() *Agent {
 		return a
 	})
+
+	serverId := a.serverConfigManager.GetConfig("server_id")
+
+	// no server id set, generate one
+	if serverId == "" {
+		a.serverId = uuid.NewString()
+		a.serverConfigManager.WriteConfig("server_id", a.serverId)
+	} else {
+		a.serverId = serverId
+	}
 
 	return nil
 }
@@ -81,6 +101,8 @@ func (a *Agent) Run() {
 	}
 
 	a.SubscribeToCommands()
+
+	go a.StartServerMonitor()
 
 	for {
 		fmt.Printf("Agent is running\n")

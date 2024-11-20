@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"os"
 	"time"
 )
 
@@ -12,6 +13,7 @@ type DockerLog struct {
 	BuildId       string    `json:"paas.build.id"`
 	ResourceId    string    `json:"paas.resource.id"`
 	Time          time.Time `json:"timestamp"`
+	HostName      string    `json:"hostname"`
 }
 
 func (a *Agent) WriteContainerLog(log string) {
@@ -27,6 +29,12 @@ func (a *Agent) WriteContainerLog(log string) {
 		if err == nil {
 			dockerLog.Time = parsedTime
 			dockerLog.Log = dockerLog.Log[20:]
+		}
+
+		hostName, err := os.Hostname()
+
+		if err == nil {
+			dockerLog.HostName = hostName
 		}
 
 		serialized, err := json.Marshal(dockerLog)

@@ -2,8 +2,6 @@ package app
 
 import (
 	"fmt"
-	"github.com/maddalax/htmgo/framework/h"
-	"github.com/nats-io/nats.go"
 )
 
 type RunResourceCommand struct {
@@ -60,24 +58,37 @@ func (c *StopResourceCommand) GetResponse() any {
 	return c.ResponseData
 }
 
-type StreamRunLogsCommand struct {
-	ResourceId string
-	SocketId   string
+type SetServerConfigCommand struct {
+	Key   string
+	Value string
 }
 
-func (c *StreamRunLogsCommand) Execute(agent *Agent) {
-	ctx := h.RequestContext{}
-	ctx.Set("session-id", c.SocketId)
-	context := WithAliveContext(&ctx)
-	resource, err := ResourceGet(agent.locator, c.ResourceId)
-	if err != nil {
-		return
-	}
-	StreamResourceLogs(agent.locator, context, resource, func(msg *nats.Msg) {
-
-	})
+func (c *SetServerConfigCommand) Execute(agent *Agent) {
+	manager := agent.serverConfigManager
+	manager.WriteConfig(c.Key, c.Value)
 }
 
-func (c *StreamRunLogsCommand) GetResponse() any {
+func (c *SetServerConfigCommand) GetResponse() any {
 	return nil
+}
+
+type GetServerConfigResponse struct {
+	Value string
+}
+
+type GetServerConfigCommand struct {
+	Key          string
+	ResponseData GetServerConfigResponse
+}
+
+func (c *GetServerConfigCommand) Execute(agent *Agent) {
+	manager := agent.serverConfigManager
+	value := manager.GetConfig(c.Key)
+	c.ResponseData = GetServerConfigResponse{
+		Value: value,
+	}
+}
+
+func (c *GetServerConfigCommand) GetResponse() any {
+	return c.ResponseData
 }

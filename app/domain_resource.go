@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"paas/app/util/json2"
+	"time"
 )
 
 type Resource struct {
@@ -14,6 +15,13 @@ type Resource struct {
 	BuildMeta          BuildMeta         `json:"build_meta"`
 	Env                map[string]string `json:"env"`
 	RunStatus          RunStatus         `json:"run_status"`
+	ServerDetails      []ResourceServer  `json:"server_details"`
+}
+
+type ResourceServer struct {
+	ServerId   string    `json:"server_id"`
+	RunStatus  RunStatus `json:"run_status"`
+	LastUpdate time.Time `json:"last_update"`
 }
 
 func (resource *Resource) MarshalJSON() ([]byte, error) {
@@ -26,7 +34,13 @@ func (resource *Resource) MarshalJSON() ([]byte, error) {
 		resource.InstancesPerServer = 1
 	}
 
+	if resource.ServerDetails == nil {
+		resource.ServerDetails = make([]ResourceServer, 0)
+	}
+
 	buildMeta := json2.SerializeOrEmpty(resource.BuildMeta)
+	serverDetails := json2.SerializeOrEmpty(resource.ServerDetails)
+
 	return json.Marshal(map[string]interface{}{
 		"id":                   resource.Id,
 		"name":                 resource.Name,
@@ -36,6 +50,7 @@ func (resource *Resource) MarshalJSON() ([]byte, error) {
 		"build_meta":           json.RawMessage(buildMeta),
 		"env":                  resource.Env,
 		"run_status":           resource.RunStatus,
+		"server_details":       json.RawMessage(serverDetails),
 	})
 }
 
@@ -74,6 +89,20 @@ func (resource *Resource) UnmarshalJSON(data []byte) error {
 		}
 	default:
 		resource.BuildMeta = &EmptyBuildMeta{}
+	}
+
+	serverDetails, ok := temp["server_details"].([]interface{})
+
+	if ok {
+		for _, detail := range serverDetails {
+			s, err := json2.Serialize(detail)
+			if err == nil {
+				s2, err := json2.Deserialize[ResourceServer](s)
+				if err == nil {
+					resource.ServerDetails = append(resource.ServerDetails, *s2)
+				}
+			}
+		}
 	}
 
 	return nil

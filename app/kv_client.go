@@ -15,6 +15,7 @@ import (
 
 type NatsConnectOptions struct {
 	Port int
+	Host string
 }
 
 type KvClient struct {
@@ -193,7 +194,11 @@ func NatsConnect(opts NatsConnectOptions) (*KvClient, error) {
 		}),
 	}
 
-	host := fmt.Sprintf("nats://localhost:%d", opts.Port)
+	if opts.Host == "" {
+		opts.Host = "localhost"
+	}
+
+	host := fmt.Sprintf("nats://%s:%d", opts.Host, opts.Port)
 
 	nc, err := nats.Connect(host, natsOpts...)
 

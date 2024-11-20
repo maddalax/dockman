@@ -17,6 +17,10 @@ func ResourceUrl(id string) string {
 	return WithQs("/resource", "id", id)
 }
 
+func ServerUrl(id string) string {
+	return WithQs("/server", "id", id)
+}
+
 func ResourceStartDeploymentPath(resourceId string, buildId string) string {
 	return WithQs("/resource/deployment/new", "resourceId", resourceId, "buildId", buildId)
 }
@@ -39,4 +43,8 @@ func ResourceDeploymentUrl(id string) string {
 
 func NewResourceUrl() string {
 	return WithQs("/resource/create")
+}
+
+func NewServerUrl() string {
+	return WithQs("/server/create")
 }

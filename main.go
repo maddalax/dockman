@@ -19,6 +19,7 @@ import (
 import _ "net/http/pprof"
 
 func main() {
+
 	locator := service.NewLocator()
 	cfg := config.Get()
 	agent := app.NewAgent(locator)
@@ -49,6 +50,9 @@ func main() {
 	go func() {
 		http.ListenAndServe("localhost:6060", nil)
 	}()
+
+	// TODO remove
+	app.RunSandbox(locator)
 
 	h.Start(h.AppOpts{
 		ServiceLocator: locator,
