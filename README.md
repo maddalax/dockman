@@ -1,7 +1,7 @@
 > [!CAUTION]
-> PAAS is currently in heavy development and should not be used at this time.
+> Dockside is currently in heavy development and should not be used at this time.
 
-PAAS (currently unnamed) is a simple but powerful platform as as service tool to help self host your own apps, written in pure go, compiled as a single binary.
+Dockside is a simple but powerful platform as as service tool to help self host your own apps, written in pure go, compiled as a single binary.
 
 Stack:
 - golang
