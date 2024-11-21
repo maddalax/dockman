@@ -21,9 +21,7 @@ func (c *DockerClient) LoadImage(imageId string) error {
 		"imageId": imageId,
 	})
 
-	store, err := KvFromLocator(c.locator).GetOrCreateObjectStore(&nats.ObjectStoreConfig{
-		Bucket: "docker-images",
-	})
+	store, err := KvFromLocator(c.locator).ImageStore()
 
 	if err != nil {
 		return errors.Wrap(err, "failed to get object store")
@@ -57,24 +55,14 @@ func (c *DockerClient) HasLatestImage(imageId string) bool {
 	}
 
 	// has the image, but is it the latest?
-	store, err := KvFromLocator(c.locator).GetOrCreateObjectStore(&nats.ObjectStoreConfig{
-		Bucket: "docker-images",
-	})
+	store, err := KvFromLocator(c.locator).ImageStore()
 
 	if err != nil {
-		logger.ErrorWithFields("Failed to get object store", err, map[string]interface{}{
-			"bucket": "docker-images",
-		})
+		logger.Error("Failed to get object store", err)
 		return false
 	}
 
-	info, err := store.GetInfo(imageId)
-
-	if err != nil {
-		return false
-	}
-
-	buildId := info.Metadata["buildId"]
+	buildId := store.GetBuildId(imageId)
 	currentBuildId := imageInfo.Config.Labels["dockside.build.id"]
 
 	logger.InfoWithFields("Checking docker image, if we have latest", map[string]interface{}{
@@ -96,9 +84,7 @@ func (c *DockerClient) SaveImage(imageId string, buildId string) error {
 		return err
 	}
 	defer body.Close()
-	store, err := KvFromLocator(c.locator).GetOrCreateObjectStore(&nats.ObjectStoreConfig{
-		Bucket: "docker-images",
-	})
+	store, err := KvFromLocator(c.locator).ImageStore()
 	if err != nil {
 		return err
 	}

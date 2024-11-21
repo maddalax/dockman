@@ -64,6 +64,26 @@ func DetachServerFromResource(locator *service.Locator, serverId string, resourc
 	})
 }
 
+func GetResourcesForServer(locator *service.Locator, serverId string) ([]*Resource, error) {
+	resources, err := ResourceList(locator)
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*Resource, 0)
+
+	for _, r := range resources {
+		for _, s := range r.ServerDetails {
+			if s.ServerId == serverId {
+				result = append(result, r)
+			}
+		}
+	}
+
+	return result, nil
+}
+
 func ResourceGetServerIds(locator *service.Locator, resourceId string) ([]string, error) {
 	resource, err := ResourceGet(locator, resourceId)
 

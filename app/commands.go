@@ -19,7 +19,7 @@ type RunResourceResponse struct {
 }
 
 func (c *RunResourceCommand) Execute(agent *Agent) {
-	_, err := ResourceStart(agent.locator, c.ResourceId, StartOpts{
+	_, err := ResourceStart(agent, c.ResourceId, StartOpts{
 		RemoveExisting:  c.RemoveExisting,
 		IgnoreIfRunning: c.IgnoreIfRunning,
 	})
@@ -50,7 +50,7 @@ type StopResourceResponse struct {
 }
 
 func (c *StopResourceCommand) Execute(agent *Agent) {
-	_, err := ResourceStop(agent.locator, c.ResourceId)
+	_, err := ResourceStop(agent, c.ResourceId)
 	if err != nil {
 		c.ResponseErr = err
 	}

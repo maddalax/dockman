@@ -9,26 +9,17 @@ import (
 )
 
 // IsResourceRunnable checks if a resource is runnable
-// in the case of docker, the container must exist for each instance
 func IsResourceRunnable(locator *service.Locator, resource *Resource) (bool, error) {
-	switch resource.RunType {
-	case RunTypeDockerBuild:
-		fallthrough
-	case RunTypeDockerRegistry:
-		client, err := DockerConnect(locator)
-		if err != nil {
-			return false, err
-		}
-		for i := range resource.InstancesPerServer {
-			_, err = client.GetContainer(resource, i)
-			if err != nil {
-				return false, nil
-			}
-		}
-		return true, nil
-	default:
-		return false, nil
+	store, err := KvFromLocator(locator).ImageStore()
+
+	if err != nil {
+		return false, err
 	}
+
+	// if we have a built image in the store, then its runnable
+	has := store.Has(store.ImageIdForResource(resource))
+
+	return has, nil
 }
 
 type StartOpts struct {
@@ -63,26 +54,26 @@ func SendResourceStopCommand(locator *service.Locator, resourceId string) ([]*Se
 
 // ResourceStart starts a resource, blocking until the resource is started.
 // Note: this should only be called from a command so it is propagated to all servers
-func ResourceStart(locator *service.Locator, resourceId string, opts StartOpts) (*Resource, error) {
-	lock := ResourceStatusLock(locator, resourceId)
+func ResourceStart(agent *Agent, resourceId string, opts StartOpts) (*Resource, error) {
+	lock := ResourceStatusLock(agent.locator, resourceId)
 	err := lock.Lock()
 	if err != nil {
 		return nil, err
 	}
 	defer lock.Unlock()
 
-	resource, err := ResourceGet(locator, resourceId)
+	resource, err := ResourceGet(agent.locator, resourceId)
 	if err != nil {
 		return nil, err
 	}
-	LogChange(locator, subject.ResourceStarted, map[string]any{
+	LogChange(agent.locator, subject.ResourceStarted, map[string]any{
 		"resource_id": resource.Id,
 	})
 	switch resource.RunType {
 	case RunTypeDockerBuild:
 		fallthrough
 	case RunTypeDockerRegistry:
-		client, err := DockerConnect(locator)
+		client, err := DockerConnect(agent.locator)
 		if err != nil {
 			return nil, err
 		}
@@ -93,11 +84,11 @@ func ResourceStart(locator *service.Locator, resourceId string, opts StartOpts) 
 		if err != nil {
 			return nil, err
 		}
-		success := waitForStatus(locator, resourceId, RunStatusRunning)
+		success := waitForStatus(agent, resourceId, RunStatusRunning)
 		if !success {
 			return nil, ResourceFailedToStartError
 		}
-		resource, err = ResourceGet(locator, resourceId)
+		resource, err = ResourceGet(agent.locator, resourceId)
 		if err != nil {
 			return nil, err
 		}
@@ -109,26 +100,26 @@ func ResourceStart(locator *service.Locator, resourceId string, opts StartOpts) 
 
 // ResourceStop stops a resource, blocking until the resource is stopped.
 // Note: this should only be called from a command so it is propagated to all servers
-func ResourceStop(locator *service.Locator, resourceId string) (*Resource, error) {
-	lock := ResourceStatusLock(locator, resourceId)
+func ResourceStop(agent *Agent, resourceId string) (*Resource, error) {
+	lock := ResourceStatusLock(agent.locator, resourceId)
 	err := lock.Lock()
 	if err != nil {
 		return nil, err
 	}
 	defer lock.Unlock()
 
-	resource, err := ResourceGet(locator, resourceId)
+	resource, err := ResourceGet(agent.locator, resourceId)
 	if err != nil {
 		return nil, err
 	}
-	LogChange(locator, subject.ResourceStopped, map[string]any{
+	LogChange(agent.locator, subject.ResourceStopped, map[string]any{
 		"resource_id": resource.Id,
 	})
 	switch resource.RunType {
 	case RunTypeDockerBuild:
 		fallthrough
 	case RunTypeDockerRegistry:
-		client, err := DockerConnect(locator)
+		client, err := DockerConnect(agent.locator)
 		if err != nil {
 			return nil, err
 		}
@@ -136,11 +127,11 @@ func ResourceStop(locator *service.Locator, resourceId string) (*Resource, error
 		if err != nil {
 			return nil, err
 		}
-		success := waitForStatus(locator, resourceId, RunStatusNotRunning)
+		success := waitForStatus(agent, resourceId, RunStatusNotRunning)
 		if !success {
 			return nil, ResourceFailedToStopError
 		}
-		resource, err = ResourceGet(locator, resourceId)
+		resource, err = ResourceGet(agent.locator, resourceId)
 		if err != nil {
 			return nil, err
 		}
@@ -150,9 +141,9 @@ func ResourceStop(locator *service.Locator, resourceId string) (*Resource, error
 	}
 }
 
-func waitForStatus(locator *service.Locator, resourceId string, status RunStatus) bool {
-	success := util.WaitFor(time.Second*5, 200*time.Millisecond, func() bool {
-		resource, err := ResourceGet(locator, resourceId)
+func waitForStatus(agent *Agent, resourceId string, status RunStatus) bool {
+	success := util.WaitFor(time.Second*10, time.Second, func() bool {
+		resource, err := ResourceGet(agent.locator, resourceId)
 		if err != nil {
 			return false
 		}
@@ -160,7 +151,29 @@ func waitForStatus(locator *service.Locator, resourceId string, status RunStatus
 			"status":      status,
 			"resource_id": resourceId,
 		})
-		return resource.RunStatus == status
+		return agent.GetRunStatus(resource) == status
 	})
 	return success
+}
+
+func GetComputedRunStatus(resource *Resource) RunStatus {
+	allRunning := true
+	anyRunning := false
+
+	for _, s := range resource.ServerDetails {
+		if s.RunStatus != RunStatusRunning {
+			allRunning = false
+		}
+		if s.RunStatus == RunStatusRunning || s.RunStatus == RunStatusPartiallyRunning {
+			anyRunning = true
+		}
+	}
+
+	if allRunning {
+		return RunStatusRunning
+	}
+	if anyRunning {
+		return RunStatusPartiallyRunning
+	}
+	return RunStatusNotRunning
 }

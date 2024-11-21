@@ -108,6 +108,7 @@ func (a *Agent) Run() {
 	a.SubscribeToCommands()
 
 	go a.StartServerMonitor()
+	go a.StartResourceStatusMonitor()
 
 	for {
 		logger.Info("Agent is running")

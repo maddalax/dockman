@@ -6,13 +6,6 @@ import (
 	"github.com/maddalax/htmgo/framework/service"
 )
 
-func SetRunStatus(locator *service.Locator, resourceId string, status RunStatus) error {
-	return ResourcePatch(locator, resourceId, func(resource *Resource) *Resource {
-		resource.RunStatus = status
-		return resource
-	})
-}
-
 func ResourcePatch(locator *service.Locator, id string, cb func(resource *Resource) *Resource) error {
 	lock := ResourcePatchLock(locator, id)
 	err := lock.Lock()

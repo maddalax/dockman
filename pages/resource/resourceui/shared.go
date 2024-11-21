@@ -46,7 +46,7 @@ func PageHeader(ctx *h.RequestContext, resource *app.Resource) *h.Element {
 			h.Div(
 				h.Class("ml-0.5 mt-1"),
 				ui.StatusIndicator(ui.StatusIndicatorProps{
-					RunStatus: resource.RunStatus,
+					RunStatus: app.GetComputedRunStatus(resource),
 				}),
 			),
 		),
@@ -77,12 +77,13 @@ func ResourceStatusContainer(locator *service.Locator, resource *app.Resource) *
 
 func ResourceStatus(locator *service.Locator, resource *app.Resource) *h.Element {
 	runnable, err := app.IsResourceRunnable(locator, resource)
+	runStatus := app.GetComputedRunStatus(resource)
 
 	if err != nil {
 		return h.Empty()
 	}
 
-	var deployButton = ui.SecondaryButton(ui.ButtonProps{
+	var deployButton = ui.PrimaryButton(ui.ButtonProps{
 		Href: urls.ResourceStartDeploymentPath(resource.Id, ""),
 		Text: "Deploy Resource",
 	})
@@ -113,9 +114,9 @@ func ResourceStatus(locator *service.Locator, resource *app.Resource) *h.Element
 	return h.Div(
 		h.Class("flex gap-2 w-full"),
 		h.IfElse(!runnable, deployButton, redeployButton),
-		h.If(resource.RunStatus == app.RunStatusRunning, stopButton),
-		h.If(resource.RunStatus == app.RunStatusRunning, restartButton),
-		h.If(resource.RunStatus != app.RunStatusRunning && runnable, startButton),
+		h.If(runStatus != app.RunStatusNotRunning, stopButton),
+		h.If(runStatus == app.RunStatusRunning || runStatus == app.RunStatusPartiallyRunning, restartButton),
+		h.If(runStatus != app.RunStatusRunning && runnable, startButton),
 	)
 }
 

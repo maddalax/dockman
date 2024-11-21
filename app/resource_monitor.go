@@ -4,18 +4,19 @@ import (
 	"context"
 	"dockside/app/logger"
 	"dockside/app/subject"
-	"errors"
 	"github.com/maddalax/htmgo/framework/service"
 	"time"
 )
 
 type ResourceMonitor struct {
-	locator *service.Locator
+	locator       *service.Locator
+	lastRunStatus map[string]RunStatus
 }
 
 func NewMonitor(locator *service.Locator) *ResourceMonitor {
 	return &ResourceMonitor{
-		locator: locator,
+		locator:       locator,
+		lastRunStatus: make(map[string]RunStatus),
 	}
 }
 
@@ -33,14 +34,16 @@ func (monitor *ResourceMonitor) StartRunStatusMonitor() {
 			continue
 		}
 		for _, res := range list {
-			status := monitor.GetRunStatus(res)
-			if res.RunStatus != status {
-				err := SetRunStatus(monitor.locator, res.Id, status)
-				if err != nil {
-					continue
-				}
+			status := GetComputedRunStatus(res)
+			lastStatus, ok := monitor.lastRunStatus[res.Id]
+			if !ok {
+				monitor.lastRunStatus[res.Id] = status
+				continue
+			}
+			if lastStatus != status {
 				monitor.OnStatusChange(res, status)
 			}
+			monitor.lastRunStatus[res.Id] = status
 		}
 		time.Sleep(3 * time.Second)
 	}
@@ -53,12 +56,14 @@ func (monitor *ResourceMonitor) StartResourceServerCleanup() {
 	for {
 		list, err := ResourceList(monitor.locator)
 		if err != nil {
+			time.Sleep(time.Second)
+			logger.Error("Error getting resource list", err)
 			continue
 		}
 		for _, res := range list {
 			for _, detail := range res.ServerDetails {
 				_, err := ServerGet(monitor.locator, detail.ServerId)
-				if err != nil && errors.Is(err, NatsKeyNotFoundError) {
+				if err != nil && err.Error() == NatsKeyNotFoundError.Error() {
 					logger.WarnWithFields("server no longer exists, detaching it from resource", map[string]interface{}{
 						"server_id":   detail.ServerId,
 						"resource_id": res.Id,
@@ -92,23 +97,4 @@ func (monitor *ResourceMonitor) OnStatusChange(resource *Resource, status RunSta
 	writer.Writer.Write([]byte(message))
 
 	cancel()
-}
-
-func (monitor *ResourceMonitor) GetRunStatus(resource *Resource) RunStatus {
-	if resource.RunType == RunTypeDockerBuild || resource.RunType == RunTypeDockerRegistry {
-		return monitor.getRunStatusDocker(resource)
-	}
-	return RunStatusUnknown
-}
-
-func (monitor *ResourceMonitor) getRunStatusDocker(resource *Resource) RunStatus {
-	client, err := DockerConnect(monitor.locator)
-	if err != nil {
-		return RunStatusNotRunning
-	}
-	status, err := client.GetRunStatus(resource)
-	if err != nil {
-		return RunStatusNotRunning
-	}
-	return status
 }

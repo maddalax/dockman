@@ -14,7 +14,6 @@ type Resource struct {
 	InstancesPerServer int               `json:"instances_per_server"`
 	BuildMeta          BuildMeta         `json:"build_meta"`
 	Env                map[string]string `json:"env"`
-	RunStatus          RunStatus         `json:"run_status"`
 	ServerDetails      []ResourceServer  `json:"server_details"`
 }
 
@@ -54,7 +53,6 @@ func (resource *Resource) MarshalJSON() ([]byte, error) {
 		"instances_per_server": resource.InstancesPerServer,
 		"build_meta":           json.RawMessage(buildMeta),
 		"env":                  resource.Env,
-		"run_status":           resource.RunStatus,
 		"server_details":       json.RawMessage(serverDetails),
 	})
 }
@@ -71,7 +69,6 @@ func (resource *Resource) UnmarshalJSON(data []byte) error {
 	resource.Name = temp["name"].(string)
 	resource.Environment = temp["environment"].(string)
 	resource.InstancesPerServer = int(temp["instances_per_server"].(float64))
-	resource.RunStatus = RunStatus(temp["run_status"].(float64))
 	resource.RunType = RunType(temp["run_type"].(float64))
 
 	env, ok := temp["env"].(map[string]interface{})
