@@ -7,6 +7,7 @@ import (
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
 	"net/http"
+	"time"
 )
 
 func CreateReverseProxy(locator *service.Locator) *ReverseProxy {
@@ -18,15 +19,20 @@ func CreateReverseProxy(locator *service.Locator) *ReverseProxy {
 	}
 }
 
+func (r *ReverseProxy) Setup() {
+	registry := GetServiceRegistry(r.locator)
+	// Start the upstream port monitor to detect changes in the upstreams
+	registry.GetJobRunner().Add("ReverseProxyCheckUpstreamPorts", time.Second*2, func() {
+		r.UpstreamPortMonitor(r.locator)
+	})
+}
+
 func (r *ReverseProxy) Start() {
 	config := loadConfig(r.locator)
 
 	r.lb.SetUpstreams(h.Map(config.Upstreams, func(u *UpstreamWithResource) *multiproxy.Upstream {
 		return u.Upstream
 	}))
-
-	// Start the upstream port monitor to detect changes in the upstreams
-	go r.StartUpstreamPortMonitor(r.locator)
 
 	handler := multiproxy.NewReverseProxyHandler(r.lb)
 

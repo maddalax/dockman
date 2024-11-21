@@ -51,7 +51,12 @@ func (a *Agent) SubscribeToCommands() {
 			return
 		}
 
-		bucket := a.GetCommandResponseBucket()
+		bucket, err := a.GetCommandResponseBucket()
+
+		if err != nil {
+			logger.Error("Failed to get command response bucket", err)
+			return
+		}
 
 		_, err = bucket.Put(wrapper.Id, serialized.Bytes())
 
@@ -173,7 +178,14 @@ func SendCommand[T any](locator *service.Locator, serverId string, opts SendComm
 		ticker := time.NewTicker(opts.Timeout)
 		defer ticker.Stop()
 
-		watcher, err := agent.GetCommandResponseBucket().Watch(cmd.Id)
+		bucket, err := agent.GetCommandResponseBucket()
+
+		if err != nil {
+			response.Error = err
+			return
+		}
+
+		watcher, err := bucket.Watch(cmd.Id)
 
 		if err != nil {
 			return

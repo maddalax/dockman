@@ -29,9 +29,12 @@ func main() {
 	// if this process is not running as an agent
 	registry.GetAgent().RegisterGobTypes()
 
+	// Setup the reverse proxy
+	registry.GetReverseProxy().Setup()
+
 	go registry.GetResourceMonitor().Start()
-	go registry.GetJobRunner().Start()
 	go registry.GetReverseProxy().Start()
+	go registry.GetJobRunner().Start()
 
 	// TODO remove
 	app.RunSandbox(locator)

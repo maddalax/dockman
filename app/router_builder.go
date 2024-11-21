@@ -1,11 +1,15 @@
 package app
 
 import (
+	"dockside/app/logger"
 	"dockside/app/util/must"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
+	"github.com/pkg/errors"
 	"net/http"
+	"sync"
+	"time"
 )
 
 type ConfigBuilder struct {
@@ -30,30 +34,94 @@ func (b *ConfigBuilder) Build() *Config {
 }
 
 func (b *ConfigBuilder) Append(resource *Resource, block *RouteBlock) error {
-	switch resource.RunType {
-	case RunTypeDockerBuild:
-		fallthrough
-	case RunTypeDockerRegistry:
-		for i := range resource.InstancesPerServer {
-			err := b.appendDockerUpstreams(resource, i, block)
-			if err != nil {
-				return err
-			}
-		}
-	default:
+	servers, err := ResourceGetServers(b.serviceLocator, resource.Id)
+
+	if err != nil {
+		return err
 	}
+
+	type entry struct {
+		resourceId string
+		server     *Server
+		index      int
+	}
+
+	entries := make([]entry, 0)
+
+	for _, server := range servers {
+		for i := range resource.InstancesPerServer {
+			entries = append(entries, entry{
+				resourceId: resource.Id,
+				server:     server,
+				index:      i,
+			})
+		}
+	}
+
+	wg := sync.WaitGroup{}
+
+	for _, e := range entries {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			switch resource.RunType {
+			case RunTypeDockerBuild:
+				fallthrough
+			case RunTypeDockerRegistry:
+				err = b.appendDockerUpstreams(resource, e.index, e.server, block)
+				if err != nil {
+					logger.ErrorWithFields("Failed to append docker upstreams", err, map[string]interface{}{
+						"resourceId": resource.Id,
+						"serverId":   e.server.Id,
+					})
+				}
+			default:
+			}
+		}()
+	}
+
+	wg.Wait()
+
 	return nil
 }
 
-func (b *ConfigBuilder) appendDockerUpstreams(resource *Resource, index int, block *RouteBlock) error {
-	dockerClient, err := DockerConnect(b.serviceLocator)
+func (b *ConfigBuilder) appendDockerUpstreams(resource *Resource, index int, server *Server, block *RouteBlock) error {
+
+	res, err := SendCommand[GetContainerResponse](b.serviceLocator, server.Id, SendCommandOpts{
+		Command: &GetContainerCommand{
+			ResourceId:   resource.Id,
+			Index:        index,
+			ResponseData: &GetContainerResponse{},
+		},
+		Timeout: time.Second * 5,
+	})
+
 	if err != nil {
-		return DockerConnectionError
+		return errors.Wrap(err, "Failed to get container for server")
 	}
 
-	container, err := dockerClient.GetContainer(resource, index)
-	if err != nil {
-		return err
+	if res.Response.Error != nil {
+		return errors.Wrap(res.Response.Error, "Failed to get container for server")
+	}
+
+	if res.Response.Container.Config == nil {
+		return errors.Wrap(err, "Failed to get container for server")
+	}
+
+	container := res.Response.Container
+	hostIp := ""
+
+	if server.RemoteIpAddress != "" {
+		hostIp = server.RemoteIpAddress
+	}
+
+	// route using local ip first if possible
+	if server.LocalIpAddress != "" {
+		hostIp = server.LocalIpAddress
+	}
+
+	if hostIp == "" {
+		return errors.Wrap(err, "Failed to get host ip for server")
 	}
 
 	for port, binding := range container.NetworkSettings.Ports {
@@ -61,7 +129,7 @@ func (b *ConfigBuilder) appendDockerUpstreams(resource *Resource, index int, blo
 			for _, portBinding := range binding {
 
 				upstream := &multiproxy.Upstream{
-					Url: must.Url(fmt.Sprintf("http://%s:%s", portBinding.HostIP, portBinding.HostPort)),
+					Url: must.Url(fmt.Sprintf("http://%s:%s", hostIp, portBinding.HostPort)),
 					MatchesFunc: func(req *http.Request, match *multiproxy.Match) bool {
 						return b.matcher.Matches(req)
 					},

@@ -28,15 +28,15 @@ func AgentFromLocator(locator *service.Locator) *Agent {
 	return service.Get[Agent](locator)
 }
 
-func (a *Agent) GetCommandResponseBucket() nats.KeyValue {
+func (a *Agent) GetCommandResponseBucket() (nats.KeyValue, error) {
 	bucket, err := a.registry.KvClient().GetOrCreateBucket(&nats.KeyValueConfig{
 		Bucket: "command_responses",
 		TTL:    time.Hour,
 	})
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return bucket
+	return bucket, nil
 }
 
 func (a *Agent) Setup() error {
@@ -71,6 +71,9 @@ func (a *Agent) RegisterGobTypes() {
 	gob.Register(&StopResourceResponse{})
 	gob.Register(&PingCommand{})
 	gob.Register(&PingResponse{})
+	gob.Register(&SetServerConfigCommand{})
+	gob.Register(&GetContainerCommand{})
+	gob.Register(&GetContainerResponse{})
 }
 
 func (a *Agent) Run() {

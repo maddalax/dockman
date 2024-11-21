@@ -16,7 +16,7 @@ export default function () {
     let paths = ["/docs", "/examples", "/", "/html-to-go"]
 
     for (let path of paths) {
-        let res = http.get('http://dockside.htmgo.dev' + path);
+        let res = http.get('http://paas.htmgo.dev' + path);
         check(res, {
             'status was 200': (r) => r.status === 200,
             'transaction time OK': (r) => r.timings.duration < 200,

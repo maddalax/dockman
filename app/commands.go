@@ -2,6 +2,7 @@ package app
 
 import (
 	"dockside/app/logger"
+	"github.com/docker/docker/api/types"
 )
 
 type RunResourceCommand struct {
@@ -137,4 +138,60 @@ func (p *PingCommand) GetResponse() any {
 
 func (p *PingCommand) Name() string {
 	return "Ping"
+}
+
+type GetContainerCommand struct {
+	ResourceId   string
+	Index        int
+	ResponseData *GetContainerResponse
+}
+
+type GetContainerResponse struct {
+	Error     error
+	Container types.ContainerJSON
+}
+
+func (c *GetContainerCommand) Execute(agent *Agent) {
+	resource, err := ResourceGet(agent.locator, c.ResourceId)
+	if err != nil {
+		c.ResponseData = &GetContainerResponse{
+			Error: err,
+		}
+		return
+	}
+	switch resource.RunType {
+	case RunTypeDockerBuild:
+		fallthrough
+	case RunTypeDockerRegistry:
+		dockerClient, err := DockerConnect(agent.locator)
+		if err != nil {
+			c.ResponseData = &GetContainerResponse{
+				Error: DockerConnectionError,
+			}
+			return
+		}
+		container, err := dockerClient.GetContainer(resource, c.Index)
+
+		if err != nil {
+			c.ResponseData = &GetContainerResponse{
+				Error: err,
+			}
+			return
+		}
+
+		c.ResponseData = &GetContainerResponse{
+			Container: container,
+		}
+
+	default:
+		panic("Unsupported run type")
+	}
+}
+
+func (c *GetContainerCommand) GetResponse() any {
+	return c.ResponseData
+}
+
+func (c *GetContainerCommand) Name() string {
+	return "GetContainer"
 }
