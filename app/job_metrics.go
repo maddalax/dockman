@@ -3,7 +3,6 @@ package app
 import (
 	"dockside/app/logger"
 	"dockside/app/util/json2"
-	"fmt"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
 	"slices"
@@ -88,25 +87,13 @@ func (jb *JobMetricsManager) SaveJobMetric(job *Job) {
 }
 
 func (jb *JobMetricsManager) OnJobStarted(job *Job) {
-	logger.InfoWithFields("job started", map[string]any{
-		"job_name": job.name,
-	})
 	jb.SaveJobMetric(job)
 }
 
 func (jb *JobMetricsManager) OnJobFinished(job *Job) {
-	logger.InfoWithFields("job finished", map[string]any{
-		"job_name":   job.name,
-		"total_runs": job.totalRuns,
-		"duration":   fmt.Sprintf("%dms", job.lastRunDuration.Milliseconds()),
-	})
 	jb.SaveJobMetric(job)
 }
 
 func (jb *JobMetricsManager) OnJobStopped(job *Job) {
-	logger.InfoWithFields("job stopped", map[string]any{
-		"job_name":   job.name,
-		"total_runs": job.totalRuns,
-	})
 	jb.SaveJobMetric(job)
 }

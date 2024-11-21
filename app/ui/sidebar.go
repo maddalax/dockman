@@ -228,6 +228,10 @@ func DebugSection() *h.Element {
 			Title: "Interval Job Debug",
 			Path:  "/debug/job",
 		},
+		{
+			Title: "Router",
+			Path:  "/debug/router",
+		},
 	}
 
 	return h.Div(

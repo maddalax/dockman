@@ -3,7 +3,6 @@ package app
 import (
 	"dockside/app/logger"
 	"github.com/go-chi/chi/v5"
-	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
 	"net/http"
@@ -27,12 +26,12 @@ func (r *ReverseProxy) Setup() {
 	})
 }
 
-func (r *ReverseProxy) Start() {
-	config := loadConfig(r.locator)
+func (r *ReverseProxy) GetConfig() *Config {
+	return r.config
+}
 
-	r.lb.SetUpstreams(h.Map(config.Upstreams, func(u *UpstreamWithResource) *multiproxy.Upstream {
-		return u.Upstream
-	}))
+func (r *ReverseProxy) Start() {
+	ReloadConfig(r.locator)
 
 	handler := multiproxy.NewReverseProxyHandler(r.lb)
 

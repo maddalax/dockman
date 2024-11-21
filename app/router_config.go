@@ -2,9 +2,12 @@ package app
 
 import (
 	"dockside/app/logger"
+	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
+	"slices"
+	"strings"
 )
 
 func ReloadConfig(locator *service.Locator) {
@@ -42,6 +45,13 @@ func loadConfig(locator *service.Locator) *Config {
 			continue
 		}
 	}
+
+	// sort them so that the order is consistent when comparing old vs new config
+	slices.SortFunc(builder.upstreams, func(a, b *UpstreamWithResource) int {
+		key := fmt.Sprintf("%s%s", a.Upstream.Url.Host, a.Upstream.Url.Port())
+		key2 := fmt.Sprintf("%s%s", b.Upstream.Url.Host, b.Upstream.Url.Port())
+		return strings.Compare(key, key2)
+	})
 
 	return builder.Build()
 }

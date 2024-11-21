@@ -145,8 +145,9 @@ func (b *ConfigBuilder) appendDockerUpstreams(resource *Resource, index int, ser
 
 				b.matcher.AddUpstream(upstream, block)
 				b.upstreams = append(b.upstreams, &UpstreamWithResource{
-					Upstream:   upstream,
-					ResourceId: resource.Id,
+					Upstream: upstream,
+					Resource: resource,
+					Server:   server,
 				})
 			}
 		}

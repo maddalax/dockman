@@ -233,7 +233,7 @@ func SendCommand[T any](locator *service.Locator, serverId string, opts SendComm
 
 	subjectName := agent.CommandStreamName(serverId)
 
-	logger.InfoWithFields("sending command", map[string]any{
+	logger.DebugWithFields("sending command", map[string]any{
 		"command":   opts.Command.Name(),
 		"server_id": serverId,
 		"stream":    subjectName,

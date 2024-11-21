@@ -24,6 +24,7 @@ type Config struct {
 }
 
 type UpstreamWithResource struct {
-	Upstream   *multiproxy.Upstream
-	ResourceId string
+	Upstream *multiproxy.Upstream
+	Resource *Resource
+	Server   *Server
 }
