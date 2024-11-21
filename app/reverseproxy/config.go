@@ -20,7 +20,7 @@ func ReloadConfig(locator *service.Locator) {
 
 func loadConfig(locator *service.Locator) *Config {
 	matcher := &Matcher{}
-	builder := NewConfigBuilder(matcher)
+	builder := NewConfigBuilder(locator, matcher)
 	table, err := GetRouteTable(locator)
 
 	if err != nil {

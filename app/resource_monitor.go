@@ -96,13 +96,13 @@ func (monitor *ResourceMonitor) OnStatusChange(resource *Resource, status RunSta
 
 func (monitor *ResourceMonitor) GetRunStatus(resource *Resource) RunStatus {
 	if resource.RunType == RunTypeDockerBuild || resource.RunType == RunTypeDockerRegistry {
-		return getRunStatusDocker(resource)
+		return monitor.getRunStatusDocker(resource)
 	}
 	return RunStatusUnknown
 }
 
-func getRunStatusDocker(resource *Resource) RunStatus {
-	client, err := DockerConnect()
+func (monitor *ResourceMonitor) getRunStatusDocker(resource *Resource) RunStatus {
+	client, err := DockerConnect(monitor.locator)
 	if err != nil {
 		return RunStatusNotRunning
 	}

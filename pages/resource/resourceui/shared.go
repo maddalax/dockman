@@ -7,6 +7,7 @@ import (
 	"dockside/pages"
 	"errors"
 	"github.com/maddalax/htmgo/framework/h"
+	"github.com/maddalax/htmgo/framework/service"
 )
 
 func Page(ctx *h.RequestContext, children func(resource *app.Resource) *h.Element) *h.Page {
@@ -32,7 +33,8 @@ func Page(ctx *h.RequestContext, children func(resource *app.Resource) *h.Elemen
 }
 
 func PageHeader(ctx *h.RequestContext, resource *app.Resource) *h.Element {
-	_, err := app.IsResourceRunnable(resource)
+	locator := ctx.ServiceLocator()
+	_, err := app.IsResourceRunnable(locator, resource)
 
 	return h.Div(
 		h.Class("flex flex-col gap-6"),
@@ -49,7 +51,7 @@ func PageHeader(ctx *h.RequestContext, resource *app.Resource) *h.Element {
 			),
 		),
 		TopTabs(ctx, resource, ui.LinkTabsProps{
-			End: ResourceStatusContainer(resource),
+			End: ResourceStatusContainer(locator, resource),
 		}),
 	)
 }
@@ -65,16 +67,16 @@ func ResourceStatusError(err error) *h.Element {
 	return ui.ErrorAlert(h.Pf("Failed to load resource status"), h.Pf(err.Error()))
 }
 
-func ResourceStatusContainer(resource *app.Resource) *h.Element {
+func ResourceStatusContainer(locator *service.Locator, resource *app.Resource) *h.Element {
 	return h.Div(
 		h.Id("resource-status"),
 		h.Class("flex gap-2 absolute -top-3 right-0"),
-		ResourceStatus(resource),
+		ResourceStatus(locator, resource),
 	)
 }
 
-func ResourceStatus(resource *app.Resource) *h.Element {
-	runnable, err := app.IsResourceRunnable(resource)
+func ResourceStatus(locator *service.Locator, resource *app.Resource) *h.Element {
+	runnable, err := app.IsResourceRunnable(locator, resource)
 
 	if err != nil {
 		return h.Empty()

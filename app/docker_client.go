@@ -4,17 +4,19 @@ import (
 	"context"
 	"errors"
 	"github.com/docker/docker/client"
+	"github.com/maddalax/htmgo/framework/service"
 	"sync"
 )
 
 type DockerClient struct {
-	cli *client.Client
+	cli     *client.Client
+	locator *service.Locator
 }
 
 var _client *DockerClient
 var syncOnce sync.Once
 
-func DockerConnect() (*DockerClient, error) {
+func DockerConnect(locator *service.Locator) (*DockerClient, error) {
 	var e error
 	syncOnce.Do(func() {
 		env := client.FromEnv
@@ -26,7 +28,8 @@ func DockerConnect() (*DockerClient, error) {
 		}
 		if e == nil {
 			_client = &DockerClient{
-				cli: cli,
+				cli:     cli,
+				locator: locator,
 			}
 		}
 	})

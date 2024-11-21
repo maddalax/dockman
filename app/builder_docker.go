@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/maddalax/htmgo/framework/h"
+	"github.com/pkg/errors"
+	"time"
 )
 
 func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) error {
@@ -17,7 +19,7 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 
 	b.LogBuildMessage("Connecting to Docker...")
 
-	client, err := DockerConnect()
+	client, err := DockerConnect(b.ServiceLocator)
 
 	if err != nil {
 		return b.BuildError(err)
@@ -49,6 +51,8 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 		}
 	}()
 
+	imageName := fmt.Sprintf("%s-%s", b.Resource.Name, b.Resource.Id)
+
 	err = client.Build(b.BuildOutputStream, result.Directory, types.ImageBuildOptions{
 		Dockerfile: buildMeta.Dockerfile,
 		BuildID:    dockerBuildId,
@@ -57,7 +61,8 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 			"dockside.build.id":    b.BuildId,
 		},
 		Tags: []string{
-			fmt.Sprintf(fmt.Sprintf("%s-%s:latest", b.Resource.Name, b.Resource.Id)),
+			fmt.Sprintf(fmt.Sprintf("%s:latest", imageName)),
+			fmt.Sprintf(fmt.Sprintf("%s:buildId-%s", imageName, b.BuildId)),
 		},
 	}, &handlers)
 
@@ -65,18 +70,38 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 		return b.BuildError(err)
 	}
 
-	b.LogBuildMessage("Starting container...")
+	b.LogBuildMessage("Saving image...")
 
-	// build successful, lets try to run it
-	err = client.Run(b.Resource, RunOptions{
-		RemoveExisting: true,
+	err = client.SaveImage(imageName, b.BuildId)
+
+	if err != nil {
+		return b.BuildError(err)
+	}
+
+	b.UpdateDeployStatus(DeploymentStatusSucceeded)
+
+	b.LogBuildMessage("Successfully saved image, starting process on enabled servers...")
+
+	responses, err := SendCommandForResource[RunResourceResponse](b.ServiceLocator, b.Resource.Id, SendCommandOpts{
+		Command: &RunResourceCommand{
+			ResourceId: b.Resource.Id,
+		},
+		Timeout: time.Second * 5,
 	})
 
 	if err != nil {
 		return b.BuildError(err)
 	}
 
-	b.LogBuildMessage("Container successfully started.")
+	for _, response := range responses {
+		if response.Response.Error != nil {
+			b.LogBuildError(errors.Wrap(response.Response.Error,
+				fmt.Sprintf("Failed to start resource on server %s", response.ServerDetails.Hostname)))
+		} else {
+			b.LogBuildMessage(fmt.Sprintf("Resource started on server %s", response.ServerDetails.Hostname))
+		}
+	}
+
 	b.LogBuildMessage(
 		h.Render(
 			h.A(
@@ -86,8 +111,6 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 			),
 		),
 	)
-
-	b.UpdateDeployStatus(DeploymentStatusSucceeded)
 
 	return nil
 }

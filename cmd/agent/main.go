@@ -2,6 +2,7 @@ package main
 
 import (
 	"dockside/app"
+	"dockside/app/logger"
 	"github.com/maddalax/htmgo/framework/service"
 )
 
@@ -17,10 +18,15 @@ func main() {
 	err = fluentd.StartContainer()
 
 	if err != nil {
-		panic(err)
+		logger.Error("Failed to start fluentd container, unable to stream logs", err)
 	}
 
-	go fluentd.StreamLogs()
+	go func() {
+		err := fluentd.StreamLogs()
+		if err != nil {
+			logger.Error("Failed to stream logs from fluentd", err)
+		}
+	}()
 
 	agent.Run()
 }

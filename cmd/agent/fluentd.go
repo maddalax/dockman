@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"dockside/app"
+	"dockside/app/logger"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
@@ -122,19 +123,30 @@ func (m *FluentdManager) StartContainer() error {
 	// Network configuration
 	networkConfig := &network.NetworkingConfig{}
 
-	// Create the container
-	resp, err := cli.ContainerCreate(context.Background(), config, hostConfig, networkConfig, nil, m.containerName)
+	// Remove the container if it already exists
+	err = cli.ContainerRemove(context.Background(), m.containerName, container.RemoveOptions{})
 
 	if err != nil {
-		// container already running, just return
-		if strings.Contains(err.Error(), "already in use") {
+		// container is already running successfully so just return
+		if strings.Contains(err.Error(), "container is running") {
 			return nil
 		}
+		if !client.IsErrNotFound(err) {
+			err = nil
+		} else {
+			return err
+		}
+	}
+
+	// Create the container
+	_, err = cli.ContainerCreate(context.Background(), config, hostConfig, networkConfig, nil, m.containerName)
+
+	if err != nil {
 		return err
 	}
 
 	// Start the container
-	if err := cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{}); err != nil {
+	if err := cli.ContainerStart(context.Background(), m.containerName, container.StartOptions{}); err != nil {
 		return err
 	}
 
@@ -164,6 +176,10 @@ func (m *FluentdManager) StreamLogs() error {
 		return err
 	}
 
+	logger.InfoWithFields("attaching to fluentd to stream logs", map[string]any{
+		"container": m.containerName,
+		"exec_id":   execIDResp.ID,
+	})
 	resp, err := cli.ContainerExecAttach(ctx, execIDResp.ID, container.ExecAttachOptions{})
 
 	if err != nil {

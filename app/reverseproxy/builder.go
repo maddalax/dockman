@@ -4,19 +4,22 @@ import (
 	"dockside/app"
 	"dockside/app/util/must"
 	"fmt"
+	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
 	"net/http"
 )
 
 type ConfigBuilder struct {
-	matcher   *Matcher
-	upstreams []*UpstreamWithResource
+	matcher        *Matcher
+	upstreams      []*UpstreamWithResource
+	serviceLocator *service.Locator
 }
 
-func NewConfigBuilder(matcher *Matcher) *ConfigBuilder {
+func NewConfigBuilder(locator *service.Locator, matcher *Matcher) *ConfigBuilder {
 	return &ConfigBuilder{
-		matcher:   matcher,
-		upstreams: make([]*UpstreamWithResource, 0),
+		matcher:        matcher,
+		upstreams:      make([]*UpstreamWithResource, 0),
+		serviceLocator: locator,
 	}
 }
 
@@ -44,7 +47,7 @@ func (b *ConfigBuilder) Append(resource *app.Resource, block *RouteBlock) error 
 }
 
 func (b *ConfigBuilder) appendDockerUpstreams(resource *app.Resource, index int, block *RouteBlock) error {
-	dockerClient, err := app.DockerConnect()
+	dockerClient, err := app.DockerConnect(b.serviceLocator)
 	if err != nil {
 		return app.DockerConnectionError
 	}

@@ -87,18 +87,25 @@ func SendCommandForResource[T any](locator *service.Locator, resourceId string, 
 	opts.ServerIds = serverIds
 	responses := make([]*SendCommandResponse[T], 0)
 
+	wg := sync.WaitGroup{}
 	for _, id := range opts.ServerIds {
-		result, err := SendCommand[T](locator, id, opts)
-		if err != nil {
-			logger.ErrorWithFields("Failed to send command", err, map[string]any{
-				"server_id": id,
-			})
-			continue
-		}
-		if result != nil {
-			responses = append(responses, result)
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			result, err := SendCommand[T](locator, id, opts)
+			if err != nil {
+				logger.ErrorWithFields("Failed to send command", err, map[string]any{
+					"server_id": id,
+				})
+				return
+			}
+			if result != nil {
+				responses = append(responses, result)
+			}
+		}()
 	}
+
+	wg.Wait()
 
 	return responses, nil
 }

@@ -28,10 +28,31 @@ func ServerPut(locator *service.Locator, opts ServerPutOpts) error {
 		return errors.New("server id is required")
 	}
 
-	server, err := ServerGet(locator, opts.Id)
+	var server *Server
+
+	list, err := ServerList(locator)
+
+	if err != nil {
+		return err
+	}
+
+	for _, s := range list {
+		if s.Id == opts.Id {
+			server = s
+			break
+		}
+		if s.LocalIpAddress != "" && s.LocalIpAddress == opts.LocalIpAddress {
+			server = s
+			break
+		}
+		if s.RemoteIpAddress != "" && s.RemoteIpAddress == opts.RemoteIpAddress {
+			server = s
+			break
+		}
+	}
 
 	// server exists already
-	if err == nil {
+	if server != nil {
 		server.LocalIpAddress = opts.LocalIpAddress
 		server.RemoteIpAddress = opts.RemoteIpAddress
 		server.HostName = opts.HostName
@@ -40,6 +61,10 @@ func ServerPut(locator *service.Locator, opts ServerPutOpts) error {
 		if opts.Name != "" {
 			server.Name = opts.Name
 		}
+		logger.InfoWithFields("Updating server", map[string]interface{}{
+			"id":        opts.Id,
+			"host_name": opts.HostName,
+		})
 	} else {
 		server = &Server{
 			Id:              opts.Id,
@@ -50,6 +75,10 @@ func ServerPut(locator *service.Locator, opts ServerPutOpts) error {
 			LastSeen:        opts.LastSeen,
 			Os:              opts.Os,
 		}
+		logger.InfoWithFields("Creating new server", map[string]interface{}{
+			"id":        opts.Id,
+			"host_name": opts.HostName,
+		})
 	}
 
 	bucket, err := client.GetOrCreateBucket(&nats.KeyValueConfig{
@@ -72,7 +101,9 @@ func ServerPut(locator *service.Locator, opts ServerPutOpts) error {
 func ServerGet(locator *service.Locator, id string) (*Server, error) {
 	client := service.Get[KvClient](locator)
 
-	bucket, err := client.GetBucket("servers")
+	bucket, err := client.GetOrCreateBucket(&nats.KeyValueConfig{
+		Bucket: "servers",
+	})
 
 	if err != nil {
 		return nil, err
@@ -90,7 +121,9 @@ func ServerGet(locator *service.Locator, id string) (*Server, error) {
 func ServerList(locator *service.Locator) ([]*Server, error) {
 	client := service.Get[KvClient](locator)
 
-	bucket, err := client.GetBucket("servers")
+	bucket, err := client.GetOrCreateBucket(&nats.KeyValueConfig{
+		Bucket: "servers",
+	})
 
 	if err != nil {
 		return nil, err

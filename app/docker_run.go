@@ -59,6 +59,12 @@ func (c *DockerClient) doRun(resource *Resource, index int, opts RunOptions) err
 	imageName := fmt.Sprintf("%s-%s", resource.Name, resource.Id)
 	containerName := fmt.Sprintf("%s-%s-container-%d", resource.Name, resource.Id, index)
 
+	err := c.LoadImage(imageName)
+
+	if err != nil {
+		return err
+	}
+
 	if opts.IgnoreIfRunning {
 		exists, err := c.GetContainer(resource, index)
 		// if the container exists and is running, we can just return
@@ -67,7 +73,7 @@ func (c *DockerClient) doRun(resource *Resource, index int, opts RunOptions) err
 		}
 	}
 
-	err := c.cli.ContainerStop(ctx, containerName, container.StopOptions{})
+	err = c.cli.ContainerStop(ctx, containerName, container.StopOptions{})
 
 	if err != nil {
 		switch err.(type) {

@@ -10,12 +10,12 @@ import (
 
 // IsResourceRunnable checks if a resource is runnable
 // in the case of docker, the container must exist for each instance
-func IsResourceRunnable(resource *Resource) (bool, error) {
+func IsResourceRunnable(locator *service.Locator, resource *Resource) (bool, error) {
 	switch resource.RunType {
 	case RunTypeDockerBuild:
 		fallthrough
 	case RunTypeDockerRegistry:
-		client, err := DockerConnect()
+		client, err := DockerConnect(locator)
 		if err != nil {
 			return false, err
 		}
@@ -57,7 +57,7 @@ func ResourceStart(locator *service.Locator, resourceId string, opts StartOpts) 
 	case RunTypeDockerBuild:
 		fallthrough
 	case RunTypeDockerRegistry:
-		client, err := DockerConnect()
+		client, err := DockerConnect(locator)
 		if err != nil {
 			return nil, err
 		}
@@ -101,7 +101,7 @@ func ResourceStop(locator *service.Locator, resourceId string) (*Resource, error
 	case RunTypeDockerBuild:
 		fallthrough
 	case RunTypeDockerRegistry:
-		client, err := DockerConnect()
+		client, err := DockerConnect(locator)
 		if err != nil {
 			return nil, err
 		}

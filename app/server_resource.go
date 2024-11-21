@@ -74,7 +74,11 @@ func ResourceGetServerIds(locator *service.Locator, resourceId string) ([]string
 	ids := make([]string, 0)
 
 	for _, s := range resource.ServerDetails {
-		ids = append(ids, s.ServerId)
+		// ensure the server exists
+		_, err := ServerGet(locator, s.ServerId)
+		if err == nil {
+			ids = append(ids, s.ServerId)
+		}
 	}
 
 	return ids, nil
