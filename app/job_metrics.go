@@ -19,6 +19,7 @@ type JobMetric struct {
 	JobName         string
 	Status          string
 	LastRan         time.Time
+	Interval        time.Duration
 	TotalRuns       int
 	LastRunDuration time.Duration
 }
@@ -74,6 +75,7 @@ func (jb *JobMetricsManager) SaveJobMetric(job *Job) {
 		Status:          job.status,
 		LastRan:         job.lastRunTime,
 		TotalRuns:       job.totalRuns,
+		Interval:        job.interval,
 		LastRunDuration: job.lastRunDuration,
 	})
 	if err != nil {

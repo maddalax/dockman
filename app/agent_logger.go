@@ -43,6 +43,6 @@ func (a *Agent) WriteContainerLog(log string) {
 			return
 		}
 
-		a.kv.LogRunMessage(dockerLog.ResourceId, string(serialized))
+		a.registry.KvClient().LogRunMessage(dockerLog.ResourceId, string(serialized))
 	}
 }

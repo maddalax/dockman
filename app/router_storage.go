@@ -1,7 +1,6 @@
-package reverseproxy
+package app
 
 import (
-	"dockside/app"
 	"dockside/app/util/json2"
 	"encoding/json"
 	"github.com/maddalax/htmgo/framework/service"
@@ -16,7 +15,7 @@ func ApplyBlocks(locator *service.Locator, blocks []RouteBlock) error {
 	}
 
 	// Save block to database
-	client := app.KvFromLocator(locator)
+	client := KvFromLocator(locator)
 	bucket, err := client.GetOrCreateBucket(&nats.KeyValueConfig{
 		Bucket: "route-table",
 	})
@@ -44,7 +43,7 @@ func ValidateBlocks(blocks []RouteBlock) error {
 }
 
 func GetRouteTable(locator *service.Locator) ([]RouteBlock, error) {
-	client := app.KvFromLocator(locator)
+	client := KvFromLocator(locator)
 	bucket, err := client.GetBucket("route-table")
 	if err != nil {
 		return nil, err

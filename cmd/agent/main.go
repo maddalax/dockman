@@ -8,16 +8,14 @@ import (
 
 func main() {
 	locator := service.NewLocator()
+	registry := app.CreateServiceRegistry(locator)
 
-	agent := app.NewAgent(locator)
-	err := agent.Setup()
+	registry.RegisterAgentStartupServices()
 
-	if err != nil {
-		panic(err)
-	}
+	agent := registry.GetAgent()
 
 	fluentd := NewFluentdManager(agent)
-	err = fluentd.StartContainer()
+	err := fluentd.StartContainer()
 
 	if err != nil {
 		logger.Error("Failed to start fluentd container, unable to stream logs", err)

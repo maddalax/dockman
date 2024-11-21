@@ -46,6 +46,7 @@ func tableHeader() *h.Element {
 		h.Tr(
 			h.Class("bg-gray-100 text-left border-b border-gray-300"),
 			tableHeaderCell("Job Name"),
+			tableHeaderCell("Interval"),
 			tableHeaderCell("Status"),
 			tableHeaderCell("Last Ran"),
 			tableHeaderCell("Total Runs"),
@@ -65,6 +66,7 @@ func tableRow(metric *app.JobMetric) *h.Element {
 	return h.Tr(
 		h.Class("border-b border-gray-300 hover:bg-gray-50"),
 		tableCell(metric.JobName),
+		tableCell(metric.Interval.String()),
 		tableCell(h.Ternary(metric.Status == "finished", "running", metric.Status)),
 		tableCell(formatTimePretty(metric.LastRan)),
 		tableCell(strconv.Itoa(metric.TotalRuns)),

@@ -7,39 +7,40 @@ import (
 )
 
 type EventHandler struct {
-	locator           *service.Locator
-	jobMetricsManager *JobMetricsManager
+	locator *service.Locator
 }
 
 func NewEventHandler(locator *service.Locator) *EventHandler {
 	return &EventHandler{
-		locator:           locator,
-		jobMetricsManager: NewJobMetricsManager(locator),
+		locator: locator,
 	}
 }
 
 func (eh *EventHandler) OnJobStarted(job *Job) {
-	logger.InfoWithFields("job started", map[string]any{
+	registry := GetServiceRegistry(eh.locator)
+	logger.DebugWithFields("job started", map[string]any{
 		"job_name": job.name,
 	})
-	eh.jobMetricsManager.OnJobStarted(job)
+	registry.GetJobMetricsManager().OnJobStarted(job)
 }
 
 func (eh *EventHandler) OnJobFinished(job *Job) {
-	logger.InfoWithFields("job finished", map[string]any{
+	registry := GetServiceRegistry(eh.locator)
+	logger.DebugWithFields("job finished", map[string]any{
 		"job_name":   job.name,
 		"total_runs": job.totalRuns,
 		"duration":   fmt.Sprintf("%dms", job.lastRunDuration.Milliseconds()),
 	})
-	eh.jobMetricsManager.OnJobFinished(job)
+	registry.GetJobMetricsManager().OnJobFinished(job)
 }
 
 func (eh *EventHandler) OnJobStopped(job *Job) {
-	logger.InfoWithFields("job stopped", map[string]any{
+	registry := GetServiceRegistry(eh.locator)
+	logger.DebugWithFields("job stopped", map[string]any{
 		"job_name":   job.name,
 		"total_runs": job.totalRuns,
 	})
-	eh.jobMetricsManager.OnJobStopped(job)
+	registry.GetJobMetricsManager().OnJobStopped(job)
 }
 
 func (eh *EventHandler) OnServerDisconnected(server *Server) {

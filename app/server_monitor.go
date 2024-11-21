@@ -12,8 +12,8 @@ import (
 )
 
 func (a *Agent) RegisterMonitor() {
-	a.intervalJobRunner.Add(fmt.Sprintf("ServerUpdateStatus-%s", a.serverId), 3*time.Second, a.updateStatus)
-	a.intervalJobRunner.Add(fmt.Sprintf("ResourceStatusMonitor-%s", a.serverId), 3*time.Second, a.resourceStatusMonitor)
+	a.registry.GetJobRunner().Add(fmt.Sprintf("ServerUpdateStatus-%s", a.serverId), 3*time.Second, a.updateStatus)
+	a.registry.GetJobRunner().Add(fmt.Sprintf("ResourceStatusMonitor-%s", a.serverId), 3*time.Second, a.resourceStatusMonitor)
 }
 
 func (a *Agent) resourceStatusMonitor() {

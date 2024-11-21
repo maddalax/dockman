@@ -1,7 +1,6 @@
-package reverseproxy
+package app
 
 import (
-	"dockside/app"
 	"dockside/app/logger"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
@@ -9,7 +8,7 @@ import (
 )
 
 func ReloadConfig(locator *service.Locator) {
-	proxy := GetInstance(locator)
+	proxy := GetServiceRegistry(locator).GetReverseProxy()
 	logger.Info("Reloading reverse proxy upstream config")
 	config := loadConfig(locator)
 	proxy.lb.SetUpstreams(h.Map(config.Upstreams, func(u *UpstreamWithResource) *multiproxy.Upstream {
@@ -29,7 +28,7 @@ func loadConfig(locator *service.Locator) *Config {
 
 	for _, block := range table {
 
-		resource, err := app.ResourceGet(locator, block.ResourceId)
+		resource, err := ResourceGet(locator, block.ResourceId)
 		if err != nil {
 			logger.ErrorWithFields("Failed to to get resource", err, map[string]any{
 				"resourceId": block.ResourceId,

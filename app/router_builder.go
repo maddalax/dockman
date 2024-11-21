@@ -1,7 +1,6 @@
-package reverseproxy
+package app
 
 import (
-	"dockside/app"
 	"dockside/app/util/must"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/service"
@@ -30,11 +29,11 @@ func (b *ConfigBuilder) Build() *Config {
 	}
 }
 
-func (b *ConfigBuilder) Append(resource *app.Resource, block *RouteBlock) error {
+func (b *ConfigBuilder) Append(resource *Resource, block *RouteBlock) error {
 	switch resource.RunType {
-	case app.RunTypeDockerBuild:
+	case RunTypeDockerBuild:
 		fallthrough
-	case app.RunTypeDockerRegistry:
+	case RunTypeDockerRegistry:
 		for i := range resource.InstancesPerServer {
 			err := b.appendDockerUpstreams(resource, i, block)
 			if err != nil {
@@ -46,10 +45,10 @@ func (b *ConfigBuilder) Append(resource *app.Resource, block *RouteBlock) error 
 	return nil
 }
 
-func (b *ConfigBuilder) appendDockerUpstreams(resource *app.Resource, index int, block *RouteBlock) error {
-	dockerClient, err := app.DockerConnect(b.serviceLocator)
+func (b *ConfigBuilder) appendDockerUpstreams(resource *Resource, index int, block *RouteBlock) error {
+	dockerClient, err := DockerConnect(b.serviceLocator)
 	if err != nil {
-		return app.DockerConnectionError
+		return DockerConnectionError
 	}
 
 	container, err := dockerClient.GetContainer(resource, index)

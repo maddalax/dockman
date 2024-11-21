@@ -80,7 +80,7 @@ type SetServerConfigCommand struct {
 }
 
 func (c *SetServerConfigCommand) Execute(agent *Agent) {
-	manager := agent.serverConfigManager
+	manager := agent.registry.GetServerConfigManager()
 	manager.WriteConfig(c.Key, c.Value)
 }
 
@@ -102,7 +102,7 @@ type GetServerConfigCommand struct {
 }
 
 func (c *GetServerConfigCommand) Execute(agent *Agent) {
-	manager := agent.serverConfigManager
+	manager := agent.registry.GetServerConfigManager()
 	value := manager.GetConfig(c.Key)
 	c.ResponseData = GetServerConfigResponse{
 		Value: value,

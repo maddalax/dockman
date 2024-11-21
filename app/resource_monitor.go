@@ -33,7 +33,6 @@ func (cache *LastRunCache[T]) ApplyChange(id string, value T) bool {
 
 type ResourceMonitor struct {
 	locator          *service.Locator
-	eventHandler     *EventHandler
 	lastRunStatus    *LastRunCache[RunStatus]
 	lastServerStatus *LastRunCache[bool]
 }
@@ -41,7 +40,6 @@ type ResourceMonitor struct {
 func NewMonitor(locator *service.Locator) *ResourceMonitor {
 	return &ResourceMonitor{
 		locator:          locator,
-		eventHandler:     NewEventHandler(locator),
 		lastRunStatus:    NewLastRunCache[RunStatus](),
 		lastServerStatus: NewLastRunCache[bool](),
 	}
@@ -57,6 +55,7 @@ func (monitor *ResourceMonitor) Start() {
 // RunStatusMonitorJob Monitors the run status of resources and updates the status if necessary
 // Runs every 3s
 func (monitor *ResourceMonitor) RunStatusMonitorJob() {
+	registry := GetServiceRegistry(monitor.locator)
 	list, err := ResourceList(monitor.locator)
 	if err != nil {
 		return
@@ -65,13 +64,14 @@ func (monitor *ResourceMonitor) RunStatusMonitorJob() {
 		status := GetComputedRunStatus(res)
 		changed := monitor.lastRunStatus.ApplyChange(res.Id, status)
 		if changed {
-			monitor.eventHandler.OnResourceStatusChange(res, status)
+			registry.GetEventHandler().OnResourceStatusChange(res, status)
 		}
 	}
 }
 
 // ResourceServerCleanup Cleans up servers that are no longer exist on a resource
 func (monitor *ResourceMonitor) ResourceServerCleanup() {
+	registry := GetServiceRegistry(monitor.locator)
 	list, err := ResourceList(monitor.locator)
 	if err != nil {
 		logger.Error("Error getting resource list", err)
@@ -92,7 +92,7 @@ func (monitor *ResourceMonitor) ResourceServerCleanup() {
 						"resource_id": res.Id,
 					})
 				} else {
-					monitor.eventHandler.OnServerDetached(detail.ServerId, res)
+					registry.GetEventHandler().OnServerDetached(detail.ServerId, res)
 				}
 			}
 		}
@@ -101,6 +101,7 @@ func (monitor *ResourceMonitor) ResourceServerCleanup() {
 
 // ServerConnectionMonitor Monitors the connection status of servers
 func (monitor *ResourceMonitor) ServerConnectionMonitor() {
+	registry := GetServiceRegistry(monitor.locator)
 	list, err := ServerList(monitor.locator)
 	if err != nil {
 		logger.Error("Error getting server list", err)
@@ -111,9 +112,9 @@ func (monitor *ResourceMonitor) ServerConnectionMonitor() {
 		changed := monitor.lastServerStatus.ApplyChange(server.Id, accessible)
 		if changed {
 			if accessible {
-				monitor.eventHandler.OnServerConnected(server)
+				registry.GetEventHandler().OnServerConnected(server)
 			} else {
-				monitor.eventHandler.OnServerDisconnected(server)
+				registry.GetEventHandler().OnServerDisconnected(server)
 			}
 		}
 	}

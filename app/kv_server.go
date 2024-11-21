@@ -1,32 +1,32 @@
 package app
 
 import (
-	"fmt"
+	"dockside/app/logger"
 	"github.com/nats-io/nats-server/v2/server"
 	"time"
 )
 
-func StartNatsServer() (*server.Server, error) {
-	// ResourceCreate a NATS server configuration
+func MustStartNats() *server.Server {
+	logger.Info("Starting NATS server")
+
 	opts := &server.Options{
-		Port:      4222, // You can choose a different port if needed
+		Port:      4222,
 		JetStream: true,
 		StoreDir:  "./data",
 	}
 
-	// ResourceCreate a new NATS server instance
 	natsServer, err := server.NewServer(opts)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	// Start the NATS server in a goroutine
 	go natsServer.Start()
 
-	// Check if the server is ready
 	if !natsServer.ReadyForConnections(5 * time.Second) {
-		return nil, fmt.Errorf("NATS server did not start in time")
+		panic("Failed to start NATS server after 5 seconds")
 	}
 
-	return natsServer, nil
+	logger.Info("NATS server started")
+
+	return natsServer
 }

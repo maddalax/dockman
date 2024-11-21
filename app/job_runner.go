@@ -32,15 +32,13 @@ func (j *Job) Stop() {
 }
 
 type IntervalJobRunner struct {
-	locator      *service.Locator
-	eventHandler *EventHandler
-	jobs         []Job
+	locator *service.Locator
+	jobs    []Job
 }
 
 func NewIntervalJobRunner(locator *service.Locator) *IntervalJobRunner {
 	return &IntervalJobRunner{
-		eventHandler: NewEventHandler(locator),
-		locator:      locator,
+		locator: locator,
 	}
 }
 
@@ -66,8 +64,9 @@ func (jr *IntervalJobRunner) Add(name string, duration time.Duration, job func()
 	})
 }
 
-func (jr *IntervalJobRunner) Start() error {
+func (jr *IntervalJobRunner) Start() {
 	wg := sync.WaitGroup{}
+	registry := GetServiceRegistry(jr.locator)
 	for _, job := range jr.jobs {
 		wg.Add(1)
 		go func(job Job) {
@@ -80,16 +79,16 @@ func (jr *IntervalJobRunner) Start() error {
 				}
 				if job.stopped {
 					job.status = "stopped"
-					go jr.eventHandler.OnJobStopped(&job)
+					go registry.GetEventHandler().OnJobStopped(&job)
 					break
 				}
 				now := time.Now()
 				job.status = "running"
-				go jr.eventHandler.OnJobStarted(&job)
+				go registry.GetEventHandler().OnJobStarted(&job)
 				job.cb()
 				job.totalRuns++
 				job.status = "finished"
-				go jr.eventHandler.OnJobFinished(&job)
+				go registry.GetEventHandler().OnJobFinished(&job)
 				job.lastRunTime = now
 				job.lastRunDuration = time.Since(now)
 				time.Sleep(job.interval)
@@ -100,8 +99,7 @@ func (jr *IntervalJobRunner) Start() error {
 	wg.Wait()
 
 	for _, job := range jr.jobs {
-		jr.eventHandler.OnJobStopped(&job)
+		registry.GetEventHandler().OnJobStopped(&job)
 	}
 
-	return nil
 }

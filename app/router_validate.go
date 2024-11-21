@@ -1,4 +1,4 @@
-package reverseproxy
+package app
 
 import (
 	"errors"

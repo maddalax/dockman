@@ -6,24 +6,21 @@ import (
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
-	"os"
 	"time"
 )
 
 type Agent struct {
-	setup                 bool
-	locator               *service.Locator
-	kv                    *KvClient
-	commandStreamName     string
-	serverConfigManager   *ServerConfigManager
-	commandResponseBucket nats.KeyValue
-	intervalJobRunner     *IntervalJobRunner
-	serverId              string
+	setup             bool
+	locator           *service.Locator
+	registry          *ServiceRegistry
+	commandStreamName string
+	serverId          string
 }
 
 func NewAgent(locator *service.Locator) *Agent {
 	return &Agent{
-		locator: locator,
+		locator:  locator,
+		registry: GetServiceRegistry(locator),
 	}
 }
 
@@ -31,56 +28,29 @@ func AgentFromLocator(locator *service.Locator) *Agent {
 	return service.Get[Agent](locator)
 }
 
+func (a *Agent) GetCommandResponseBucket() nats.KeyValue {
+	bucket, err := a.registry.KvClient().GetOrCreateBucket(&nats.KeyValueConfig{
+		Bucket: "command_responses",
+		TTL:    time.Hour,
+	})
+	if err != nil {
+		panic(err)
+	}
+	return bucket
+}
+
 func (a *Agent) Setup() error {
 
 	a.RegisterGobTypes()
 
-	service.Set[KvClient](a.locator, service.Singleton, func() *KvClient {
-		client, err := NatsConnect(NatsConnectOptions{
-			Host: os.Getenv("NATS_HOST"),
-			Port: 4222,
-		})
-		if err != nil {
-			panic(err)
-		}
-		return client
-	})
+	a.registry = GetServiceRegistry(a.locator)
 
-	service.Set[ServerConfigManager](a.locator, service.Singleton, func() *ServerConfigManager {
-		return NewServerConfigManager()
-	})
-
-	intervalJobRunner := NewIntervalJobRunner(a.locator)
-
-	service.Set(a.locator, service.Singleton, func() *IntervalJobRunner {
-		return intervalJobRunner
-	})
-
-	a.kv = KvFromLocator(a.locator)
-	a.serverConfigManager = service.Get[ServerConfigManager](a.locator)
-	a.intervalJobRunner = service.Get[IntervalJobRunner](a.locator)
-
-	bucket, err := a.kv.GetOrCreateBucket(&nats.KeyValueConfig{
-		Bucket: "command_responses",
-		TTL:    time.Hour,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	a.commandResponseBucket = bucket
-
-	service.Set(a.locator, service.Singleton, func() *Agent {
-		return a
-	})
-
-	serverId := a.serverConfigManager.GetConfig("server_id")
+	serverId := a.registry.GetServerConfigManager().GetConfig("server_id")
 
 	// no server id set, generate one
 	if serverId == "" {
 		a.serverId = uuid.NewString()
-		a.serverConfigManager.WriteConfig("server_id", a.serverId)
+		a.registry.GetServerConfigManager().WriteConfig("server_id", a.serverId)
 	} else {
 		a.serverId = serverId
 	}
@@ -109,7 +79,7 @@ func (a *Agent) Run() {
 		a.setup = true
 	}
 
-	err := a.kv.Ping()
+	err := a.registry.KvClient().Ping()
 
 	if err != nil {
 		panic(err)
@@ -118,7 +88,7 @@ func (a *Agent) Run() {
 	a.SubscribeToCommands()
 	a.RegisterMonitor()
 
-	go a.intervalJobRunner.Start()
+	go a.registry.GetJobRunner().Start()
 
 	for {
 		logger.Info("Agent is running")

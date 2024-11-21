@@ -3,7 +3,6 @@ package main
 import (
 	"dockside/__htmgo"
 	"dockside/app"
-	"dockside/app/reverseproxy"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket"
 	ws2 "github.com/maddalax/htmgo/extensions/websocket/opts"
@@ -13,70 +12,29 @@ import (
 	"github.com/maddalax/htmgo/framework/service"
 	"io/fs"
 	"net/http"
-	"os"
 )
 
 import _ "net/http/pprof"
 
-func setupNats(locator *service.Locator) {
-	_, err := app.StartNatsServer()
-
-	if err != nil {
-		panic(err)
-	}
-
-	service.Set[app.KvClient](locator, service.Singleton, func() *app.KvClient {
-		client, err := app.NatsConnect(app.NatsConnectOptions{
-			Host: os.Getenv("NATS_HOST"),
-			Port: 4222,
-		})
-		if err != nil {
-			panic(err)
-		}
-		return client
-	})
-
-}
-
 func main() {
 
 	locator := service.NewLocator()
+	registry := app.CreateServiceRegistry(locator)
 
-	setupNats(locator)
+	app.MustStartNats()
 
-	cfg := config.Get()
-	agent := app.NewAgent(locator)
-
-	intervalJobRunner := app.NewIntervalJobRunner(locator)
-
-	service.Set[app.IntervalJobRunner](locator, service.Singleton, func() *app.IntervalJobRunner {
-		return intervalJobRunner
-	})
-
-	service.Set[app.BuilderRegistry](locator, service.Singleton, func() *app.BuilderRegistry {
-		return app.NewBuilderRegistry()
-	})
+	registry.RegisterStartupServices()
 
 	// Need to register these to be able to send commands even
 	// if this process is not running as an agent
-	agent.RegisterGobTypes()
+	registry.GetAgent().RegisterGobTypes()
 
-	reverseproxy.StartProxy(locator)
-
-	m := app.NewMonitor(locator)
-	service.Set(locator, service.Singleton, func() *app.ResourceMonitor {
-		return m
-	})
-	m.Start()
-
-	go func() {
-		http.ListenAndServe("localhost:6060", nil)
-	}()
+	go registry.GetResourceMonitor().Start()
+	go registry.GetJobRunner().Start()
+	go registry.GetReverseProxy().Start()
 
 	// TODO remove
 	app.RunSandbox(locator)
-
-	go intervalJobRunner.Start()
 
 	h.Start(h.AppOpts{
 		ServiceLocator: locator,
@@ -105,6 +63,7 @@ func main() {
 
 			http.FileServerFS(sub)
 
+			cfg := config.Get()
 			// change this in htmgo.yml (public_asset_path)
 			app.Router.Handle(fmt.Sprintf("%s/*", cfg.PublicAssetPath),
 				http.StripPrefix(cfg.PublicAssetPath, http.FileServerFS(sub)))

@@ -29,8 +29,7 @@ func KvFromCtx(ctx *h.RequestContext) *KvClient {
 }
 
 func KvFromLocator(locator *service.Locator) *KvClient {
-	client := service.Get[KvClient](locator)
-	return client
+	return GetServiceRegistry(locator).KvClient()
 }
 
 func (c *KvClient) Ping() error {

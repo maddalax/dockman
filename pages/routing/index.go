@@ -2,7 +2,6 @@ package routing
 
 import (
 	"dockside/app"
-	"dockside/app/reverseproxy"
 	"dockside/app/ui"
 	"dockside/app/ui/icons"
 	"dockside/app/util"
@@ -15,7 +14,7 @@ import (
 func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
 	return util.DelayedPartial(time.Millisecond*800, func() *h.Partial {
 		index := 0
-		var blocks []reverseproxy.RouteBlock
+		var blocks []app.RouteBlock
 
 		for {
 			hostname := ctx.FormValue(fmt.Sprintf("hostname-%d", index))
@@ -27,7 +26,7 @@ func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
 				break
 			}
 
-			blocks = append(blocks, reverseproxy.RouteBlock{
+			blocks = append(blocks, app.RouteBlock{
 				Hostname:          hostname,
 				Path:              path,
 				ResourceId:        resourceId,
@@ -38,7 +37,7 @@ func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
 		}
 
 		// TODO should we automatically apply the blocks here or just save them?
-		err := reverseproxy.ApplyBlocks(ctx.ServiceLocator(), blocks)
+		err := app.ApplyBlocks(ctx.ServiceLocator(), blocks)
 
 		if err != nil {
 			return ui.GenericErrorAlertPartial(ctx, err)
@@ -51,14 +50,14 @@ func SaveRouteTable(ctx *h.RequestContext) *h.Partial {
 func Setup(ctx *h.RequestContext) *h.Page {
 	locator := ctx.ServiceLocator()
 	list, err := app.ResourceList(locator)
-	table, err := reverseproxy.GetRouteTable(locator)
+	table, err := app.GetRouteTable(locator)
 
 	if err != nil {
-		table = []reverseproxy.RouteBlock{}
+		table = []app.RouteBlock{}
 	}
 
 	if len(table) == 0 {
-		table = []reverseproxy.RouteBlock{
+		table = []app.RouteBlock{
 			{
 				Hostname: "",
 			},
@@ -91,7 +90,7 @@ func Setup(ctx *h.RequestContext) *h.Page {
 				),
 
 				ui.Repeater(ctx, ui.RepeaterProps{
-					DefaultItems: util.MapSlice(table, func(rb reverseproxy.RouteBlock, index int) *h.Element {
+					DefaultItems: util.MapSlice(table, func(rb app.RouteBlock, index int) *h.Element {
 						return block(blockProps{
 							index:             index,
 							path:              rb.Path,

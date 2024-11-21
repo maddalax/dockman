@@ -17,7 +17,7 @@ func (a *Agent) SubscribeToCommands() {
 		"serverId": a.serverId,
 	})
 
-	_, err := a.kv.SubscribeSubjectForever(a.commandStreamName, func(msg *nats.Msg) {
+	_, err := a.registry.KvClient().SubscribeSubjectForever(a.commandStreamName, func(msg *nats.Msg) {
 		logger.InfoWithFields("Received command", map[string]any{
 			"subject": msg.Subject,
 			"size":    msg.Size(),
@@ -51,7 +51,7 @@ func (a *Agent) SubscribeToCommands() {
 			return
 		}
 
-		bucket := a.commandResponseBucket
+		bucket := a.GetCommandResponseBucket()
 
 		_, err = bucket.Put(wrapper.Id, serialized.Bytes())
 
@@ -173,7 +173,7 @@ func SendCommand[T any](locator *service.Locator, serverId string, opts SendComm
 		ticker := time.NewTicker(opts.Timeout)
 		defer ticker.Stop()
 
-		watcher, err := agent.commandResponseBucket.Watch(cmd.Id)
+		watcher, err := agent.GetCommandResponseBucket().Watch(cmd.Id)
 
 		if err != nil {
 			return
@@ -227,7 +227,7 @@ func SendCommand[T any](locator *service.Locator, serverId string, opts SendComm
 		"stream":    subjectName,
 	})
 
-	writer := agent.kv.NewEphemeralNatsWriter(subjectName)
+	writer := agent.registry.KvClient().NewEphemeralNatsWriter(subjectName)
 	defer writer.Close()
 
 	_, err = writer.Write(buffer.Bytes())

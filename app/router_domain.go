@@ -1,10 +1,14 @@
-package reverseproxy
+package app
 
-import "github.com/maddalax/multiproxy"
+import (
+	"github.com/maddalax/htmgo/framework/service"
+	"github.com/maddalax/multiproxy"
+)
 
 type ReverseProxy struct {
-	lb     *multiproxy.LoadBalancer
-	config *Config
+	lb      *multiproxy.LoadBalancer
+	config  *Config
+	locator *service.Locator
 }
 
 type RouteBlock struct {
