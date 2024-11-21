@@ -224,6 +224,10 @@ func DebugSection() *h.Element {
 			Title: "Stream Viewer",
 			Path:  "/debug/jetstream/streams",
 		},
+		{
+			Title: "Interval Job Debug",
+			Path:  "/debug/job",
+		},
 	}
 
 	return h.Div(

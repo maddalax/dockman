@@ -13,13 +13,37 @@ import (
 	"github.com/maddalax/htmgo/framework/service"
 	"io/fs"
 	"net/http"
+	"os"
 )
 
 import _ "net/http/pprof"
 
+func setupNats(locator *service.Locator) {
+	_, err := app.StartNatsServer()
+
+	if err != nil {
+		panic(err)
+	}
+
+	service.Set[app.KvClient](locator, service.Singleton, func() *app.KvClient {
+		client, err := app.NatsConnect(app.NatsConnectOptions{
+			Host: os.Getenv("NATS_HOST"),
+			Port: 4222,
+		})
+		if err != nil {
+			panic(err)
+		}
+		return client
+	})
+
+}
+
 func main() {
 
 	locator := service.NewLocator()
+
+	setupNats(locator)
+
 	cfg := config.Get()
 	agent := app.NewAgent(locator)
 
@@ -33,13 +57,6 @@ func main() {
 		return app.NewBuilderRegistry()
 	})
 
-	_, err := app.StartNatsServer()
-
-	if err != nil {
-		panic(err)
-	}
-
-	agent.Setup()
 	// Need to register these to be able to send commands even
 	// if this process is not running as an agent
 	agent.RegisterGobTypes()

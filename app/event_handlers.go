@@ -7,12 +7,14 @@ import (
 )
 
 type EventHandler struct {
-	locator *service.Locator
+	locator           *service.Locator
+	jobMetricsManager *JobMetricsManager
 }
 
 func NewEventHandler(locator *service.Locator) *EventHandler {
 	return &EventHandler{
-		locator: locator,
+		locator:           locator,
+		jobMetricsManager: NewJobMetricsManager(locator),
 	}
 }
 
@@ -20,6 +22,7 @@ func (eh *EventHandler) OnJobStarted(job *Job) {
 	logger.InfoWithFields("job started", map[string]any{
 		"job_name": job.name,
 	})
+	eh.jobMetricsManager.OnJobStarted(job)
 }
 
 func (eh *EventHandler) OnJobFinished(job *Job) {
@@ -28,6 +31,7 @@ func (eh *EventHandler) OnJobFinished(job *Job) {
 		"total_runs": job.totalRuns,
 		"duration":   fmt.Sprintf("%dms", job.lastRunDuration.Milliseconds()),
 	})
+	eh.jobMetricsManager.OnJobFinished(job)
 }
 
 func (eh *EventHandler) OnJobStopped(job *Job) {
@@ -35,6 +39,7 @@ func (eh *EventHandler) OnJobStopped(job *Job) {
 		"job_name":   job.name,
 		"total_runs": job.totalRuns,
 	})
+	eh.jobMetricsManager.OnJobStopped(job)
 }
 
 func (eh *EventHandler) OnServerDisconnected(server *Server) {

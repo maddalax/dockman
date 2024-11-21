@@ -11,6 +11,8 @@ type Job struct {
 	locator         *service.Locator
 	interval        time.Duration
 	lastRunDuration time.Duration
+	lastRunTime     time.Time
+	status          string
 	totalRuns       int
 	paused          bool
 	stopped         bool
@@ -72,18 +74,23 @@ func (jr *IntervalJobRunner) Start() error {
 			defer wg.Done()
 			for {
 				if job.paused {
+					job.status = "paused"
 					time.Sleep(time.Second)
 					continue
 				}
 				if job.stopped {
+					job.status = "stopped"
 					go jr.eventHandler.OnJobStopped(&job)
 					break
 				}
 				now := time.Now()
+				job.status = "running"
 				go jr.eventHandler.OnJobStarted(&job)
 				job.cb()
 				job.totalRuns++
+				job.status = "finished"
 				go jr.eventHandler.OnJobFinished(&job)
+				job.lastRunTime = now
 				job.lastRunDuration = time.Since(now)
 				time.Sleep(job.interval)
 			}
