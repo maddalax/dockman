@@ -11,18 +11,20 @@ import (
 
 func CreateReverseProxy(locator *service.Locator) *ReverseProxy {
 	lb := multiproxy.CreateLoadBalancer()
-	config := loadConfig(locator)
-	lb.SetUpstreams(h.Map(config.Upstreams, func(u *UpstreamWithResource) *multiproxy.Upstream {
-		return u.Upstream
-	}))
 	return &ReverseProxy{
 		lb:      lb,
-		config:  config,
+		config:  &Config{},
 		locator: locator,
 	}
 }
 
 func (r *ReverseProxy) Start() {
+	config := loadConfig(r.locator)
+
+	r.lb.SetUpstreams(h.Map(config.Upstreams, func(u *UpstreamWithResource) *multiproxy.Upstream {
+		return u.Upstream
+	}))
+
 	// Start the upstream port monitor to detect changes in the upstreams
 	go r.StartUpstreamPortMonitor(r.locator)
 

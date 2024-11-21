@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
 	"time"
 )
@@ -85,21 +86,30 @@ func GetResourcesForServer(locator *service.Locator, serverId string) ([]*Resour
 }
 
 func ResourceGetServerIds(locator *service.Locator, resourceId string) ([]string, error) {
+	servers, err := ResourceGetServers(locator, resourceId)
+	if err != nil {
+		return nil, err
+	}
+	return h.Map(servers, func(s *Server) string {
+		return s.Id
+	}), nil
+}
+
+func ResourceGetServers(locator *service.Locator, resourceId string) ([]*Server, error) {
 	resource, err := ResourceGet(locator, resourceId)
 
 	if err != nil {
 		return nil, err
 	}
 
-	ids := make([]string, 0)
-
+	servers := make([]*Server, 0)
 	for _, s := range resource.ServerDetails {
 		// ensure the server exists
-		_, err := ServerGet(locator, s.ServerId)
+		server, err := ServerGet(locator, s.ServerId)
 		if err == nil {
-			ids = append(ids, s.ServerId)
+			servers = append(servers, server)
 		}
 	}
 
-	return ids, nil
+	return servers, nil
 }

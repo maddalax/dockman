@@ -12,7 +12,7 @@ import (
 )
 
 type JobMetricsManager struct {
-	kv *KvClient
+	locator *service.Locator
 }
 
 type JobMetric struct {
@@ -26,13 +26,15 @@ type JobMetric struct {
 
 func NewJobMetricsManager(locator *service.Locator) *JobMetricsManager {
 	return &JobMetricsManager{
-		kv: KvFromLocator(locator),
+		locator: locator,
 	}
 }
 
 func (jb *JobMetricsManager) GetMetrics() []*JobMetric {
 	metrics := make([]*JobMetric, 0)
-	bucket, err := jb.kv.GetOrCreateBucket(&nats.KeyValueConfig{
+	registry := GetServiceRegistry(jb.locator)
+	kv := registry.KvClient()
+	bucket, err := kv.GetOrCreateBucket(&nats.KeyValueConfig{
 		Bucket: "job_metrics",
 	})
 	if err != nil {
@@ -63,14 +65,16 @@ func (jb *JobMetricsManager) GetMetrics() []*JobMetric {
 }
 
 func (jb *JobMetricsManager) SaveJobMetric(job *Job) {
-	bucket, err := jb.kv.GetOrCreateBucket(&nats.KeyValueConfig{
+	registry := GetServiceRegistry(jb.locator)
+	kv := registry.KvClient()
+	bucket, err := kv.GetOrCreateBucket(&nats.KeyValueConfig{
 		Bucket: "job_metrics",
 	})
 	if err != nil {
 		logger.Error("failed to create job metrics bucket", err)
 		return
 	}
-	err = jb.kv.PutJson(bucket, job.name, &JobMetric{
+	err = kv.PutJson(bucket, job.name, &JobMetric{
 		JobName:         job.name,
 		Status:          job.status,
 		LastRan:         job.lastRunTime,

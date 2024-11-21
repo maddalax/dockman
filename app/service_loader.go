@@ -141,8 +141,8 @@ func (sr *ServiceRegistry) RegisterStartupServices() {
 	sr.RegisterEventHandler()
 	sr.RegisterBuilderRegistry()
 	sr.RegisterResourceMonitor()
-	sr.RegisterReverseProxy()
 	sr.RegisterAgent()
+	sr.RegisterReverseProxy()
 	sr.RegisterJobMetricsManager()
 	sr.RegisterServerConfigManager()
 }
