@@ -91,6 +91,8 @@ func (a *Agent) RegisterGobTypes() {
 	gob.Register(&RunResourceResponse{})
 	gob.Register(&StopResourceCommand{})
 	gob.Register(&StopResourceResponse{})
+	gob.Register(&PingCommand{})
+	gob.Register(&PingResponse{})
 }
 
 func (a *Agent) Run() {

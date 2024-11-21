@@ -10,6 +10,7 @@ import (
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
 	"log"
+	"net"
 	"time"
 )
 
@@ -124,6 +125,16 @@ func (c *KvClient) SubscribeSubject(context context.Context, subject string, han
 	return sub, nil
 }
 
+func (c *KvClient) SubscribeSubjectForever(subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+	sub, err := c.nc.Subscribe(subject, func(msg *nats.Msg) {
+		handler(msg)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return sub, nil
+}
+
 func (c *KvClient) SubscribeStream(context context.Context, subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
 	sub, err := c.js.Subscribe(subject, handler, nats.StartTime(time.Now()))
 	if err != nil {
@@ -210,7 +221,18 @@ func NatsConnect(opts NatsConnectOptions) (*KvClient, error) {
 
 	if err != nil {
 
+		canReconnect := false
+
+		var opError *net.OpError
+		switch {
+		case errors.As(err, &opError):
+			canReconnect = true
+		}
 		if err.Error() == "nats: no servers available for connection" {
+			canReconnect = true
+		}
+
+		if canReconnect {
 			for {
 				log.Printf("Retrying nats connection to %s", host)
 				nc, err = nats.Connect(host, natsOpts...)
@@ -220,7 +242,6 @@ func NatsConnect(opts NatsConnectOptions) (*KvClient, error) {
 				time.Sleep(2 * time.Second)
 			}
 		}
-
 	}
 
 	if err != nil {

@@ -2,7 +2,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"dockside/app/logger"
 	"encoding/gob"
 	"errors"
@@ -18,7 +17,7 @@ func (a *Agent) SubscribeToCommands() {
 		"serverId": a.serverId,
 	})
 
-	_, err := a.kv.SubscribeSubject(context.Background(), a.commandStreamName, func(msg *nats.Msg) {
+	_, err := a.kv.SubscribeSubjectForever(a.commandStreamName, func(msg *nats.Msg) {
 		logger.InfoWithFields("Received command", map[string]any{
 			"subject": msg.Subject,
 			"size":    msg.Size(),
@@ -38,7 +37,7 @@ func (a *Agent) SubscribeToCommands() {
 		}
 
 		logger.InfoWithFields("executing command", map[string]any{
-			"command": wrapper.Command,
+			"command": wrapper.Command.Name(),
 			"id":      wrapper.Id,
 		})
 		wrapper.Command.Execute(a)
@@ -62,20 +61,23 @@ func (a *Agent) SubscribeToCommands() {
 	})
 
 	if err != nil {
-		return
+		logger.ErrorWithFields("Failed to subscribe to commands", err, map[string]any{
+			"subject": a.commandStreamName,
+		})
 	}
 }
 
 type SendCommandResponse[T any] struct {
 	Response      T
-	ServerDetails ServerDetails
+	ServerDetails *Server
+	Error         error
 }
 
 type SendCommandOpts struct {
 	ExpectedResponses int
 	Command           Command
-	ServerIds         []string
 	Timeout           time.Duration
+	PingFirst         bool
 }
 
 func SendCommandForResource[T any](locator *service.Locator, resourceId string, opts SendCommandOpts) ([]*SendCommandResponse[T], error) {
@@ -84,14 +86,14 @@ func SendCommandForResource[T any](locator *service.Locator, resourceId string, 
 	if err != nil {
 		return nil, err
 	}
-	opts.ServerIds = serverIds
 	responses := make([]*SendCommandResponse[T], 0)
 
 	wg := sync.WaitGroup{}
-	for _, id := range opts.ServerIds {
+	for _, id := range serverIds {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			opts.PingFirst = true
 			result, err := SendCommand[T](locator, id, opts)
 			if err != nil {
 				logger.ErrorWithFields("Failed to send command", err, map[string]any{
@@ -110,6 +112,18 @@ func SendCommandForResource[T any](locator *service.Locator, resourceId string, 
 	return responses, nil
 }
 
+func SendPingToServer(locator *service.Locator, serverId string) bool {
+	res, err := SendCommand[PingResponse](locator, serverId, SendCommandOpts{
+		Command:   &PingCommand{},
+		Timeout:   time.Second * 5,
+		PingFirst: false,
+	})
+	if err != nil {
+		return false
+	}
+	return res.Response.Message == "pong"
+}
+
 func SendCommand[T any](locator *service.Locator, serverId string, opts SendCommandOpts) (*SendCommandResponse[T], error) {
 	agent := AgentFromLocator(locator)
 
@@ -121,14 +135,31 @@ func SendCommand[T any](locator *service.Locator, serverId string, opts SendComm
 		opts.Timeout = 30 * time.Second
 	}
 
-	var response = new(SendCommandResponse[T])
+	var response = &SendCommandResponse[T]{
+		ServerDetails: &Server{},
+	}
+
+	server, err := ServerGet(locator, serverId)
+
+	if err == nil {
+		response.ServerDetails = server
+	}
+
+	if opts.PingFirst {
+		isAccessible := SendPingToServer(locator, serverId)
+
+		if !isAccessible {
+			response.Error = errors.New("server is not accessible")
+			return response, nil
+		}
+	}
 
 	buffer := bytes.Buffer{}
 
 	encoder := gob.NewEncoder(&buffer)
 	cmd := NewCommand(opts.Command)
 
-	err := encoder.Encode(cmd)
+	err = encoder.Encode(cmd)
 
 	if err != nil {
 		return nil, err
@@ -153,6 +184,8 @@ func SendCommand[T any](locator *service.Locator, serverId string, opts SendComm
 		for {
 			select {
 			case <-ticker.C:
+				// no response before the timeout
+				response.Error = errors.New("no response from server")
 				return
 			case c := <-watcher.Updates():
 
@@ -170,16 +203,15 @@ func SendCommand[T any](locator *service.Locator, serverId string, opts SendComm
 					return
 				}
 
-				details := responseWrapper.ServerDetails
 				cast, ok := responseWrapper.Response.(*T)
 				if !ok {
 					logger.Error("unable to cast command response", errors.New("failed to cast response"))
 					return
 				} else {
-					response = &SendCommandResponse[T]{
-						Response:      *cast,
-						ServerDetails: details,
+					newResponse := &SendCommandResponse[T]{
+						Response: *cast,
 					}
+					response.Response = newResponse.Response
 					return
 				}
 			}
@@ -187,17 +219,22 @@ func SendCommand[T any](locator *service.Locator, serverId string, opts SendComm
 
 	}()
 
-	logger.InfoWithFields("sending command", map[string]any{
-		"command":    opts.Command,
-		"server_ids": opts.ServerIds,
-	})
-
 	subjectName := agent.CommandStreamName(serverId)
+
+	logger.InfoWithFields("sending command", map[string]any{
+		"command":   opts.Command.Name(),
+		"server_id": serverId,
+		"stream":    subjectName,
+	})
 
 	writer := agent.kv.NewEphemeralNatsWriter(subjectName)
 	defer writer.Close()
 
 	_, err = writer.Write(buffer.Bytes())
+
+	if err != nil {
+		return nil, err
+	}
 
 	wg.Wait()
 

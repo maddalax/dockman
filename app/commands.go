@@ -38,6 +38,10 @@ func (c *RunResourceCommand) GetResponse() any {
 	return c.ResponseData
 }
 
+func (c *RunResourceCommand) Name() string {
+	return "RunResource"
+}
+
 type StopResourceCommand struct {
 	ResourceId   string
 	ResponseData *StopResourceResponse
@@ -66,6 +70,10 @@ func (c *StopResourceCommand) GetResponse() any {
 	return c.ResponseData
 }
 
+func (c *StopResourceCommand) Name() string {
+	return "StopResource"
+}
+
 type SetServerConfigCommand struct {
 	Key   string
 	Value string
@@ -78,6 +86,10 @@ func (c *SetServerConfigCommand) Execute(agent *Agent) {
 
 func (c *SetServerConfigCommand) GetResponse() any {
 	return nil
+}
+
+func (c *SetServerConfigCommand) Name() string {
+	return "SetServerConfig"
 }
 
 type GetServerConfigResponse struct {
@@ -99,4 +111,30 @@ func (c *GetServerConfigCommand) Execute(agent *Agent) {
 
 func (c *GetServerConfigCommand) GetResponse() any {
 	return c.ResponseData
+}
+
+func (c *GetServerConfigCommand) Name() string {
+	return "GetServerConfig"
+}
+
+type PingCommand struct {
+	ResponseData *PingResponse
+}
+
+type PingResponse struct {
+	Message string
+}
+
+func (p *PingCommand) Execute(agent *Agent) {
+	p.ResponseData = &PingResponse{
+		Message: "pong",
+	}
+}
+
+func (p *PingCommand) GetResponse() any {
+	return p.ResponseData
+}
+
+func (p *PingCommand) Name() string {
+	return "Ping"
 }

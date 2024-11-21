@@ -90,11 +90,14 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 	}
 
 	for _, response := range responses {
-		if response.Response.Error != nil {
-			b.LogBuildError(errors.Wrap(response.Response.Error,
-				fmt.Sprintf("Failed to start resource on server %s", response.ServerDetails.Hostname)))
+
+		serverName := h.Ternary(response.ServerDetails.Name == "", response.ServerDetails.HostName, response.ServerDetails.Name)
+
+		if response.Response.Error != nil || response.Error != nil {
+			err = h.Ternary(response.Response.Error == nil, response.Error, response.Response.Error).(error)
+			b.LogBuildError(errors.Wrap(err, fmt.Sprintf("Failed to start resource on server %s", serverName)))
 		} else {
-			b.LogBuildMessage(fmt.Sprintf("Resource started on server %s", response.ServerDetails.Hostname))
+			b.LogBuildMessage(fmt.Sprintf("Resource started on server %s", serverName))
 		}
 	}
 

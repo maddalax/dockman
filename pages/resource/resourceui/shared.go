@@ -116,7 +116,7 @@ func ResourceStatus(locator *service.Locator, resource *app.Resource) *h.Element
 		h.IfElse(!runnable, deployButton, redeployButton),
 		h.If(runStatus != app.RunStatusNotRunning, stopButton),
 		h.If(runStatus == app.RunStatusRunning || runStatus == app.RunStatusPartiallyRunning, restartButton),
-		h.If(runStatus != app.RunStatusRunning && runnable, startButton),
+		h.If(runStatus == app.RunStatusNotRunning && runnable, startButton),
 	)
 }
 

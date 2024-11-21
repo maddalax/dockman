@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/gob"
 	"github.com/google/uuid"
-	"os"
 )
 
 type Command interface {
 	Execute(agent *Agent)
 	GetResponse() any
+	Name() string
 }
 
 func NewCommand(command Command) CommandWrapper[Command] {
@@ -25,24 +25,14 @@ type CommandWrapper[T Command] struct {
 
 type ResponseWrapper[T any] struct {
 	Response      T
-	ServerDetails ServerDetails
-}
-
-type ServerDetails struct {
-	Hostname string
+	ServerDetails Server
 }
 
 func GobSerializeResponse[T any](data T) (bytes.Buffer, error) {
-	hostName, _ := os.Hostname()
-
 	wrapper := ResponseWrapper[any]{
 		Response: data,
-		ServerDetails: ServerDetails{
-			Hostname: hostName,
-		},
 	}
 
-	gob.Register(data)
 	buffer := bytes.Buffer{}
 	encoder := gob.NewEncoder(&buffer)
 	err := encoder.Encode(wrapper)
