@@ -98,5 +98,10 @@ func (jr *IntervalJobRunner) Start() error {
 	}
 
 	wg.Wait()
+
+	for _, job := range jr.jobs {
+		jr.eventHandler.OnJobStopped(&job)
+	}
+
 	return nil
 }

@@ -65,7 +65,7 @@ func tableRow(metric *app.JobMetric) *h.Element {
 	return h.Tr(
 		h.Class("border-b border-gray-300 hover:bg-gray-50"),
 		tableCell(metric.JobName),
-		tableCell(metric.Status),
+		tableCell(h.Ternary(metric.Status == "finished", "running", metric.Status)),
 		tableCell(formatTimePretty(metric.LastRan)),
 		tableCell(strconv.Itoa(metric.TotalRuns)),
 		tableCell(metric.LastRunDuration.String()),
