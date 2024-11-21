@@ -5,7 +5,7 @@ import (
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
 	"paas/app"
-	"paas/app/util/must"
+	"paas/app/util/json2"
 )
 
 func ApplyBlocks(locator *service.Locator, blocks []RouteBlock) error {
@@ -23,7 +23,7 @@ func ApplyBlocks(locator *service.Locator, blocks []RouteBlock) error {
 	if err != nil {
 		return err
 	}
-	_, err = bucket.Put("blocks", must.Serialize(blocks))
+	_, err = bucket.Put("blocks", json2.SerializeOrEmpty(blocks))
 	if err != nil {
 		return err
 	}

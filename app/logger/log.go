@@ -2,8 +2,8 @@ package logger
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
+	"paas/app/util/must"
 )
 
 func Error(message string, err error) {
@@ -42,7 +42,7 @@ func WarnWithFields(message string, fields map[string]any) {
 func MessageWithFields(message string, level slog.Level, fields map[string]any) {
 	attrs := make([]slog.Attr, 0, len(fields))
 	for s, a := range fields {
-		attrs = append(attrs, slog.String(s, fmt.Sprintf("%v", a)))
+		attrs = append(attrs, slog.String(s, string(must.Serialize(a))))
 	}
 	slog.LogAttrs(context.Background(), level, message, attrs...)
 }

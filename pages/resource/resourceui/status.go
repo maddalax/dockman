@@ -27,7 +27,7 @@ func GetStatusPartial(ctx *h.RequestContext) *h.Partial {
 func StartResource(ctx *h.RequestContext) *h.Partial {
 	id := ctx.QueryParam("id")
 
-	_, err := app.SendCommand[app.RunResourceResponse](ctx.ServiceLocator(), app.SendCommandOpts{
+	_, err := app.SendCommandForResource[app.RunResourceResponse](ctx.ServiceLocator(), id, app.SendCommandOpts{
 		Command: &app.RunResourceCommand{
 			ResourceId: id,
 		},
@@ -58,7 +58,7 @@ func RestartResource(ctx *h.RequestContext) *h.Partial {
 func StopResource(ctx *h.RequestContext) *h.Partial {
 	id := ctx.QueryParam("id")
 
-	_, err := app.SendCommand[app.StopResourceResponse](ctx.ServiceLocator(), app.SendCommandOpts{
+	_, err := app.SendCommandForResource[app.StopResourceResponse](ctx.ServiceLocator(), id, app.SendCommandOpts{
 		Command: &app.StopResourceCommand{
 			ResourceId: id,
 		},

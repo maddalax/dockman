@@ -14,7 +14,7 @@ type Agent struct {
 	setup                 bool
 	locator               *service.Locator
 	kv                    *KvClient
-	commandWriter         *EphemeralNatsWriter
+	commandStreamName     string
 	serverConfigManager   *ServerConfigManager
 	commandResponseBucket nats.KeyValue
 	serverId              string
@@ -50,7 +50,6 @@ func (a *Agent) Setup() error {
 	})
 
 	a.kv = KvFromLocator(a.locator)
-	a.commandWriter = a.kv.NewEphemeralNatsWriter("commands")
 	a.serverConfigManager = service.Get[ServerConfigManager](a.locator)
 
 	bucket, err := a.kv.GetOrCreateBucket(&nats.KeyValueConfig{
@@ -78,7 +77,13 @@ func (a *Agent) Setup() error {
 		a.serverId = serverId
 	}
 
+	a.commandStreamName = a.CommandStreamName(a.serverId)
+
 	return nil
+}
+
+func (a *Agent) CommandStreamName(serverId string) string {
+	return "commands-" + serverId
 }
 
 func (a *Agent) RegisterGobTypes() {
@@ -105,7 +110,7 @@ func (a *Agent) Run() {
 	go a.StartServerMonitor()
 
 	for {
-		logger.Debug("Agent is running")
+		logger.Info("Agent is running")
 		time.Sleep(time.Second * 5)
 	}
 }

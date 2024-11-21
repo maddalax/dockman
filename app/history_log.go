@@ -4,7 +4,7 @@ import (
 	"github.com/maddalax/htmgo/framework/service"
 	"paas/app/logger"
 	"paas/app/subject"
-	"paas/app/util/must"
+	"paas/app/util/json2"
 	"time"
 )
 
@@ -17,7 +17,7 @@ func LogChange(locator *service.Locator, subject subject.Subject, data map[strin
 	}
 	data["created_at"] = time.Now().Format(time.Stamp)
 	data["subject"] = subject
-	err = client.Publish(subject, must.Serialize(data))
+	err = client.Publish(subject, json2.SerializeOrEmpty(data))
 	if err != nil {
 		logger.Error("failed to publish history log", err)
 	}

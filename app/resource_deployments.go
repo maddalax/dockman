@@ -3,7 +3,7 @@ package app
 import (
 	"encoding/json"
 	"github.com/maddalax/htmgo/framework/service"
-	"paas/app/util/must"
+	"paas/app/util/json2"
 	"time"
 )
 
@@ -21,7 +21,7 @@ func SetDeployment(locator *service.Locator, deployment Deployment) error {
 
 	bucket, _ := client.GetResourceDeployBucket(deployment.ResourceId)
 
-	_, err := bucket.Put(deployment.BuildId, must.Serialize(deployment))
+	_, err := bucket.Put(deployment.BuildId, json2.SerializeOrEmpty(deployment))
 
 	if err != nil {
 		return err

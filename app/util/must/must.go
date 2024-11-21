@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 )
 
 func Url(r string) *url.URL {
@@ -18,6 +19,8 @@ func Serialize(data any) []byte {
 	switch data.(type) {
 	case []byte:
 		return data.([]byte)
+	case []string:
+		return []byte(strings.Join(data.([]string), ","))
 	case string:
 		return []byte(data.(string))
 	default:

@@ -48,6 +48,7 @@ func (monitor *ResourceMonitor) StartRunStatusMonitor() {
 
 // StartResourceServerCleanup Cleans up servers that are no longer exist on a resource
 // Runs every 60s
+// TODO have some way to monitor these jobs
 func (monitor *ResourceMonitor) StartResourceServerCleanup() {
 	for {
 		list, err := ResourceList(monitor.locator)
