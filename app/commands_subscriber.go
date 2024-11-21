@@ -169,15 +169,18 @@ func SendCommand[T any](locator *service.Locator, serverId string, opts SendComm
 					logger.Error("Failed to decode response", err)
 					return
 				}
+
 				details := responseWrapper.ServerDetails
 				cast, ok := responseWrapper.Response.(*T)
 				if !ok {
 					logger.Error("unable to cast command response", errors.New("failed to cast response"))
 					return
-				}
-				response = &SendCommandResponse[T]{
-					Response:      *cast,
-					ServerDetails: details,
+				} else {
+					response = &SendCommandResponse[T]{
+						Response:      *cast,
+						ServerDetails: details,
+					}
+					return
 				}
 			}
 		}

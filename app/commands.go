@@ -5,9 +5,12 @@ import (
 )
 
 type RunResourceCommand struct {
-	ResourceId   string
-	ResponseData *RunResourceResponse
-	ResponseErr  error
+	ResourceId      string
+	IgnoreIfRunning bool
+	// if we change the instances and existing containers already exist for the new instance indexes, remove them
+	RemoveExisting bool
+	ResponseData   *RunResourceResponse
+	ResponseErr    error
 }
 
 type RunResourceResponse struct {
@@ -17,7 +20,8 @@ type RunResourceResponse struct {
 
 func (c *RunResourceCommand) Execute(agent *Agent) {
 	_, err := ResourceStart(agent.locator, c.ResourceId, StartOpts{
-		RemoveExisting: true,
+		RemoveExisting:  c.RemoveExisting,
+		IgnoreIfRunning: c.IgnoreIfRunning,
 	})
 	if err != nil {
 		c.ResponseErr = err

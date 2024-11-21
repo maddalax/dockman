@@ -11,8 +11,15 @@ import (
 
 func (c *DockerClient) LoadImage(imageId string) error {
 	if c.HasLatestImage(imageId) {
+		logger.InfoWithFields("We have the latest image, skipping load", map[string]any{
+			"imageId": imageId,
+		})
 		return nil
 	}
+
+	logger.InfoWithFields("We don't have the latest image, loading from store", map[string]any{
+		"imageId": imageId,
+	})
 
 	store, err := KvFromLocator(c.locator).GetOrCreateObjectStore(&nats.ObjectStoreConfig{
 		Bucket: "docker-images",

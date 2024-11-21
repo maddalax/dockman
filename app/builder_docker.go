@@ -7,7 +7,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/pkg/errors"
-	"time"
 )
 
 func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) error {
@@ -82,11 +81,8 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 
 	b.LogBuildMessage("Successfully saved image, starting process on enabled servers...")
 
-	responses, err := SendCommandForResource[RunResourceResponse](b.ServiceLocator, b.Resource.Id, SendCommandOpts{
-		Command: &RunResourceCommand{
-			ResourceId: b.Resource.Id,
-		},
-		Timeout: time.Second * 5,
+	responses, err := SendResourceStartCommand(b.ServiceLocator, b.Resource.Id, StartOpts{
+		RemoveExisting: true,
 	})
 
 	if err != nil {

@@ -38,6 +38,31 @@ type StartOpts struct {
 	RemoveExisting bool
 }
 
+func SendResourceStartCommand(locator *service.Locator, resourceId string, opts StartOpts) ([]*SendCommandResponse[RunResourceResponse], error) {
+	responses, err := SendCommandForResource[RunResourceResponse](locator, resourceId, SendCommandOpts{
+		Command: &RunResourceCommand{
+			ResourceId:      resourceId,
+			IgnoreIfRunning: opts.IgnoreIfRunning,
+			RemoveExisting:  opts.RemoveExisting,
+		},
+		// May take a while to start if it's a large container that needs to be downloaded
+		Timeout: time.Second * 30,
+	})
+	return responses, err
+}
+
+func SendResourceStopCommand(locator *service.Locator, resourceId string) ([]*SendCommandResponse[StopResourceResponse], error) {
+	responses, err := SendCommandForResource[StopResourceResponse](locator, resourceId, SendCommandOpts{
+		Command: &StopResourceCommand{
+			ResourceId: resourceId,
+		},
+		Timeout: time.Second * 10,
+	})
+	return responses, err
+}
+
+// ResourceStart starts a resource, blocking until the resource is started.
+// Note: this should only be called from a command so it is propagated to all servers
 func ResourceStart(locator *service.Locator, resourceId string, opts StartOpts) (*Resource, error) {
 	lock := ResourceStatusLock(locator, resourceId)
 	err := lock.Lock()
@@ -82,6 +107,8 @@ func ResourceStart(locator *service.Locator, resourceId string, opts StartOpts) 
 	}
 }
 
+// ResourceStop stops a resource, blocking until the resource is stopped.
+// Note: this should only be called from a command so it is propagated to all servers
 func ResourceStop(locator *service.Locator, resourceId string) (*Resource, error) {
 	lock := ResourceStatusLock(locator, resourceId)
 	err := lock.Lock()

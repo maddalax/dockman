@@ -4,9 +4,9 @@ import (
 	"dockside/app"
 	"dockside/app/ui"
 	"github.com/maddalax/htmgo/framework/h"
-	"time"
 )
 
+// GetStatusPartial TODO update this to consult all the servers
 func GetStatusPartial(ctx *h.RequestContext) *h.Partial {
 	return app.WithStatusLock(ctx.ServiceLocator(), ctx.QueryParam("id"), func(err error) *h.Partial {
 		id := ctx.QueryParam("id")
@@ -27,19 +27,11 @@ func GetStatusPartial(ctx *h.RequestContext) *h.Partial {
 func StartResource(ctx *h.RequestContext) *h.Partial {
 	id := ctx.QueryParam("id")
 
-	_, err := app.SendCommandForResource[app.RunResourceResponse](ctx.ServiceLocator(), id, app.SendCommandOpts{
-		Command: &app.RunResourceCommand{
-			ResourceId: id,
-		},
-		Timeout: time.Second * 5,
+	_, err := app.SendResourceStartCommand(ctx.ServiceLocator(), id, app.StartOpts{
+		RemoveExisting: true,
 	})
 
 	if err != nil {
-		//// resource just hasn't been built yet, lets build it instead
-		//if errors.Is(err, internal.ResourceNotFoundError) {
-		//	return h.RedirectPartial(urls.ResourceStartDeploymentPath(id, uuid.NewString()))
-		//}
-
 		return h.SwapPartial(ctx, h.Fragment(
 			ui.ErrorAlert(h.Pf(err.Error()), h.Empty()),
 		))
@@ -58,12 +50,7 @@ func RestartResource(ctx *h.RequestContext) *h.Partial {
 func StopResource(ctx *h.RequestContext) *h.Partial {
 	id := ctx.QueryParam("id")
 
-	_, err := app.SendCommandForResource[app.StopResourceResponse](ctx.ServiceLocator(), id, app.SendCommandOpts{
-		Command: &app.StopResourceCommand{
-			ResourceId: id,
-		},
-		Timeout: time.Second * 5,
-	})
+	_, err := app.SendResourceStopCommand(ctx.ServiceLocator(), id)
 
 	if err != nil {
 		return h.SwapPartial(ctx, h.Fragment(

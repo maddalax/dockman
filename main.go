@@ -34,8 +34,9 @@ func main() {
 	}
 
 	agent.Setup()
-
-	//go agent.Run()
+	// Need to register these to be able to send commands even
+	// if this process is not running as an agent
+	agent.RegisterGobTypes()
 
 	reverseproxy.StartProxy(locator)
 
