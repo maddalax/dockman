@@ -1,8 +1,8 @@
 package app
 
 import (
+	"dockside/app/subject"
 	"github.com/nats-io/nats.go"
-	"paas/app/subject"
 )
 
 // NatsWriter is a structure that implements io.Writer to write to a NATS JetStream stream

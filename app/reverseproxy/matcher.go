@@ -1,10 +1,10 @@
 package reverseproxy
 
 import (
+	"dockside/app/logger"
 	"github.com/gobwas/glob"
 	"github.com/maddalax/multiproxy"
 	"net/http"
-	"paas/app/logger"
 	"strings"
 )
 

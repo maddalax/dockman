@@ -1,10 +1,10 @@
 package ui
 
 import (
+	"dockside/app"
+	"dockside/app/urls"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
-	"paas/app"
-	"paas/app/urls"
 )
 
 type Section struct {

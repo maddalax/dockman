@@ -1,12 +1,12 @@
 package reverseproxy
 
 import (
+	"dockside/app/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
 	"net/http"
-	"paas/app/logger"
 	"time"
 )
 

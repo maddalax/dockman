@@ -1,8 +1,8 @@
 package app
 
 import (
+	"dockside/app/util/json2"
 	"github.com/maddalax/htmgo/framework/service"
-	"paas/app/util/json2"
 )
 
 func ResourceList(locator *service.Locator) ([]*Resource, error) {

@@ -1,12 +1,12 @@
 package resourceui
 
 import (
+	"dockside/app"
+	"dockside/app/ui"
+	"dockside/app/urls"
+	"dockside/pages"
 	"errors"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
-	"paas/app/ui"
-	"paas/app/urls"
-	"paas/pages"
 )
 
 func Page(ctx *h.RequestContext, children func(resource *app.Resource) *h.Element) *h.Page {

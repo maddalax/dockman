@@ -1,9 +1,9 @@
 package app
 
 import (
+	"dockside/app/util/json2"
 	"encoding/json"
 	"github.com/maddalax/htmgo/framework/service"
-	"paas/app/util/json2"
 	"time"
 )
 

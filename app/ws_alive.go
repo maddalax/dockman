@@ -2,10 +2,10 @@ package app
 
 import (
 	"context"
+	"dockside/app/logger"
 	"github.com/maddalax/htmgo/extensions/websocket/session"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app/logger"
 	"time"
 )
 

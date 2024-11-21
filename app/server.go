@@ -1,11 +1,11 @@
 package app
 
 import (
+	"dockside/app/logger"
+	"dockside/app/util/json2"
 	"errors"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
-	"paas/app/logger"
-	"paas/app/util/json2"
 	"slices"
 	"strings"
 	"time"

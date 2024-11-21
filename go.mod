@@ -1,4 +1,4 @@
-module paas
+module dockside
 
 go 1.23.0
 

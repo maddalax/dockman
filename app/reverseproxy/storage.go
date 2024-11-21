@@ -1,11 +1,11 @@
 package reverseproxy
 
 import (
+	"dockside/app"
+	"dockside/app/util/json2"
 	"encoding/json"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
-	"paas/app"
-	"paas/app/util/json2"
 )
 
 func ApplyBlocks(locator *service.Locator, blocks []RouteBlock) error {

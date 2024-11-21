@@ -1,10 +1,10 @@
 package pages
 
 import (
+	"dockside/__htmgo/assets"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket/session"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/__htmgo/assets"
 )
 
 func WsConnect(ctx *h.RequestContext) *h.AttributeR {

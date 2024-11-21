@@ -1,8 +1,8 @@
 package ui
 
 import (
+	"dockside/app"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
 )
 
 type StatusIndicatorProps struct {

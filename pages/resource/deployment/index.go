@@ -1,11 +1,11 @@
 package deployment
 
 import (
+	"dockside/app"
+	"dockside/app/ui"
+	"dockside/app/urls"
+	"dockside/pages/resource/resourceui"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
-	"paas/app/ui"
-	"paas/app/urls"
-	"paas/pages/resource/resourceui"
 	"time"
 )
 

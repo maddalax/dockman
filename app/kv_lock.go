@@ -1,11 +1,11 @@
 package app
 
 import (
+	"dockside/app/logger"
+	"dockside/app/util"
 	"errors"
 	"fmt"
 	"github.com/nats-io/nats.go"
-	"paas/app/logger"
-	"paas/app/util"
 	"time"
 )
 

@@ -1,8 +1,8 @@
 package app
 
 import (
+	"dockside/app/logger"
 	"github.com/maddalax/htmgo/framework/service"
-	"paas/app/logger"
 )
 
 func RunSandbox(locator *service.Locator) {

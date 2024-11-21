@@ -1,12 +1,12 @@
 package app
 
 import (
+	"dockside/app/logger"
 	"encoding/gob"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
 	"os"
-	"paas/app/logger"
 	"time"
 )
 

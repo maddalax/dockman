@@ -1,10 +1,10 @@
 package app
 
 import (
+	"dockside/app/subject"
 	"errors"
 	"fmt"
 	"github.com/nats-io/nats.go"
-	"paas/app/subject"
 )
 
 func (c *KvClient) LogBuildError(resourceId string, buildId string, error error) {

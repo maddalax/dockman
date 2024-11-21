@@ -2,10 +2,10 @@ package app
 
 import (
 	"context"
+	"dockside/app/urls"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app/urls"
 )
 
 func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) error {
@@ -53,8 +53,8 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 		Dockerfile: buildMeta.Dockerfile,
 		BuildID:    dockerBuildId,
 		Labels: map[string]string{
-			"paas.resource.id": b.Resource.Id,
-			"paas.build.id":    b.BuildId,
+			"dockside.resource.id": b.Resource.Id,
+			"dockside.build.id":    b.BuildId,
 		},
 		Tags: []string{
 			fmt.Sprintf(fmt.Sprintf("%s-%s:latest", b.Resource.Name, b.Resource.Id)),

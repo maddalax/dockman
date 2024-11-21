@@ -1,8 +1,8 @@
 package pages
 
 import (
+	"dockside/app/ui"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app/ui"
 )
 
 func Index(ctx *h.RequestContext) *h.Page {

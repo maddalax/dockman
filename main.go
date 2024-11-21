@@ -1,6 +1,9 @@
 package main
 
 import (
+	"dockside/__htmgo"
+	"dockside/app"
+	"dockside/app/reverseproxy"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket"
 	ws2 "github.com/maddalax/htmgo/extensions/websocket/opts"
@@ -10,9 +13,6 @@ import (
 	"github.com/maddalax/htmgo/framework/service"
 	"io/fs"
 	"net/http"
-	"paas/__htmgo"
-	"paas/app"
-	"paas/app/reverseproxy"
 )
 
 import _ "net/http/pprof"

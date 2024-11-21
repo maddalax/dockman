@@ -1,9 +1,9 @@
 package create
 
 import (
+	"dockside/app/ui"
+	"dockside/app/ui/icons"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app/ui"
-	"paas/app/ui/icons"
 )
 
 func DeploymentChoiceSelector() *h.Element {

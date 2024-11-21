@@ -1,10 +1,10 @@
 package app
 
 import (
+	"dockside/app/subject"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
-	"paas/app/subject"
 )
 
 type ResourceCreateOptions struct {

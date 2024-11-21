@@ -1,9 +1,9 @@
 package pages
 
 import (
+	"dockside/app/ui"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
-	"paas/app/ui"
 	"strings"
 )
 

@@ -1,11 +1,11 @@
 package ui
 
 import (
+	"dockside/app"
+	"dockside/app/util"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
-	"paas/app"
-	"paas/app/util"
 	"strings"
 )
 

@@ -2,12 +2,12 @@ package ui
 
 import (
 	"context"
+	"dockside/app"
+	"dockside/app/subject"
+	"dockside/app/urls"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
-	"paas/app"
-	"paas/app/subject"
-	"paas/app/urls"
 )
 
 func DockerBuildLogs(ctx *h.RequestContext, resource *app.Resource, buildId string) *h.Element {

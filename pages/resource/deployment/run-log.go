@@ -2,11 +2,11 @@ package deployment
 
 import (
 	"context"
+	"dockside/app"
+	"dockside/app/ui"
+	"dockside/pages/resource/resourceui"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
-	"paas/app/ui"
-	"paas/pages/resource/resourceui"
 )
 
 func RunLog(ctx *h.RequestContext) *h.Page {

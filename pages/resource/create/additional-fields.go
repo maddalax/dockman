@@ -1,8 +1,8 @@
 package create
 
 import (
+	"dockside/app/ui"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app/ui"
 )
 
 func AdditionalCreateResourceFields(ctx *h.RequestContext) *h.Partial {

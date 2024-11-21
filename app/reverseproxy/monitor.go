@@ -1,8 +1,8 @@
 package reverseproxy
 
 import (
+	"dockside/app/logger"
 	"github.com/maddalax/htmgo/framework/service"
-	"paas/app/logger"
 	"time"
 )
 

@@ -2,8 +2,8 @@ package app
 
 import (
 	"context"
+	"dockside/app/logger"
 	"github.com/maddalax/htmgo/extensions/websocket/session"
-	"paas/app/logger"
 )
 
 func DisposeOnCancel(ctx context.Context, dispose func()) {

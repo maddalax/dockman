@@ -28,7 +28,7 @@ func (bm *DockerBuildMeta) CloneRepo(request CloneRepoRequest) (*CloneRepoResult
 
 	if bm.GithubAccessToken != "" {
 		opts.Auth = &http.BasicAuth{
-			Username: "paas",
+			Username: "dockside",
 			Password: bm.GithubAccessToken,
 		}
 	}

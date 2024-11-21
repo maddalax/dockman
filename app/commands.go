@@ -1,7 +1,7 @@
 package app
 
 import (
-	"paas/app/logger"
+	"dockside/app/logger"
 )
 
 type RunResourceCommand struct {

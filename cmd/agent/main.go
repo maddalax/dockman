@@ -1,8 +1,8 @@
 package main
 
 import (
+	"dockside/app"
 	"github.com/maddalax/htmgo/framework/service"
-	"paas/app"
 )
 
 func main() {

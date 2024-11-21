@@ -1,10 +1,10 @@
 package resource
 
 import (
+	"dockside/app"
+	"dockside/pages/resource/resourceui"
+	"dockside/pages/servers"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
-	"paas/pages/resource/resourceui"
-	"paas/pages/servers"
 )
 
 func ServerPage(ctx *h.RequestContext) *h.Page {

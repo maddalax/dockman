@@ -4,8 +4,8 @@
 package main
 
 import (
+	"dockside/app/embedded"
 	"io/fs"
-	"paas/app/embedded"
 )
 
 func GetStaticAssets() fs.FS {

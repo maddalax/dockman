@@ -1,11 +1,11 @@
 package ws
 
 import (
+	"dockside/pages"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket/session"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/pages"
 	"runtime"
 	"time"
 )

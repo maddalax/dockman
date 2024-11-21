@@ -1,14 +1,14 @@
 package routing
 
 import (
+	"dockside/app"
+	"dockside/app/reverseproxy"
+	"dockside/app/ui"
+	"dockside/app/ui/icons"
+	"dockside/app/util"
+	"dockside/pages"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
-	"paas/app/reverseproxy"
-	"paas/app/ui"
-	"paas/app/ui/icons"
-	"paas/app/util"
-	"paas/pages"
 	"time"
 )
 

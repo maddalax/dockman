@@ -1,9 +1,9 @@
 package app
 
 import (
+	"dockside/app/util/must"
 	"fmt"
 	"github.com/nats-io/nats.go"
-	"paas/app/util/must"
 )
 
 func (c *KvClient) GetResourceDeployBucket(resourceId string) (nats.KeyValue, error) {

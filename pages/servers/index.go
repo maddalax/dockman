@@ -1,10 +1,10 @@
 package servers
 
 import (
+	"dockside/app"
+	"dockside/app/ui"
+	"dockside/pages"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
-	"paas/app/ui"
-	"paas/pages"
 	"time"
 )
 

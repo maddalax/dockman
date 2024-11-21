@@ -1,9 +1,9 @@
 package app
 
 import (
+	"dockside/app/util/json2"
 	"errors"
 	"github.com/maddalax/htmgo/framework/service"
-	"paas/app/util/json2"
 )
 
 func SetRunStatus(locator *service.Locator, resourceId string, status RunStatus) error {

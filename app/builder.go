@@ -1,9 +1,9 @@
 package app
 
 import (
+	"dockside/app/logger"
+	"dockside/app/subject"
 	"github.com/maddalax/htmgo/framework/service"
-	"paas/app/logger"
-	"paas/app/subject"
 	"sync"
 	"time"
 )

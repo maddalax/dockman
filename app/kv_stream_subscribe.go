@@ -2,9 +2,9 @@ package app
 
 import (
 	"context"
+	"dockside/app/subject"
 	"github.com/nats-io/nats.go"
 	"io"
-	"paas/app/subject"
 )
 
 type WriterSubscriber struct {

@@ -1,12 +1,12 @@
 package jetstream
 
 import (
+	"dockside/app"
+	"dockside/pages"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"
-	"paas/app"
-	"paas/pages"
 )
 
 func KvDebugPage(ctx *h.RequestContext) *h.Page {

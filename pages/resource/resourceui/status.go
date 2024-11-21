@@ -1,9 +1,9 @@
 package resourceui
 
 import (
+	"dockside/app"
+	"dockside/app/ui"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
-	"paas/app/ui"
 	"time"
 )
 

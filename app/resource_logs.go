@@ -2,10 +2,10 @@ package app
 
 import (
 	"context"
+	"dockside/app/subject"
+	"dockside/app/util/json2"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
-	"paas/app/subject"
-	"paas/app/util/json2"
 )
 
 func StreamResourceLogs(locator *service.Locator, context context.Context, resource *Resource, cb func(log *DockerLog)) error {

@@ -1,9 +1,9 @@
 package deployment
 
 import (
+	"dockside/app"
+	"dockside/pages/resource/resourceui"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
-	"paas/pages/resource/resourceui"
 )
 
 func Environment(ctx *h.RequestContext) *h.Page {

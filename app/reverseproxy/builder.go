@@ -1,11 +1,11 @@
 package reverseproxy
 
 import (
+	"dockside/app"
+	"dockside/app/util/must"
 	"fmt"
 	"github.com/maddalax/multiproxy"
 	"net/http"
-	"paas/app"
-	"paas/app/util/must"
 )
 
 type ConfigBuilder struct {

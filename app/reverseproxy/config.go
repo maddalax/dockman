@@ -1,11 +1,11 @@
 package reverseproxy
 
 import (
+	"dockside/app"
+	"dockside/app/logger"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
-	"paas/app"
-	"paas/app/logger"
 )
 
 func ReloadConfig(locator *service.Locator) {

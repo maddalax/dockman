@@ -1,8 +1,8 @@
 package ui
 
 import (
+	"dockside/app/ui/icons"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app/ui/icons"
 )
 
 func SimpleTooltip(children ...h.Ren) *h.Element {

@@ -60,7 +60,7 @@ func (v GithubRepositoryValidator) Validate() error {
 
 	if v.AccessToken != "" {
 		opts.Auth = &http.BasicAuth{
-			Username: "paas",
+			Username: "dockside",
 			Password: v.AccessToken,
 		}
 	}

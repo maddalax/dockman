@@ -1,10 +1,10 @@
 package app
 
 import (
+	"dockside/app/logger"
+	"dockside/app/util/networkutil"
 	"fmt"
 	"os"
-	"paas/app/logger"
-	"paas/app/util/networkutil"
 	"runtime"
 	"time"
 )

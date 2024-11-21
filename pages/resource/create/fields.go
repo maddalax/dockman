@@ -1,13 +1,13 @@
 package create
 
 import (
+	"dockside/app/ui"
+	"dockside/app/ui/icons"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/hx"
 	"github.com/maddalax/htmgo/framework/js"
-	"paas/app/ui"
-	"paas/app/ui/icons"
 )
 
 func EnvironmentVariables(ctx *h.RequestContext) *h.Element {
@@ -75,7 +75,7 @@ func AdditionalFieldsForDeploymentType(ctx *h.RequestContext, deploymentType str
 				Id:          "git-repository",
 				Label:       "Git Repository Url",
 				Name:        "git-repository",
-				Placeholder: "https://github.com/maddalax/paas",
+				Placeholder: "https://github.com/maddalax/dockside",
 				Children: []h.Ren{
 					h.OnEvent(hx.KeyUpEvent, js.EvalJs(
 						// language=JavaScript

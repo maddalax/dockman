@@ -34,4 +34,4 @@ COPY --from=builder /resources/dist .
 EXPOSE 3000
 
 # Command to run the binary
-CMD ["./paas"]
+CMD ["./dockside"]

@@ -2,8 +2,8 @@ package logger
 
 import (
 	"context"
+	"dockside/app/util/must"
 	"log/slog"
-	"paas/app/util/must"
 )
 
 func Error(message string, err error) {

@@ -1,10 +1,10 @@
 package deployment
 
 import (
+	"dockside/app"
+	"dockside/app/ui"
+	"dockside/pages/resource/resourceui"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
-	"paas/app/ui"
-	"paas/pages/resource/resourceui"
 )
 
 func BuidLog(ctx *h.RequestContext) *h.Page {

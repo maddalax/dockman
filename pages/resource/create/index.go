@@ -1,12 +1,12 @@
 package create
 
 import (
+	"dockside/app"
+	"dockside/app/ui"
+	"dockside/app/urls"
+	"dockside/pages"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
-	"paas/app/ui"
-	"paas/app/urls"
-	"paas/pages"
 )
 
 func New(ctx *h.RequestContext) *h.Page {

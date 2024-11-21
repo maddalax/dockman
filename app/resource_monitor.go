@@ -2,10 +2,10 @@ package app
 
 import (
 	"context"
+	"dockside/app/logger"
+	"dockside/app/subject"
 	"errors"
 	"github.com/maddalax/htmgo/framework/service"
-	"paas/app/logger"
-	"paas/app/subject"
 	"time"
 )
 

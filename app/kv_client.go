@@ -2,14 +2,14 @@ package app
 
 import (
 	"context"
+	"dockside/app/logger"
+	"dockside/app/subject"
 	"errors"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
 	"log"
-	"paas/app/logger"
-	"paas/app/subject"
 	"time"
 )
 

@@ -3,11 +3,11 @@ package app
 import (
 	"bytes"
 	"context"
+	"dockside/app/logger"
 	"encoding/gob"
 	"errors"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
-	"paas/app/logger"
 	"sync"
 	"time"
 )

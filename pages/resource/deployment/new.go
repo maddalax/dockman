@@ -1,11 +1,11 @@
 package deployment
 
 import (
+	"dockside/app"
+	"dockside/app/urls"
+	"dockside/pages"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/h"
-	"paas/app"
-	"paas/app/urls"
-	"paas/pages"
 	"time"
 )
 
