@@ -8,8 +8,10 @@ import (
 
 func main() {
 	locator := service.NewLocator()
+
 	agent := app.NewAgent(locator)
 	err := agent.Setup()
+
 	if err != nil {
 		panic(err)
 	}

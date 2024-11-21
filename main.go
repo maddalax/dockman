@@ -23,6 +23,12 @@ func main() {
 	cfg := config.Get()
 	agent := app.NewAgent(locator)
 
+	intervalJobRunner := app.NewIntervalJobRunner(locator)
+
+	service.Set[app.IntervalJobRunner](locator, service.Singleton, func() *app.IntervalJobRunner {
+		return intervalJobRunner
+	})
+
 	service.Set[app.BuilderRegistry](locator, service.Singleton, func() *app.BuilderRegistry {
 		return app.NewBuilderRegistry()
 	})
@@ -52,6 +58,8 @@ func main() {
 
 	// TODO remove
 	app.RunSandbox(locator)
+
+	go intervalJobRunner.Start()
 
 	h.Start(h.AppOpts{
 		ServiceLocator: locator,

@@ -11,3 +11,16 @@ type Server struct {
 	LastSeen        time.Time `json:"last_seen"`
 	Os              string    `json:"os"`
 }
+
+func (server *Server) IsAccessible() bool {
+	now := time.Now()
+	// has sent an update in the last 10 seconds
+	return now.Sub(server.LastSeen) < time.Second*10
+}
+
+func (server *Server) FormattedName() string {
+	if server.Name != "" {
+		return server.Name
+	}
+	return server.HostName
+}

@@ -17,6 +17,7 @@ type Agent struct {
 	commandStreamName     string
 	serverConfigManager   *ServerConfigManager
 	commandResponseBucket nats.KeyValue
+	intervalJobRunner     *IntervalJobRunner
 	serverId              string
 }
 
@@ -49,8 +50,15 @@ func (a *Agent) Setup() error {
 		return NewServerConfigManager()
 	})
 
+	intervalJobRunner := NewIntervalJobRunner(a.locator)
+
+	service.Set(a.locator, service.Singleton, func() *IntervalJobRunner {
+		return intervalJobRunner
+	})
+
 	a.kv = KvFromLocator(a.locator)
 	a.serverConfigManager = service.Get[ServerConfigManager](a.locator)
+	a.intervalJobRunner = service.Get[IntervalJobRunner](a.locator)
 
 	bucket, err := a.kv.GetOrCreateBucket(&nats.KeyValueConfig{
 		Bucket: "command_responses",
@@ -108,9 +116,9 @@ func (a *Agent) Run() {
 	}
 
 	a.SubscribeToCommands()
+	a.RegisterMonitor()
 
-	go a.StartServerMonitor()
-	go a.StartResourceStatusMonitor()
+	go a.intervalJobRunner.Start()
 
 	for {
 		logger.Info("Agent is running")

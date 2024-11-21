@@ -7,7 +7,6 @@ import (
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
 	"net/http"
-	"time"
 )
 
 func GetInstance(locator *service.Locator) *ReverseProxy {
@@ -37,13 +36,6 @@ func StartProxy(locator *service.Locator) {
 
 	// Start the upstream port monitor to detect changes in the upstreams
 	go proxy.StartUpstreamPortMonitor(locator)
-
-	go func() {
-		for {
-			proxy.lb.PrintMetrics()
-			time.Sleep(5 * time.Second)
-		}
-	}()
 
 	handler := multiproxy.NewReverseProxyHandler(proxy.lb)
 

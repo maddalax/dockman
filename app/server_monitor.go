@@ -11,50 +11,46 @@ import (
 	"time"
 )
 
-func (a *Agent) StartServerMonitor() {
-	for {
-		a.updateStatus()
-		time.Sleep(3 * time.Second)
-	}
+func (a *Agent) RegisterMonitor() {
+	a.intervalJobRunner.Add(fmt.Sprintf("ServerUpdateStatus-%s", a.serverId), 3*time.Second, a.updateStatus)
+	a.intervalJobRunner.Add(fmt.Sprintf("ResourceStatusMonitor-%s", a.serverId), 3*time.Second, a.resourceStatusMonitor)
 }
 
-func (a *Agent) StartResourceStatusMonitor() {
-	for {
-		time.Sleep(3 * time.Second)
-		resources, err := GetResourcesForServer(a.locator, a.serverId)
-		if err != nil {
-			logger.ErrorWithFields("Failed to get resources for server", err, map[string]any{
-				"server_id": a.serverId,
-			})
-			continue
-		}
+func (a *Agent) resourceStatusMonitor() {
+	resources, err := GetResourcesForServer(a.locator, a.serverId)
 
-		logger.InfoWithFields("Updating resource statuses", map[string]any{
+	if err != nil {
+		logger.ErrorWithFields("Failed to get resources for server", err, map[string]any{
 			"server_id": a.serverId,
-			"count":     len(resources),
-			"resource_ids": strings.Join(h.Map(resources, func(r *Resource) string {
-				return r.Id
-			}), ", "),
 		})
+		return
+	}
 
-		for _, resource := range resources {
-			status := a.GetRunStatus(resource)
-			err := PatchResourceServer(a.locator, resource.Id, a.serverId, func(server *ResourceServer) *ResourceServer {
-				server.RunStatus = status
-				return server
-			})
-			logger.InfoWithFields("Updated resource status", map[string]any{
+	logger.InfoWithFields("Updating resource statuses", map[string]any{
+		"server_id": a.serverId,
+		"count":     len(resources),
+		"resource_ids": strings.Join(h.Map(resources, func(r *Resource) string {
+			return r.Id
+		}), ", "),
+	})
+
+	for _, resource := range resources {
+		status := a.GetRunStatus(resource)
+		err := PatchResourceServer(a.locator, resource.Id, a.serverId, func(server *ResourceServer) *ResourceServer {
+			server.RunStatus = status
+			return server
+		})
+		logger.InfoWithFields("Updated resource status", map[string]any{
+			"resource_id": resource.Id,
+			"server_id":   a.serverId,
+			"status":      status,
+		})
+		if err != nil {
+			logger.ErrorWithFields("Failed to update resource status", err, map[string]any{
 				"resource_id": resource.Id,
 				"server_id":   a.serverId,
 				"status":      status,
 			})
-			if err != nil {
-				logger.ErrorWithFields("Failed to update resource status", err, map[string]any{
-					"resource_id": resource.Id,
-					"server_id":   a.serverId,
-					"status":      status,
-				})
-			}
 		}
 	}
 }

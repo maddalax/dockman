@@ -1,100 +1,120 @@
 package app
 
 import (
-	"context"
 	"dockside/app/logger"
-	"dockside/app/subject"
 	"github.com/maddalax/htmgo/framework/service"
 	"time"
 )
 
+type LastRunCache[T comparable] struct {
+	cache map[string]T
+}
+
+func NewLastRunCache[T comparable]() *LastRunCache[T] {
+	return &LastRunCache[T]{
+		cache: make(map[string]T),
+	}
+}
+
+// ApplyChange applies a change to the cache, returns true if the value was changed
+func (cache *LastRunCache[T]) ApplyChange(id string, value T) bool {
+	val, ok := cache.cache[id]
+	// value isn't cached, nothing to compare against, return false
+	if !ok {
+		cache.cache[id] = value
+		return false
+	}
+	if val != value {
+		cache.cache[id] = value
+		return true
+	}
+	return false
+}
+
 type ResourceMonitor struct {
-	locator       *service.Locator
-	lastRunStatus map[string]RunStatus
+	locator          *service.Locator
+	eventHandler     *EventHandler
+	lastRunStatus    *LastRunCache[RunStatus]
+	lastServerStatus *LastRunCache[bool]
 }
 
 func NewMonitor(locator *service.Locator) *ResourceMonitor {
 	return &ResourceMonitor{
-		locator:       locator,
-		lastRunStatus: make(map[string]RunStatus),
+		locator:          locator,
+		eventHandler:     NewEventHandler(locator),
+		lastRunStatus:    NewLastRunCache[RunStatus](),
+		lastServerStatus: NewLastRunCache[bool](),
 	}
 }
 
 func (monitor *ResourceMonitor) Start() {
-	go monitor.StartRunStatusMonitor()
-	go monitor.StartResourceServerCleanup()
+	runner := IntervalJobRunnerFromLocator(monitor.locator)
+	runner.Add("ResourceRunStatusMonitor", time.Second*3, monitor.RunStatusMonitorJob)
+	runner.Add("ResourceServerCleanup", time.Minute, monitor.ResourceServerCleanup)
+	runner.Add("ServerConnectionMonitor", time.Second*5, monitor.ServerConnectionMonitor)
 }
 
-// StartRunStatusMonitor Monitors the run status of resources and updates the status if necessary
+// RunStatusMonitorJob Monitors the run status of resources and updates the status if necessary
 // Runs every 3s
-func (monitor *ResourceMonitor) StartRunStatusMonitor() {
-	for {
-		list, err := ResourceList(monitor.locator)
-		if err != nil {
-			continue
+func (monitor *ResourceMonitor) RunStatusMonitorJob() {
+	list, err := ResourceList(monitor.locator)
+	if err != nil {
+		return
+	}
+	for _, res := range list {
+		status := GetComputedRunStatus(res)
+		changed := monitor.lastRunStatus.ApplyChange(res.Id, status)
+		if changed {
+			monitor.eventHandler.OnResourceStatusChange(res, status)
 		}
-		for _, res := range list {
-			status := GetComputedRunStatus(res)
-			lastStatus, ok := monitor.lastRunStatus[res.Id]
-			if !ok {
-				monitor.lastRunStatus[res.Id] = status
-				continue
-			}
-			if lastStatus != status {
-				monitor.OnStatusChange(res, status)
-			}
-			monitor.lastRunStatus[res.Id] = status
-		}
-		time.Sleep(3 * time.Second)
 	}
 }
 
-// StartResourceServerCleanup Cleans up servers that are no longer exist on a resource
-// Runs every 60s
-// TODO have some way to monitor these jobs
-func (monitor *ResourceMonitor) StartResourceServerCleanup() {
-	for {
-		list, err := ResourceList(monitor.locator)
-		if err != nil {
-			time.Sleep(time.Second)
-			logger.Error("Error getting resource list", err)
-			continue
-		}
-		for _, res := range list {
-			for _, detail := range res.ServerDetails {
-				_, err := ServerGet(monitor.locator, detail.ServerId)
-				if err != nil && err.Error() == NatsKeyNotFoundError.Error() {
-					logger.WarnWithFields("server no longer exists, detaching it from resource", map[string]interface{}{
+// ResourceServerCleanup Cleans up servers that are no longer exist on a resource
+func (monitor *ResourceMonitor) ResourceServerCleanup() {
+	list, err := ResourceList(monitor.locator)
+	if err != nil {
+		logger.Error("Error getting resource list", err)
+		return
+	}
+	for _, res := range list {
+		for _, detail := range res.ServerDetails {
+			_, err := ServerGet(monitor.locator, detail.ServerId)
+			if err != nil && err.Error() == NatsKeyNotFoundError.Error() {
+				logger.WarnWithFields("server no longer exists, detaching it from resource", map[string]interface{}{
+					"server_id":   detail.ServerId,
+					"resource_id": res.Id,
+				})
+				err := DetachServerFromResource(monitor.locator, detail.ServerId, res.Id)
+				if err != nil {
+					logger.ErrorWithFields("Error detaching server from resource", err, map[string]interface{}{
 						"server_id":   detail.ServerId,
 						"resource_id": res.Id,
 					})
-					err := DetachServerFromResource(monitor.locator, detail.ServerId, res.Id)
-					if err != nil {
-						logger.ErrorWithFields("Error detaching server from resource", err, map[string]interface{}{
-							"server_id":   detail.ServerId,
-							"resource_id": res.Id,
-						})
-					}
+				} else {
+					monitor.eventHandler.OnServerDetached(detail.ServerId, res)
 				}
 			}
 		}
-		time.Sleep(time.Minute)
 	}
 }
 
-func (monitor *ResourceMonitor) OnStatusChange(resource *Resource, status RunStatus) {
-	ctx, cancel := context.WithCancel(context.Background())
-	natsClient := KvFromLocator(monitor.locator)
-	writer := natsClient.CreateEphemeralWriterSubscriber(ctx, subject.RunLogsForResource(resource.Id), NatsWriterCreateOptions{})
-
-	message := ""
-	if status == RunStatusRunning {
-		message = "Container is now running"
-	} else {
-		message = "Container has stopped"
+// ServerConnectionMonitor Monitors the connection status of servers
+func (monitor *ResourceMonitor) ServerConnectionMonitor() {
+	list, err := ServerList(monitor.locator)
+	if err != nil {
+		logger.Error("Error getting server list", err)
+		return
 	}
-
-	writer.Writer.Write([]byte(message))
-
-	cancel()
+	for _, server := range list {
+		accessible := server.IsAccessible()
+		changed := monitor.lastServerStatus.ApplyChange(server.Id, accessible)
+		if changed {
+			if accessible {
+				monitor.eventHandler.OnServerConnected(server)
+			} else {
+				monitor.eventHandler.OnServerDisconnected(server)
+			}
+		}
+	}
 }

@@ -5,7 +5,6 @@ import (
 	"dockside/app/ui"
 	"dockside/pages"
 	"github.com/maddalax/htmgo/framework/h"
-	"time"
 )
 
 func ServerListPartial(ctx *h.RequestContext) *h.Partial {
@@ -42,9 +41,7 @@ func serverList(ctx *h.RequestContext) *h.Element {
 
 func ServerBlockDetails(server *app.Server) *h.Element {
 	runStatus := app.RunStatusNotRunning
-	now := time.Now()
-
-	if now.Sub(server.LastSeen) < time.Second*10 {
+	if server.IsAccessible() {
 		runStatus = app.RunStatusRunning
 	}
 
