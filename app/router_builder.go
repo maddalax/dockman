@@ -6,30 +6,29 @@ import (
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
 	"net/http"
+	"strings"
 )
 
 type ConfigBuilder struct {
 	matcher        *Matcher
-	upstreams      []*UpstreamWithResource
 	serviceLocator *service.Locator
 }
 
-func NewConfigBuilder(locator *service.Locator, matcher *Matcher) *ConfigBuilder {
+func CalculateUpstreamId(resourceId string, serverId string, port string) string {
+	if strings.HasPrefix(port, ":") {
+		port = port[1:]
+	}
+	return fmt.Sprintf("upstream-res-%s-ser-%s-port-%s", resourceId, serverId, port)
+}
+
+func NewConfigBuilder(locator *service.Locator) *ConfigBuilder {
 	return &ConfigBuilder{
-		matcher:        matcher,
-		upstreams:      make([]*UpstreamWithResource, 0),
+		matcher:        &Matcher{},
 		serviceLocator: locator,
 	}
 }
 
-func (b *ConfigBuilder) Build() *Config {
-	return &Config{
-		Upstreams: b.upstreams,
-		Matcher:   b.matcher,
-	}
-}
-
-func (b *ConfigBuilder) Append(resource *Resource, block *RouteBlock) error {
+func (b *ConfigBuilder) Append(resource *Resource, block *RouteBlock, lb *multiproxy.LoadBalancer[UpstreamMeta]) error {
 
 	if len(resource.ServerDetails) == 0 {
 		return nil
@@ -50,27 +49,23 @@ func (b *ConfigBuilder) Append(resource *Resource, block *RouteBlock) error {
 		}
 
 		for _, up := range serverDetail.Upstreams {
-			upstream := &multiproxy.Upstream{
+			upstream := &CustomUpstream{
+				Metadata: UpstreamMeta{
+					Resource: resource,
+					Server:   server,
+					Block:    block,
+				},
+				Id:  CalculateUpstreamId(resource.Id, server.Id, up.Port),
 				Url: must.Url(fmt.Sprintf("http://%s:%s", up.Host, up.Port)),
-				MatchesFunc: func(req *http.Request, match *multiproxy.Match) bool {
-					return b.matcher.Matches(req)
+				MatchesFunc: func(u *CustomUpstream, req *http.Request) bool {
+					return UpstreamMatches(u, req)
 				},
-
 				// really doesn't matter since we are overriding the MatchesFunc
-				Matches: []multiproxy.Match{
-					{
-						Host: "*",
-						Path: "*",
-					},
-				},
+				Matches: []multiproxy.Match{},
 			}
 
-			b.matcher.AddUpstream(upstream, block)
-			b.upstreams = append(b.upstreams, &UpstreamWithResource{
-				Upstream: upstream,
-				Resource: resource,
-				Server:   server,
-			})
+			b.matcher.CompileUpstream(upstream)
+			lb.AddStagedUpstream(upstream)
 		}
 	}
 	return nil

@@ -6,15 +6,16 @@ import (
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
 	"net/http"
+	"sync/atomic"
 	"time"
 )
 
 func CreateReverseProxy(locator *service.Locator) *ReverseProxy {
-	lb := multiproxy.CreateLoadBalancer()
+	lb := multiproxy.CreateLoadBalancer[UpstreamMeta]()
 	return &ReverseProxy{
-		lb:      lb,
-		config:  &Config{},
-		locator: locator,
+		lb:            lb,
+		locator:       locator,
+		totalRequests: atomic.Int64{},
 	}
 }
 
@@ -26,17 +27,37 @@ func (r *ReverseProxy) Setup() {
 	})
 }
 
-func (r *ReverseProxy) GetConfig() *Config {
-	return r.config
+func (r *ReverseProxy) GetUpstreams() []*CustomUpstream {
+	return r.lb.GetUpstreams()
 }
 
 func (r *ReverseProxy) Start() {
 	ReloadConfig(r.locator)
 
+	go func() {
+		for {
+			totalFromUpstreams := int64(0)
+			for _, upstream := range r.lb.GetUpstreams() {
+				totalFromUpstreams += upstream.TotalRequests.Load()
+			}
+			logger.InfoWithFields("Total requests", map[string]interface{}{
+				"reverse proxy":               r.totalRequests.Load(),
+				"load balancer":               r.lb.TotalRequests.Load(),
+				"load balancer (no upstream)": r.lb.TotalRequestsNoUpstream.Load(),
+				"load balancer (in proxy)":    r.lb.TotalRequestsInProxy.Load(),
+				"total from upstreams":        totalFromUpstreams,
+			})
+			time.Sleep(time.Second * 3)
+		}
+	}()
+
 	handler := multiproxy.NewReverseProxyHandler(r.lb)
 
 	router := chi.NewRouter()
-	router.HandleFunc("/*", handler)
+	router.HandleFunc("/*", func(writer http.ResponseWriter, request *http.Request) {
+		r.totalRequests.Add(1)
+		handler(writer, request)
+	})
 
 	server := &http.Server{
 		Addr:    ":80",

@@ -35,7 +35,7 @@ func (m *ServerConfigManager) ConfigPath() string {
 func (m *ServerConfigManager) WriteConfig(key string, value string) {
 	err := filekv.WriteKeyValue(m.ConfigPath(), key, value, m.locker)
 	if err != nil {
-		logger.ErrorWithFields("Failed to write server config", err, map[string]interface{}{
+		logger.ErrorWithFields("Failed to write server lastConfig", err, map[string]interface{}{
 			"key":   key,
 			"value": value,
 		})

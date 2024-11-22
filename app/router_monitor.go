@@ -10,11 +10,12 @@ import (
 // will monitor the ports of the upstreams and update the router when they change.
 
 func (r *ReverseProxy) UpstreamPortMonitor(locator *service.Locator) {
-	newConfig := loadConfig(locator)
-
-	// if the old config has a port difference with the new config, reload the config
-	if r.config.HasPortDifference(newConfig) {
-		logger.Info("Upstreams config difference detected, reloading config")
-		ReloadConfig(locator)
+	loadConfig(locator)
+	// if the old lastConfig has a port difference with the new lastConfig, reload the lastConfig
+	if r.HasPortDifference() {
+		logger.InfoWithFields("Reloading reverse proxy upstream lastConfig", map[string]any{
+			"upstreams": len(r.lb.GetStagedUpstreams()),
+		})
+		r.lb.ApplyStagedUpstreams()
 	}
 }

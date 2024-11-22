@@ -1,5 +1,7 @@
 package app
 
+import "dockside/app/logger"
+
 func (a *Agent) GetCurrentResourceServer(resource *Resource) *ResourceServer {
 	for i, detail := range resource.ServerDetails {
 		if detail.ServerId == a.serverId {
@@ -54,10 +56,19 @@ func (a *Agent) calculateDockerUpstreams(resource *Resource, server *Server, res
 	for port, binding := range container.NetworkSettings.Ports {
 		if port.Proto() == "tcp" {
 			for _, portBinding := range binding {
-				upstream := Upstream{
+				upstream := HostPort{
 					Host: hostIp,
 					Port: portBinding.HostPort,
 				}
+
+				logger.InfoWithFields("Adding upstream", map[string]interface{}{
+					"host":              hostIp,
+					"port":              portBinding.HostPort,
+					"resource_name":     resource.Name,
+					"resource_instance": index,
+					"container_name":    container.Name,
+				})
+
 				resourceServer.Upstreams = append(resourceServer.Upstreams, upstream)
 			}
 		}

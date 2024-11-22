@@ -3,32 +3,12 @@ package app
 import (
 	"dockside/app/logger"
 	"github.com/gobwas/glob"
-	"github.com/maddalax/multiproxy"
 	"net/http"
 	"strings"
 )
 
-type UpstreamWithBlock struct {
-	Upstream     *multiproxy.Upstream
-	Block        *RouteBlock
-	GlobPatterns map[string]glob.Glob
-}
-
-func (u *UpstreamWithBlock) Compile() bool {
-	if u.GlobPatterns == nil {
-		u.GlobPatterns = make(map[string]glob.Glob)
-	}
-	g, err := glob.Compile(u.Block.Path)
-	if err != nil {
-		logger.Error("Failed to compile glob", err)
-		return false
-	}
-	u.GlobPatterns[u.Block.Path] = g
-	return true
-}
-
-func (u *UpstreamWithBlock) Matches(req *http.Request) bool {
-	block := u.Block
+func UpstreamMatches(up *CustomUpstream, req *http.Request) bool {
+	block := up.Metadata.Block
 
 	if req.Host != block.Hostname {
 		return false
@@ -60,7 +40,7 @@ func (u *UpstreamWithBlock) Matches(req *http.Request) bool {
 	case "is":
 		return path == block.Path
 	case "glob":
-		g := u.GlobPatterns[block.Path]
+		g := up.Metadata.GlobPatterns[block.Path]
 		if g != nil {
 			return g.Match(path)
 		}
@@ -72,20 +52,19 @@ func (u *UpstreamWithBlock) Matches(req *http.Request) bool {
 }
 
 type Matcher struct {
-	Upstreams []*UpstreamWithBlock
 }
 
-func (m *Matcher) AddUpstream(upstream *multiproxy.Upstream, block *RouteBlock) {
-	upb := &UpstreamWithBlock{Upstream: upstream, Block: block}
-	upb.Compile()
-	m.Upstreams = append(m.Upstreams, upb)
-}
-
-func (m *Matcher) Matches(req *http.Request) bool {
-	for _, upb := range m.Upstreams {
-		if upb.Matches(req) {
-			return true
-		}
+func (m *Matcher) CompileUpstream(u *CustomUpstream) {
+	if u.Metadata.GlobPatterns == nil {
+		u.Metadata.GlobPatterns = make(map[string]glob.Glob)
 	}
-	return false
+	if u.Metadata.Block == nil {
+		panic("Block is nil")
+	}
+	g, err := glob.Compile(u.Metadata.Block.Path)
+	if err != nil {
+		logger.Error("Failed to compile glob", err)
+		return
+	}
+	u.Metadata.GlobPatterns[u.Metadata.Block.Path] = g
 }
