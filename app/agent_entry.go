@@ -17,6 +17,14 @@ type Agent struct {
 	serverId          string
 }
 
+func (a *Agent) GetLocator() *service.Locator {
+	return a.locator
+}
+
+func (a *Agent) GetServerId() string {
+	return a.serverId
+}
+
 func NewAgent(locator *service.Locator) *Agent {
 	return &Agent{
 		locator:  locator,

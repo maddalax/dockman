@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"dockside/app"
 	"dockside/app/logger"
@@ -11,11 +10,13 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var FluentdConfig = `
@@ -154,52 +155,56 @@ func (m *FluentdManager) StartContainer() error {
 }
 
 func (m *FluentdManager) StreamLogs() error {
-	env := client.FromEnv
-	cli, err := client.NewClientWithOpts(env,
-		client.WithAPIVersionNegotiation(),
-	)
-	if err != nil {
-		return err
-	}
-
-	execConfig := container.ExecOptions{
-		Cmd:          strslice.StrSlice{"bin/bash", "-c", "cd /fluentd/log && find . -type f -name \"docker.log*\" -exec tail -n 0 -f {} +\n"},
-		AttachStdout: true,
-		AttachStderr: true,
-	}
-
-	ctx := context.Background()
-
-	execIDResp, err := cli.ContainerExecCreate(ctx, m.containerName, execConfig)
-
-	if err != nil {
-		return err
-	}
-
-	logger.InfoWithFields("attaching to fluentd to stream logs", map[string]any{
-		"container": m.containerName,
-		"exec_id":   execIDResp.ID,
-	})
-	resp, err := cli.ContainerExecAttach(ctx, execIDResp.ID, container.ExecAttachOptions{})
-
-	if err != nil {
-		return err
-	}
-
-	defer resp.Close()
-
-	// Read and print the output
-	reader := bufio.NewReader(resp.Reader)
 	for {
-		line, err := reader.ReadString('\n')
-		if err == io.EOF {
-			break
-		}
+		env := client.FromEnv
+		cli, err := client.NewClientWithOpts(env,
+			client.WithAPIVersionNegotiation(),
+		)
 		if err != nil {
-			break
+			return err
 		}
-		m.agent.WriteContainerLog(line)
-	}
 
-	return nil
+		execConfig := container.ExecOptions{
+			Cmd:          strslice.StrSlice{"bin/bash", "-c", "cd /fluentd/log && find . -type f -name \"docker.log*\" -exec tail -n 0 -f {} +\n"},
+			AttachStdout: true,
+			AttachStderr: true,
+		}
+
+		ctx := context.Background()
+
+		execIDResp, err := cli.ContainerExecCreate(ctx, m.containerName, execConfig)
+
+		if err != nil {
+			return err
+		}
+
+		logger.InfoWithFields("attaching to fluentd to stream logs", map[string]any{
+			"container": m.containerName,
+			"exec_id":   execIDResp.ID,
+		})
+		resp, err := cli.ContainerExecAttach(ctx, execIDResp.ID, container.ExecAttachOptions{})
+
+		if err != nil {
+			return err
+		}
+
+		server, _ := app.ServerGet(m.agent.GetLocator(), m.agent.GetServerId())
+
+		writer := app.NewNatsContainerLogWriter(m.agent.GetLocator(), server, m.agent)
+
+		_, err = stdcopy.StdCopy(writer, writer, resp.Reader)
+
+		if err != nil {
+			logger.ErrorWithFields("failed to stream logs", err, map[string]any{
+				"container": m.containerName,
+			})
+		} else {
+			logger.InfoWithFields("finished streaming logs", map[string]any{
+				"container": m.containerName,
+			})
+		}
+
+		// If we disconnect, re-stream logs
+		time.Sleep(3 * time.Second)
+	}
 }

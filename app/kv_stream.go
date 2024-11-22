@@ -21,6 +21,10 @@ func (c *KvClient) LogRunMessage(resourceId string, message string) {
 	_, _ = c.js.Publish(subject.RunLogsForResource(resourceId), []byte(message))
 }
 
+func (c *KvClient) LogRunMessageBytes(resourceId string, message []byte) {
+	_, _ = c.js.Publish(subject.RunLogsForResource(resourceId), message)
+}
+
 func (c *KvClient) BuildLogStreamName(resourceId string, buildId string) string {
 	return fmt.Sprintf("BUILD_LOG_STREAM-%s-%s", resourceId, buildId)
 }
@@ -33,6 +37,7 @@ func (c *KvClient) CreateRunLogStream(resourceId string) error {
 		Name: c.RunLogStreamName(resourceId),
 		// TODO should this have max age, and max msgs?
 		Subjects:  []string{subject.RunLogsForResource(resourceId)},
+		Discard:   nats.DiscardOld,   // Discard old messages when storage limit is reached
 		Retention: nats.LimitsPolicy, // Retain messages until storage limit is reached
 		MaxAge:    0,                 // Messages never expire based on age
 		MaxMsgs:   10 * 1000,         // No limit on the number of messages

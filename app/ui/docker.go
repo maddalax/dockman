@@ -47,7 +47,7 @@ func DockerBuildLogs(ctx *h.RequestContext, resource *app.Resource, buildId stri
 			}),
 		),
 		h.Div(
-			h.Class("h-[500px]"),
+			h.Class("h-[calc(100vh-500px)]"),
 			LogBody(
 				LogBodyOptions{
 					MaxLogs: 1000,

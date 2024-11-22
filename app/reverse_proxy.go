@@ -34,23 +34,6 @@ func (r *ReverseProxy) GetUpstreams() []*CustomUpstream {
 func (r *ReverseProxy) Start() {
 	ReloadConfig(r.locator)
 
-	go func() {
-		for {
-			totalFromUpstreams := int64(0)
-			for _, upstream := range r.lb.GetUpstreams() {
-				totalFromUpstreams += upstream.TotalRequests.Load()
-			}
-			logger.InfoWithFields("Total requests", map[string]interface{}{
-				"reverse proxy":               r.totalRequests.Load(),
-				"load balancer":               r.lb.TotalRequests.Load(),
-				"load balancer (no upstream)": r.lb.TotalRequestsNoUpstream.Load(),
-				"load balancer (in proxy)":    r.lb.TotalRequestsInProxy.Load(),
-				"total from upstreams":        totalFromUpstreams,
-			})
-			time.Sleep(time.Second * 3)
-		}
-	}()
-
 	handler := multiproxy.NewReverseProxyHandler(r.lb)
 
 	router := chi.NewRouter()

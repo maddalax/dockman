@@ -1,8 +1,10 @@
 package app
 
 import (
+	"bytes"
+	"dockside/app/logger"
 	"encoding/json"
-	"os"
+	"github.com/maddalax/htmgo/framework/service"
 	"time"
 )
 
@@ -16,33 +18,64 @@ type DockerLog struct {
 	HostName      string    `json:"hostname"`
 }
 
-func (a *Agent) WriteContainerLog(log string) {
-	dockerLog := DockerLog{}
-	err := json.Unmarshal([]byte(log), &dockerLog)
-	if err != nil {
-		// don't want to log this error since it will be a lot of noise
-		return
+type NatsContainerLogWriter struct {
+	server  *Server
+	locator *service.Locator
+	agent   *Agent
+}
+
+func NewNatsContainerLogWriter(locator *service.Locator, server *Server, agent *Agent) *NatsContainerLogWriter {
+	return &NatsContainerLogWriter{
+		server:  server,
+		locator: locator,
+		agent:   agent,
 	}
-	if dockerLog.Log != "" && dockerLog.ResourceId != "" {
-		layout := "2006/01/02 15:04:05"
-		parsedTime, err := time.Parse(layout, dockerLog.Log[0:19])
-		if err == nil {
-			dockerLog.Time = parsedTime
-			dockerLog.Log = dockerLog.Log[20:]
+}
+
+func (w *NatsContainerLogWriter) Write(p []byte) (int, error) {
+	lines := bytes.Split(p, []byte("\n"))
+
+	for _, line := range lines {
+
+		if len(line) == 0 {
+			continue
 		}
 
-		hostName, err := os.Hostname()
-
-		if err == nil {
-			dockerLog.HostName = hostName
-		}
-
-		serialized, err := json.Marshal(dockerLog)
+		dockerLog := DockerLog{}
+		err := json.Unmarshal(line, &dockerLog)
 
 		if err != nil {
-			return
+			// don't want to log this error since it will be a lot of noise
+			logger.ErrorWithFields("Failed to deserialize log message", err, map[string]interface{}{
+				"message": string(line),
+			})
+			return len(p), nil
 		}
 
-		a.registry.KvClient().LogRunMessage(dockerLog.ResourceId, string(serialized))
+		if dockerLog.Log != "" && dockerLog.ResourceId != "" {
+			layout := "2006/01/02 15:04:05"
+			parsedTime, err := time.Parse(layout, dockerLog.Log[0:19])
+
+			if err == nil {
+				dockerLog.Time = parsedTime
+				dockerLog.Log = dockerLog.Log[20:]
+			}
+
+			if w.server != nil {
+				dockerLog.HostName = w.server.FormattedName()
+			}
+
+			serialized, err := json.Marshal(dockerLog)
+
+			if err != nil {
+				logger.ErrorWithFields("Failed to serialize log message", err, map[string]interface{}{
+					"message": string(line),
+				})
+			} else {
+				w.agent.registry.KvClient().LogRunMessageBytes(dockerLog.ResourceId, serialized)
+			}
+		}
 	}
+
+	return len(p), nil
 }

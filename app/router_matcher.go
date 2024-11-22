@@ -2,6 +2,7 @@ package app
 
 import (
 	"dockside/app/logger"
+	"errors"
 	"github.com/gobwas/glob"
 	"net/http"
 	"strings"
@@ -59,7 +60,10 @@ func (m *Matcher) CompileUpstream(u *CustomUpstream) {
 		u.Metadata.GlobPatterns = make(map[string]glob.Glob)
 	}
 	if u.Metadata.Block == nil {
-		panic("Block is nil")
+		logger.ErrorWithFields("Block is nil", errors.New("upstream should have block"), map[string]interface{}{
+			"upstream": u.Id,
+		})
+		return
 	}
 	g, err := glob.Compile(u.Metadata.Block.Path)
 	if err != nil {

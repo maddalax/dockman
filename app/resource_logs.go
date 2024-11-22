@@ -9,9 +9,19 @@ import (
 )
 
 func StreamResourceLogs(locator *service.Locator, context context.Context, resource *Resource, cb func(log *DockerLog)) error {
-	streamName := subject.RunLogsForResource(resource.Id)
 	kv := KvFromLocator(locator)
-	_, err := kv.SubscribeStreamAndReplayAll(context, streamName, func(msg *nats.Msg) {
+	subjectName := subject.RunLogsForResource(resource.Id)
+	streamName := kv.RunLogStreamName(resource.Id)
+	streamInfo, err := kv.js.StreamInfo(streamName)
+	if err != nil {
+		return err
+	}
+
+	opts := []nats.SubOpt{
+		nats.StartSequence(streamInfo.State.LastSeq - 100),
+	}
+
+	_, err = kv.SubscribeStream(context, subjectName, opts, func(msg *nats.Msg) {
 		log, err := json2.Deserialize[DockerLog](msg.Data)
 		if err == nil {
 			cb(log)

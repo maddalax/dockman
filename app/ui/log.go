@@ -15,41 +15,38 @@ type LogBodyOptions struct {
 
 func LogBody(opts LogBodyOptions) *h.Element {
 	return h.Div(
-		h.Class("max-w-4xl max-h-full overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg p-4 mt-6 min-w-[800px]"),
+		h.Class("w-full max-h-full h-full overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg mt-6 bg-red-500"),
 		h.Div(
 			h.Id("build-log"),
+			h.Class("flex flex-col w-full"),
 		),
-		// Scroll to the bottom of the div when the page loads
+		// Scroll to the bottom when the page loads
 		h.OnLoad(
-			// language=JavaScript
 			js.EvalJs(`
-					setTimeout(() => {
-           self.scrollTop = self.scrollHeight;       
-					}, 1000)
-				`),
+				setTimeout(() => {
+					const logs = document.getElementById('build-log');
+					logs.parentElement.scrollTop = logs.parentElement.scrollHeight;
+				}, 1000)
+			`),
 		),
-		// Scroll to the bottom of the div when the message is sent
-		// only if the user is close to the bottom of the div
+		// Scroll to the bottom when a new message is added
 		h.OnEvent("htmx:wsAfterMessage",
-			// language=JavaScript
-			js.EvalJs(fmt.Sprintf(
-				`
-				 // only keep the last MaxLogs
-         let logs = document.getElementById('build-log');
-				 while (logs.children.length >= %d) {
-       		 logs.removeChild(logs.firstElementChild);
-    			}
-      `,
-				opts.MaxLogs)),
-			// language=JavaScript
+			js.EvalJs(fmt.Sprintf(`
+				// Remove excess logs
+				const logs = document.getElementById('build-log');
+				while (logs.children.length >= %d) {
+					logs.removeChild(logs.firstElementChild);
+				}
+			`, opts.MaxLogs)),
 			js.EvalJs(`
-					const scrollPosition = self.scrollTop + self.clientHeight;
-    			const distanceFromBottom = self.scrollHeight - scrollPosition;
-    			const scrollThreshold = 1000; // Adjust this to define how close the user should be to the bottom
-					 if (distanceFromBottom <= scrollThreshold) {
-        			self.scrollTop = self.scrollHeight;
-    			}
-				`),
+				const logsContainer = document.getElementById('build-log').parentElement;
+				const scrollPosition = logsContainer.scrollTop + logsContainer.clientHeight;
+				const distanceFromBottom = logsContainer.scrollHeight - scrollPosition;
+				const scrollThreshold = 1000; // Adjust this as needed
+				if (distanceFromBottom <= scrollThreshold) {
+					logsContainer.scrollTop = logsContainer.scrollHeight;
+				}
+			`),
 		),
 	)
 }
@@ -60,19 +57,18 @@ func DockerLogLine(log *app.DockerLog) *h.Element {
 	return h.Div(
 		swap,
 		h.Div(
-			h.Class("flex gap-2 p-4 bg-gray-100 border border-gray-200 mb-4 w-full"),
+			h.Class("px-4 flex flex-no-wrap items-start gap-4 border-b border-gray-300 py-1"),
 			h.Div(
-				h.Class("flex flex-col gap-1"),
-				h.Pf(
-					log.HostName,
-					h.Class("font-bold"),
-				),
-				h.Pf(
-					log.Time.Format("2006-01-02 15:04:05"),
-				),
-				h.P(
-					h.Text(log.Log),
-				),
+				h.Class("w-1/8 truncate text-sm font-medium"),
+				h.Text(log.HostName),
+			),
+			h.Div(
+				h.Class("w-1/8 text-sm text-gray-600"),
+				h.Text(log.Time.Format("2006-01-02 15:04:05")),
+			),
+			h.Div(
+				h.Class("flex-1 text-sm text-gray-800"),
+				h.Text(log.Log),
 			),
 		),
 	)
@@ -85,17 +81,28 @@ func LogLine(data string) *h.Element {
 		data = strings.TrimPrefix(data, "BUILD_ERROR:")
 		return h.Div(
 			swap,
-			h.P(
-				h.Class("text-red-800"),
-				h.UnsafeRaw(util.Sanitize(data)),
+			h.Div(
+				h.Class("px-4 flex items-start gap-4 border-b border-red-300 py-1"),
+				h.Div(
+					h.Class("w-1/8 truncate text-sm font-medium text-red-600"),
+					h.Text("Error"),
+				),
+				h.Div(
+					h.Class("flex-1 text-sm text-red-800"),
+					h.UnsafeRaw(util.Sanitize(data)),
+				),
 			),
 		)
 	}
 
 	return h.Div(
 		swap,
-		h.P(
-			h.UnsafeRaw(util.Sanitize(data)),
+		h.Div(
+			h.Class("px-4 flex items-start gap-4 border-b border-gray-300 py-1"),
+			h.Div(
+				h.Class("flex-1 text-sm text-gray-800"),
+				h.UnsafeRaw(util.Sanitize(data)),
+			),
 		),
 	)
 }

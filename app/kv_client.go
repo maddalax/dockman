@@ -134,8 +134,8 @@ func (c *KvClient) SubscribeSubjectForever(subject string, handler func(msg *nat
 	return sub, nil
 }
 
-func (c *KvClient) SubscribeStream(context context.Context, subject string, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
-	sub, err := c.js.Subscribe(subject, handler, nats.StartTime(time.Now()))
+func (c *KvClient) SubscribeStream(context context.Context, subject string, opts []nats.SubOpt, handler func(msg *nats.Msg)) (*nats.Subscription, error) {
+	sub, err := c.js.Subscribe(subject, handler, opts...)
 	if err != nil {
 		return nil, err
 	}
