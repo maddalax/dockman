@@ -14,7 +14,7 @@ func (r *ReverseProxy) UpstreamPortMonitor(locator *service.Locator) {
 
 	// if the old config has a port difference with the new config, reload the config
 	if r.config.HasPortDifference(newConfig) {
-		logger.Info("Upstream config difference detected, reloading config")
+		logger.Info("Upstreams config difference detected, reloading config")
 		ReloadConfig(locator)
 	}
 }

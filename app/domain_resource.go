@@ -17,10 +17,17 @@ type Resource struct {
 	ServerDetails      []ResourceServer  `json:"server_details"`
 }
 
+type Upstream struct {
+	Host string `json:"host"`
+	Port string `json:"port"`
+}
+
 type ResourceServer struct {
 	ServerId   string    `json:"server_id"`
 	RunStatus  RunStatus `json:"run_status"`
 	LastUpdate time.Time `json:"last_update"`
+	// the upstream the containers are running on, array because there can be multiple instances
+	Upstreams []Upstream `json:"upstream"`
 }
 
 type ResourceServerWithDetails struct {

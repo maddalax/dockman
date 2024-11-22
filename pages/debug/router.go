@@ -45,7 +45,7 @@ func routerTableHeader() *h.Element {
 		h.Tr(
 			h.Class("bg-gray-100 text-left border-b border-gray-300"),
 			tableHeaderCell("Server"),
-			tableHeaderCell("Upstream"),
+			tableHeaderCell("Upstreams"),
 			tableCell("Resource"),
 			tableHeaderCell("Total Requests"),
 			tableHeaderCell("Last Request"),

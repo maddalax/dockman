@@ -70,9 +70,7 @@ func ResourceStart(agent *Agent, resourceId string, opts StartOpts) (*Resource, 
 		"resource_id": resource.Id,
 	})
 	switch resource.RunType {
-	case RunTypeDockerBuild:
-		fallthrough
-	case RunTypeDockerRegistry:
+	case RunTypeDockerBuild, RunTypeDockerRegistry:
 		client, err := DockerConnect(agent.locator)
 		if err != nil {
 			return nil, err
@@ -116,9 +114,7 @@ func ResourceStop(agent *Agent, resourceId string) (*Resource, error) {
 		"resource_id": resource.Id,
 	})
 	switch resource.RunType {
-	case RunTypeDockerBuild:
-		fallthrough
-	case RunTypeDockerRegistry:
+	case RunTypeDockerBuild, RunTypeDockerRegistry:
 		client, err := DockerConnect(agent.locator)
 		if err != nil {
 			return nil, err

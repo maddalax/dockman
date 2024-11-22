@@ -160,9 +160,7 @@ func (c *GetContainerCommand) Execute(agent *Agent) {
 		return
 	}
 	switch resource.RunType {
-	case RunTypeDockerBuild:
-		fallthrough
-	case RunTypeDockerRegistry:
+	case RunTypeDockerBuild, RunTypeDockerRegistry:
 		dockerClient, err := DockerConnect(agent.locator)
 		if err != nil {
 			c.ResponseData = &GetContainerResponse{

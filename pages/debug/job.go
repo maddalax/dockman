@@ -4,7 +4,9 @@ import (
 	"dockside/app"
 	"dockside/pages"
 	"github.com/maddalax/htmgo/framework/h"
+	"slices"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -31,8 +33,21 @@ func IntervalJobDebug(ctx *h.RequestContext) *h.Page {
 }
 
 func JobMetricsPartial(ctx *h.RequestContext) *h.Partial {
-	manager := app.NewJobMetricsManager(ctx.ServiceLocator())
+	manager := app.GetServiceRegistry(ctx.ServiceLocator()).GetJobMetricsManager()
 	metrics := manager.GetMetrics()
+
+	for i, metric := range metrics {
+		metrics[i].Status = calculateRunStatus(metric)
+	}
+
+	slices.SortFunc(metrics, func(a, b *app.JobMetric) int {
+		// Compare by Status first
+		if cmp := strings.Compare(a.Status, b.Status); cmp != 0 {
+			return cmp
+		}
+		// If Status is equal, compare by Name
+		return strings.Compare(a.JobName, b.JobName)
+	})
 
 	return h.NewPartial(
 		h.List(metrics, func(item *app.JobMetric, index int) *h.Element {
@@ -67,18 +82,31 @@ func tableRow(metric *app.JobMetric) *h.Element {
 		h.Class("border-b border-gray-300 hover:bg-gray-50"),
 		tableCell(metric.JobName),
 		tableCell(metric.Interval.String()),
-		tableCell(h.Ternary(metric.Status == "finished", "running", metric.Status)),
+		tableCell(metric.Status, h.Ternary(metric.Status == "running", "text-green-700", "text-red-700")),
 		tableCell(formatTimePretty(metric.LastRan)),
 		tableCell(strconv.Itoa(metric.TotalRuns)),
 		tableCell(metric.LastRunDuration.String()),
 	)
 }
 
-func tableCell(value string) *h.Element {
+func tableCell(value string, classes ...string) *h.Element {
+	classes = append(classes, "py-2 px-4 text-sm text-gray-700")
 	return h.Td(
-		h.Class("py-2 px-4 text-sm text-gray-700"),
+		h.Class(classes...),
 		h.Text(value),
 	)
+}
+
+func calculateRunStatus(metric *app.JobMetric) string {
+	timeBetween := metric.Interval - metric.LastRunDuration
+	buffer := timeBetween / 10 // Add a 10% buffer
+	adjustedTime := timeBetween + buffer
+	hasNotRunInTime := metric.LastRan.Before(time.Now().Add(-adjustedTime))
+
+	if hasNotRunInTime {
+		return "stopped"
+	}
+	return "running"
 }
 
 func formatTimePretty(t time.Time) string {
