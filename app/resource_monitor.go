@@ -50,6 +50,7 @@ func (monitor *ResourceMonitor) Start() {
 	runner.Add("ResourceRunStatusMonitor", time.Second*3, monitor.RunStatusMonitorJob)
 	runner.Add("ResourceServerCleanup", time.Minute, monitor.ResourceServerCleanup)
 	runner.Add("ServerConnectionMonitor", time.Second*5, monitor.ServerConnectionMonitor)
+	runner.Add("ResourceCheckForNewCommits", time.Minute*1, monitor.ResourceCheckForNewCommits)
 }
 
 // RunStatusMonitorJob Monitors the run status of resources and updates the status if necessary
@@ -115,6 +116,31 @@ func (monitor *ResourceMonitor) ServerConnectionMonitor() {
 				registry.GetEventHandler().OnServerConnected(server)
 			} else {
 				registry.GetEventHandler().OnServerDisconnected(server)
+			}
+		}
+	}
+}
+
+func (monitor *ResourceMonitor) ResourceCheckForNewCommits() {
+	registry := GetServiceRegistry(monitor.locator)
+	list, err := ResourceList(monitor.locator)
+	if err != nil {
+		logger.Error("Error getting resource list", err)
+		return
+	}
+	for _, res := range list {
+		switch bm := res.BuildMeta.(type) {
+		case *DockerBuildMeta:
+			// todo allow different branches
+			latest, _ := GetLatestCommitOnRemote(bm.RepositoryUrl, "master")
+			current := bm.CommitForBuild
+			logger.InfoWithFields("Checking for new commits", map[string]interface{}{
+				"resource": res.Id,
+				"latest":   latest,
+				"current":  current,
+			})
+			if current != "" && latest != "" && latest != current {
+				registry.GetEventHandler().OnNewCommit(res, latest)
 			}
 		}
 	}

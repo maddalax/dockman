@@ -58,6 +58,7 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 		Labels: map[string]string{
 			"dockside.resource.id": b.Resource.Id,
 			"dockside.build.id":    b.BuildId,
+			"git.commit.hash":      result.Commit,
 		},
 		Tags: []string{
 			fmt.Sprintf(fmt.Sprintf("%s:latest", imageName)),
@@ -77,7 +78,18 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 		return b.BuildError(err)
 	}
 
+	b.LogBuildMessage(fmt.Sprintf("Container built with commit %s", result.Commit))
+
 	b.UpdateDeployStatus(DeploymentStatusSucceeded)
+
+	err = ResourcePatch(b.ServiceLocator, b.Resource.Id, func(resource *Resource) *Resource {
+		resource.BuildMeta.(*DockerBuildMeta).CommitForBuild = result.Commit
+		return resource
+	})
+
+	if err != nil {
+		b.LogBuildError(err)
+	}
 
 	b.LogBuildMessage("Successfully saved image, starting process on enabled servers...")
 

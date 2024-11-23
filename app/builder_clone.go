@@ -9,6 +9,7 @@ import (
 
 type CloneRepoResult struct {
 	Directory string
+	Commit    string
 }
 
 type CloneRepoRequest struct {
@@ -33,7 +34,7 @@ func (bm *DockerBuildMeta) CloneRepo(request CloneRepoRequest) (*CloneRepoResult
 		}
 	}
 
-	_, err = git.PlainClone(tempDir, false, &git.CloneOptions{
+	repo, err := git.PlainClone(tempDir, false, &git.CloneOptions{
 		URL:      bm.RepositoryUrl,
 		Auth:     opts.Auth,
 		Progress: request.Progress,
@@ -44,7 +45,18 @@ func (bm *DockerBuildMeta) CloneRepo(request CloneRepoRequest) (*CloneRepoResult
 		return nil, err
 	}
 
+	commitHash := ""
+
+	ref, err := repo.Head()
+	if err == nil {
+		commit, err := repo.CommitObject(ref.Hash())
+		if err == nil {
+			commitHash = commit.Hash.String()
+		}
+	}
+
 	return &CloneRepoResult{
 		Directory: tempDir,
+		Commit:    commitHash,
 	}, nil
 }

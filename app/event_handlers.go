@@ -72,3 +72,11 @@ func (eh *EventHandler) OnResourceStatusChange(resource *Resource, status RunSta
 		"new_status":    status,
 	})
 }
+
+func (eh *EventHandler) OnNewCommit(resource *Resource, commit string) {
+	// TODO start a new build if auto deploy is enabled
+	logger.InfoWithFields("new commit", map[string]any{
+		"resource_id": resource.Id,
+		"commit":      commit,
+	})
+}

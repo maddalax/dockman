@@ -25,6 +25,8 @@ type DockerBuildMeta struct {
 	GithubAccessToken string   `json:"github_access_token"`
 	Tags              []string `json:"tags"`
 	ExposedPort       int      `json:"exposed_port"`
+	// the git commit that was used to build the image
+	CommitForBuild string `json:"commit_for_build"`
 }
 
 func (bm *DockerBuildMeta) ValidatePatch(other BuildMeta) error {
