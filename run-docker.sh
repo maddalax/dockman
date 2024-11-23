@@ -20,4 +20,5 @@ docker run -d \
   --name dockside \
   --restart unless-stopped \
   -v "${VOLUME_PATH}:/data/dockside" \
+  -v /var/run/docker.sock:/var/run/docker.sock \
   ghcr.io/maddalax/dockside:latest

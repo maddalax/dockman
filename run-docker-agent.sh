@@ -20,5 +20,6 @@ docker run -d \
   --name dockside-agent \
   --restart unless-stopped \
   -v "${VOLUME_PATH}:/data/dockside" \
+  -v /var/run/docker.sock:/var/run/docker.sock \
   -e NATS_HOST=localhost \
   ghcr.io/maddalax/dockside-agent:latest

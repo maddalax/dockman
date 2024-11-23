@@ -8,9 +8,10 @@ REMOTE_HOST="fedora-server" # Replace with remote host address or IP
 REMOTE_PATH="/tmp/dockside.tar" # Temporary path for the tar file on the remote machine
 LOCAL_IMAGE_NAME="ghcr.io/maddalax/dockside:latest"
 CONTAINER_NAME="dockside"
+DOCKER_FILE_PATH="Dockerfile-manager"
 
 # Step 1: Build the image locally (if needed)
-docker build -t "$LOCAL_IMAGE_NAME" .
+docker build -t "$LOCAL_IMAGE_NAME" -f "$DOCKER_FILE_PATH" .
 
 # Step 2: Export the image to a tar file
 IMAGE_TAR="dockside.tar"
@@ -36,21 +37,13 @@ ssh "$REMOTE_USER@$REMOTE_HOST" << EOF
   docker stop "$CONTAINER_NAME" 2>/dev/null || true
   docker rm "$CONTAINER_NAME" 2>/dev/null || true
 
-  # Determine the volume mount path
-  if [[ "\$(uname)" != "Linux" ]]; then
-    VOLUME_PATH="\$HOME/.dockside/data"
-  else
-    VOLUME_PATH="/data/dockside"
-  fi
-
   # Run the container
   docker run -d \
-    --name "$CONTAINER_NAME" \
+    --network host \
+    --name dockside \
     --restart unless-stopped \
-    -p 80:80 \
-    -p 8100:3000 \
-    -p 4222:4222 \
-    -v "\${VOLUME_PATH}:/data/dockside" \
+    -v /data/dockside:/data/dockside \
+    -v /var/run/docker.sock:/var/run/docker.sock \
     "$LOCAL_IMAGE_NAME"
 EOF
 
