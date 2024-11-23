@@ -82,7 +82,7 @@ func LogLine(data string) *h.Element {
 		return h.Div(
 			swap,
 			h.Div(
-				h.Class("px-4 flex items-start gap-4 border-b border-red-300 py-1"),
+				h.Class("px-4 flex items-start gap-4 border-b border-gray-300 py-1"),
 				h.Div(
 					h.Class("w-1/8 truncate text-sm font-medium text-red-600"),
 					h.Text("Error"),

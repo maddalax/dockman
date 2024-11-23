@@ -28,7 +28,7 @@ FROM gcr.io/distroless/base-debian11
 WORKDIR /app
 
 # Copy the Go binary from the    builder stage
-COPY --from=builder /resources/dist .
+COPY --from=builder /app/dist .
 
 # Expose the necessary port (replace with your server port)
 EXPOSE 3000

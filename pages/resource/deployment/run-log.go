@@ -26,7 +26,7 @@ func RunLog(ctx *h.RequestContext) *h.Page {
 
 	return resourceui.Page(ctx, func(resource *app.Resource) *h.Element {
 		return h.Div(
-			h.Class("h-[calc(100vh-300px)]"),
+			h.Class("w-[calc(100vh - 300px)] h-full"),
 			ui.LogBody(ui.LogBodyOptions{
 				MaxLogs: 1000,
 			}),

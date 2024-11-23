@@ -10,9 +10,10 @@ require (
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/gobwas/glob v0.2.3
 	github.com/google/uuid v1.6.0
+	github.com/kardianos/service v1.2.2
 	github.com/maddalax/htmgo/extensions/websocket v0.0.0-20241116145200-825c4dd7ecca
 	github.com/maddalax/htmgo/framework v1.0.3-0.20241116145258-909d38c7f412
-	github.com/maddalax/multiproxy v0.0.0-20241118131035-7aa987133a08
+	github.com/maddalax/multiproxy v0.0.0-20241122165622-0c1a6ced1956
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/nats-io/nats-server/v2 v2.10.22
 	github.com/nats-io/nats.go v1.37.0

@@ -103,7 +103,7 @@ func StreamDetails(ctx *h.RequestContext, stream *nats.StreamInfo) *h.Element {
 		),
 
 		h.Div(
-			h.Class("flex h-[800px]"),
+			h.Class("w-[100% - 300px] h-full"),
 			ui.LogBody(ui.LogBodyOptions{
 				MaxLogs: 100,
 			}),

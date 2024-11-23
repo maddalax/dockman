@@ -42,7 +42,7 @@ func DesktopSidebar(ctx *h.RequestContext) *h.Element {
 					h.Class("mt-2 flex h-10 shrink-0 items-center"),
 					h.Div(
 						h.Class("h-6 w-auto"),
-						HtmgoLogo(),
+						h.H3F("dockside", h.Class("text-xl font-bold")),
 					),
 				),
 				RoutingSection(),
