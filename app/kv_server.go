@@ -3,16 +3,27 @@ package app
 import (
 	"dockside/app/logger"
 	"github.com/nats-io/nats-server/v2/server"
+	"runtime"
 	"time"
 )
 
 func MustStartNats() *server.Server {
 	logger.Info("Starting NATS server")
 
+	storeDir := "/data/dockside"
+
+	if runtime.GOOS == "windows" {
+		storeDir = "C:/data/dockside"
+	}
+
+	if runtime.GOOS == "darwin" {
+		storeDir = "~/.dockside/data"
+	}
+
 	opts := &server.Options{
 		Port:      4222,
 		JetStream: true,
-		StoreDir:  "./data",
+		StoreDir:  storeDir,
 	}
 
 	natsServer, err := server.NewServer(opts)
