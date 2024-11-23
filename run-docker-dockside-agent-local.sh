@@ -8,7 +8,7 @@ REMOTE_HOST="fedora-server" # Replace with remote host address or IP
 REMOTE_PATH="/tmp/dockside-agent.tar" # Temporary path for the tar file on the remote machine
 LOCAL_IMAGE_NAME="ghcr.io/maddalax/dockside-agent:latest"
 CONTAINER_NAME="dockside-agent"
-DOCKER_FILE_PATH="Dockerfile-manager"
+DOCKER_FILE_PATH="Dockerfile-agent"
 
 # Step 1: Build the image locally (if needed)
 docker build -t "$LOCAL_IMAGE_NAME" -f "$DOCKER_FILE_PATH" .
