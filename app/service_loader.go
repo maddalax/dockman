@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/maddalax/htmgo/framework/service"
 	"os"
+	"strconv"
 )
 
 type ServiceRegistry struct {
@@ -56,9 +57,16 @@ func (sr *ServiceRegistry) RegisterJobRunner() {
 }
 
 func (sr *ServiceRegistry) RegisterKvClient() {
+	port := 4222
+	if os.Getenv("NATS_PORT") != "" {
+		parsed, err := strconv.Atoi(os.Getenv("NATS_PORT"))
+		if err == nil {
+			port = parsed
+		}
+	}
 	client, err := NatsConnect(NatsConnectOptions{
 		Host: os.Getenv("NATS_HOST"),
-		Port: 4222,
+		Port: port,
 	})
 	if err != nil {
 		panic(err)

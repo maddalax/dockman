@@ -1,7 +1,6 @@
 package app
 
 import (
-	"dockside/app/logger"
 	"encoding/gob"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"
@@ -101,8 +100,8 @@ func (a *Agent) Run() {
 
 	go a.registry.GetJobRunner().Start()
 
+	// keep the agent running
 	for {
-		logger.Info("Agent is running")
 		time.Sleep(time.Second * 5)
 	}
 }
