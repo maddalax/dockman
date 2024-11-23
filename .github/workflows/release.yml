@@ -1,4 +1,4 @@
-name: Build and Deploy htmgo.dev
+name: Release Dockside
 
 on:
   workflow_dispatch:
