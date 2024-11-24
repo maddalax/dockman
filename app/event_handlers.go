@@ -3,7 +3,9 @@ package app
 import (
 	"dockside/app/logger"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"
+	"time"
 )
 
 type EventHandler struct {
@@ -73,10 +75,24 @@ func (eh *EventHandler) OnResourceStatusChange(resource *Resource, status RunSta
 	})
 }
 
-func (eh *EventHandler) OnNewCommit(resource *Resource, commit string) {
-	// TODO start a new build if auto deploy is enabled
+func (eh *EventHandler) OnNewCommit(resource *Resource, branch string, commit string) {
 	logger.InfoWithFields("new commit", map[string]any{
 		"resource_id": resource.Id,
 		"commit":      commit,
+		"branch":      branch,
 	})
+	switch bm := resource.BuildMeta.(type) {
+	case *DockerBuildMeta:
+		if bm.RedeployOnPushBranch == branch {
+			buildId := uuid.New().String()
+			logger.InfoWithFields("Starting build from new commit", map[string]any{
+				"resource": resource.Id,
+				"build":    buildId,
+				"branch":   branch,
+				"commit":   commit,
+			})
+			b := NewResourceBuilder(eh.locator, resource, buildId)
+			_ = b.StartBuildAsync(time.Second)
+		}
+	}
 }

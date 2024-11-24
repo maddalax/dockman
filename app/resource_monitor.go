@@ -131,8 +131,10 @@ func (monitor *ResourceMonitor) ResourceCheckForNewCommits() {
 	for _, res := range list {
 		switch bm := res.BuildMeta.(type) {
 		case *DockerBuildMeta:
-			// todo allow different branches
-			latest, _ := GetLatestCommitOnRemote(bm.RepositoryUrl, "master")
+			if bm.RedeployOnPushBranch == "" {
+				continue
+			}
+			latest, _ := GetLatestCommitOnRemote(bm.RepositoryUrl, bm.RedeployOnPushBranch)
 			current := bm.CommitForBuild
 			logger.InfoWithFields("Checking for new commits", map[string]interface{}{
 				"resource": res.Id,
@@ -140,7 +142,7 @@ func (monitor *ResourceMonitor) ResourceCheckForNewCommits() {
 				"current":  current,
 			})
 			if current != "" && latest != "" && latest != current {
-				registry.GetEventHandler().OnNewCommit(res, latest)
+				registry.GetEventHandler().OnNewCommit(res, bm.RedeployOnPushBranch, latest)
 			}
 		}
 	}

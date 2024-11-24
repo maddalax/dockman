@@ -19,8 +19,27 @@ func SaveResourceDetails(ctx *h.RequestContext) *h.Partial {
 		return ui.GenericErrorAlertPartial(ctx, err)
 	}
 
+	repository := ctx.FormValue("repository")
+	redeployOnPushBranch := ctx.FormValue("redeploy-on-push-branch")
+	exposedPort, _ := strconv.Atoi(ctx.FormValue("exposed-port"))
+	dockerfile := ctx.FormValue("dockerfile")
+
 	err = app.ResourcePatch(locator, resource.Id, func(resource *app.Resource) *app.Resource {
 		resource.InstancesPerServer = instancesPerServer
+		bm := resource.BuildMeta.(*app.DockerBuildMeta)
+		if repository != "" {
+			bm.RepositoryUrl = repository
+		}
+		if redeployOnPushBranch != "" {
+			bm.RedeployOnPushBranch = redeployOnPushBranch
+		}
+		if exposedPort != 0 {
+			bm.ExposedPort = exposedPort
+		}
+		if dockerfile != "" {
+			bm.Dockerfile = dockerfile
+		}
+		resource.BuildMeta = bm
 		return resource
 	})
 
@@ -65,6 +84,7 @@ func Index(ctx *h.RequestContext) *h.Page {
 					Name:         "instances-per-server",
 					HelpText:     h.Pf("Number of instances to run on each server, requests will be automatically load balanced between them."),
 				}),
+				buildMetaFields(resource),
 				ui.SubmitButton(ui.SubmitButtonProps{
 					Text:           "Save",
 					SubmittingText: "Saving...",
@@ -73,4 +93,41 @@ func Index(ctx *h.RequestContext) *h.Page {
 			),
 		)
 	})
+}
+
+func buildMetaFields(resource *app.Resource) *h.Element {
+	switch bm := resource.BuildMeta.(type) {
+	case *app.DockerBuildMeta:
+		return h.Fragment(
+			ui.Input(ui.InputProps{
+				Label:        "Repository",
+				Disabled:     true,
+				DefaultValue: bm.RepositoryUrl,
+				Name:         "repository",
+			}),
+			ui.Input(ui.InputProps{
+				Label:        "Redeploy On Push To Branch",
+				DefaultValue: bm.RedeployOnPushBranch,
+				Name:         "redeploy-on-push-branch",
+			}),
+			ui.Input(ui.InputProps{
+				Disabled:     true,
+				Label:        "Latest Commit",
+				DefaultValue: bm.CommitForBuild,
+				Name:         "latest-commit",
+			}),
+			ui.Input(ui.InputProps{
+				Label:        "Exposed Port",
+				DefaultValue: strconv.Itoa(bm.ExposedPort),
+				Name:         "exposed-port",
+			}),
+			ui.Input(ui.InputProps{
+				Label:        "Dockerfile",
+				DefaultValue: bm.Dockerfile,
+				Name:         "dockerfile",
+			}),
+		)
+	}
+
+	return h.Empty()
 }
