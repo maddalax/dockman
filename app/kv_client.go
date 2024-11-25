@@ -181,9 +181,13 @@ func (c *KvClient) GetBucket(bucket string) (nats.KeyValue, error) {
 func (c *KvClient) GetOrCreateBucket(config *nats.KeyValueConfig) (nats.KeyValue, error) {
 	b, err := c.GetBucketWithConfig(config)
 	if err != nil {
+
 		if errors.Is(err, nats.ErrBucketNotFound) {
 			b, err = c.CreateBucket(config)
 			return b, err
+		}
+		if err.Error() == NatsNoLongerConnected.Error() {
+			return nil, errors.New("nats no longer connected, waiting for reconnect")
 		}
 	}
 	return b, err

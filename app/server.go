@@ -55,12 +55,7 @@ func ServerPut(locator *service.Locator, opts ServerPutOpts) error {
 		if opts.Name != "" {
 			server.Name = opts.Name
 		}
-		logger.InfoWithFields("Updating server", map[string]interface{}{
-			"id":        opts.Id,
-			"host_name": opts.HostName,
-		})
 	} else {
-
 		server = &Server{
 			Id:              opts.Id,
 			LocalIpAddress:  opts.LocalIpAddress,

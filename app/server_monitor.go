@@ -45,12 +45,6 @@ func (a *Agent) resourceStatusMonitor() {
 			server.LastUpdate = time.Now()
 			return server
 		})
-		logger.InfoWithFields("Updated resource status", map[string]any{
-			"resource_id": resource.Id,
-			"server_id":   a.serverId,
-			"status":      update.RunStatus,
-			"upstreams":   len(update.Upstreams),
-		})
 		if err != nil {
 			logger.ErrorWithFields("Failed to update resource status", err, map[string]any{
 				"resource_id": resource.Id,

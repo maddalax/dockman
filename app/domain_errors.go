@@ -19,3 +19,6 @@ var ResourcePortInUseError = func(port string) error {
 }
 var ResourceExposedPortNotSetError = errors.New("resource exposed port not set")
 var NoServersAttachedError = errors.New("no servers attached to resource")
+
+// NatsNoLongerConnected not sure why this is the err message, but it is
+var NatsNoLongerConnected = errors.New("nats: key-value requires at least server version 2.6.2")

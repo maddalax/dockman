@@ -142,7 +142,7 @@ func (monitor *ResourceMonitor) ResourceCheckForNewCommits() {
 				continue
 			}
 			current := bm.CommitForBuild
-			logger.InfoWithFields("Checking for new commits", map[string]interface{}{
+			logger.DebugWithFields("Checking for new commits", map[string]interface{}{
 				"resource": res.Id,
 				"latest":   latest,
 				"current":  current,
