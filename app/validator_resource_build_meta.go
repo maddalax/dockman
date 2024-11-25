@@ -85,8 +85,9 @@ func (v GithubRepositoryValidator) Validate() error {
 		}
 
 		clone, err := meta.CloneRepo(CloneRepoRequest{
-			UseCache: true,
-			Progress: os.Stdout,
+			UseCache:     true,
+			Progress:     os.Stdout,
+			SingleBranch: false,
 		})
 
 		if err != nil {

@@ -27,8 +27,10 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 	b.UpdateDeployStatus(DeploymentStatusRunning)
 
 	result, err := buildMeta.CloneRepo(CloneRepoRequest{
-		UseCache: false,
-		Progress: b.BuildOutputStream,
+		UseCache:     false,
+		Progress:     b.BuildOutputStream,
+		SingleBranch: true,
+		BranchName:   buildMeta.DeploymentBranch,
 	})
 
 	if err != nil {

@@ -12,28 +12,57 @@ type ParsedDockerFile struct {
 	FromPort int
 }
 
-func (bm *DockerBuildMeta) ParseDockerFile() (*ParsedDockerFile, error) {
-	clone, err := bm.CloneRepo(CloneRepoRequest{
-		UseCache: true,
-		Progress: os.Stdout,
-	})
-	if err != nil {
-		return nil, err
+func (bm *DockerBuildMeta) SetDefaultsFromRepository() {
+	if bm.RepositoryUrl == "" {
+		return
 	}
 
+	clone, err := bm.CloneRepo(CloneRepoRequest{
+		UseCache:     true,
+		Progress:     os.Stdout,
+		SingleBranch: false,
+	})
+
+	if err != nil {
+		return
+	}
+
+	parsedDockerFile, err := bm.parseDockerFile(clone.Directory)
+
+	if err == nil && parsedDockerFile.FromPort > 0 {
+		bm.ExposedPort = parsedDockerFile.FromPort
+	}
+
+	// try to find the default branch for deployment
+	head, err := clone.Repo.Head()
+	if err == nil && head.Name().IsBranch() {
+		bm.DeploymentBranch = head.Name().Short()
+	} else {
+		branches, err := ListRemoteBranches(clone.Repo)
+		if err == nil {
+			for _, branch := range branches {
+				if branch == "master" || branch == "main" {
+					bm.DeploymentBranch = branch
+				}
+			}
+		}
+	}
+}
+
+func (bm *DockerBuildMeta) parseDockerFile(repoDir string) (*ParsedDockerFile, error) {
 	// ensure its a valid dockerfile
 	validator := ValidDockerFileValidator{
-		RepositoryDir: clone.Directory,
+		RepositoryDir: repoDir,
 		Dockerfile:    bm.Dockerfile,
 	}
 
-	err = validator.Validate()
+	err := validator.Validate()
 
 	if err != nil {
 		return nil, err
 	}
 
-	dockerFilePath, err := filepath.Abs(filepath.Join(clone.Directory, bm.Dockerfile))
+	dockerFilePath, err := filepath.Abs(filepath.Join(repoDir, bm.Dockerfile))
 
 	if err != nil {
 		return nil, err

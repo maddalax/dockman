@@ -50,11 +50,7 @@ func ResourceCreate(locator *service.Locator, options ResourceCreateOptions) (st
 	// extract the exposed port from the Dockerfile if we can
 	switch bm := resource.BuildMeta.(type) {
 	case *DockerBuildMeta:
-		parsed, err := bm.ParseDockerFile()
-		if err == nil && parsed.FromPort > 0 {
-			bm.ExposedPort = parsed.FromPort
-			resource.BuildMeta = bm
-		}
+		bm.SetDefaultsFromRepository()
 	}
 
 	bucket, err := client.GetOrCreateBucket(&nats.KeyValueConfig{

@@ -17,11 +17,14 @@ import (
 type CloneRepoResult struct {
 	Directory string
 	Commit    string
+	Repo      *git.Repository
 }
 
 type CloneRepoRequest struct {
-	Progress sideband.Progress
-	UseCache bool
+	Progress     sideband.Progress
+	UseCache     bool
+	SingleBranch bool
+	BranchName   string
 }
 
 var repoCloneCache = expirable.NewLRU[string, *CloneRepoResult](100, nil, time.Second*30)
@@ -29,7 +32,7 @@ var repoCloneCache = expirable.NewLRU[string, *CloneRepoResult](100, nil, time.S
 func (bm *DockerBuildMeta) CloneRepo(request CloneRepoRequest) (*CloneRepoResult, error) {
 
 	hash := util.HashString(
-		fmt.Sprintf("%s-%s-%s", bm.RepositoryUrl, bm.GithubAccessToken, bm.DeploymentBranch),
+		fmt.Sprintf("%s-%s-%s-%v", bm.RepositoryUrl, bm.GithubAccessToken, request.BranchName, request.SingleBranch),
 	)
 
 	// pull from cache if we can
@@ -65,13 +68,14 @@ func (bm *DockerBuildMeta) CloneRepo(request CloneRepoRequest) (*CloneRepoResult
 		Auth:          opts.Auth,
 		Progress:      request.Progress,
 		Depth:         1,
-		ReferenceName: plumbing.ReferenceName(bm.DeploymentBranch),
-		SingleBranch:  true,
+		RemoteName:    "origin",
+		ReferenceName: plumbing.ReferenceName(request.BranchName),
+		SingleBranch:  request.SingleBranch,
 	})
 
 	if err != nil {
 		if errors.Is(err, git.NoMatchingRefSpecError{}) {
-			return nil, errors.New(fmt.Sprintf("branch '%s' not found in repository", bm.DeploymentBranch))
+			return nil, errors.New(fmt.Sprintf("ranch '%s' not found in repository", bm.DeploymentBranch))
 		}
 		return nil, err
 	}
@@ -89,6 +93,7 @@ func (bm *DockerBuildMeta) CloneRepo(request CloneRepoRequest) (*CloneRepoResult
 	result := &CloneRepoResult{
 		Directory: tempDir,
 		Commit:    commitHash,
+		Repo:      repo,
 	}
 
 	if request.UseCache {
