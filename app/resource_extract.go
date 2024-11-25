@@ -38,7 +38,7 @@ func (bm *DockerBuildMeta) SetDefaultsFromRepository() {
 	if err == nil && head.Name().IsBranch() {
 		bm.DeploymentBranch = head.Name().Short()
 	} else {
-		branches, err := ListRemoteBranches(clone.Repo)
+		branches, err := bm.ListRemoteBranches()
 		if err == nil {
 			for _, branch := range branches {
 				if branch == "master" || branch == "main" {

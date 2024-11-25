@@ -5,6 +5,7 @@ import (
 	"dockside/app/ui"
 	"dockside/pages/resource/resourceui"
 	"github.com/maddalax/htmgo/framework/h"
+	"slices"
 	"strconv"
 )
 
@@ -23,6 +24,14 @@ func SaveResourceDetails(ctx *h.RequestContext) *h.Partial {
 	dockerfile := ctx.FormValue("dockerfile")
 	deploymentBranch := ctx.FormValue("deployment-branch")
 	autoDeploy := ctx.FormValue("auto-deploy") == "on"
+
+	switch bm := resource.BuildMeta.(type) {
+	case *app.DockerBuildMeta:
+		branches, err := bm.ListRemoteBranches()
+		if err == nil && !slices.Contains(branches, deploymentBranch) {
+			return ui.ErrorAlertPartial(ctx, h.Pf("Invalid branch"), h.Pf("The deployment branch you specified does not exist in the repository"))
+		}
+	}
 
 	err = app.ResourcePatch(locator, resource.Id, func(resource *app.Resource) *app.Resource {
 		resource.InstancesPerServer = instancesPerServer

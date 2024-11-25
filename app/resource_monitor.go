@@ -134,7 +134,13 @@ func (monitor *ResourceMonitor) ResourceCheckForNewCommits() {
 			if !bm.DeployOnNewCommit {
 				continue
 			}
-			latest, _ := GetLatestCommitOnRemote(bm.RepositoryUrl, bm.DeploymentBranch)
+			latest, err := bm.GetLatestCommitOnRemote()
+			if err != nil {
+				logger.ErrorWithFields("Error getting latest commit", err, map[string]interface{}{
+					"resource": res.Id,
+				})
+				continue
+			}
 			current := bm.CommitForBuild
 			logger.InfoWithFields("Checking for new commits", map[string]interface{}{
 				"resource": res.Id,

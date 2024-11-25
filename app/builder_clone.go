@@ -6,11 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/protocol/packp/sideband"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/hashicorp/golang-lru/v2/expirable"
+	"github.com/maddalax/htmgo/framework/h"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -75,7 +78,7 @@ func (bm *DockerBuildMeta) CloneRepo(request CloneRepoRequest) (*CloneRepoResult
 
 	if err != nil {
 		if errors.Is(err, git.NoMatchingRefSpecError{}) {
-			return nil, errors.New(fmt.Sprintf("ranch '%s' not found in repository", bm.DeploymentBranch))
+			return nil, errors.New(fmt.Sprintf("branch '%s' not found in repository", bm.DeploymentBranch))
 		}
 		return nil, err
 	}
@@ -101,4 +104,69 @@ func (bm *DockerBuildMeta) CloneRepo(request CloneRepoRequest) (*CloneRepoResult
 	}
 
 	return result, nil
+}
+
+func (bm *DockerBuildMeta) ListRemoteBranches() ([]string, error) {
+	remote := git.NewRemote(nil, &config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{bm.RepositoryUrl},
+	})
+
+	opts := &git.ListOptions{}
+
+	if bm.GithubAccessToken != "" {
+		opts.Auth = &http.BasicAuth{
+			Username: "dockside",
+			Password: bm.GithubAccessToken,
+		}
+	}
+
+	refs, err := remote.List(opts)
+
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]string, 0)
+
+	for _, ref := range refs {
+		if ref.Name().IsRemote() || ref.Name().IsBranch() {
+			name := ref.Name().Short()
+			name = strings.TrimPrefix(name, "origin/")
+			names = append(names, name)
+		}
+	}
+
+	return h.Unique(names, func(item string) string {
+		return item
+	}), nil
+}
+
+func (bm *DockerBuildMeta) GetLatestCommitOnRemote() (string, error) {
+	remote := git.NewRemote(nil, &config.RemoteConfig{
+		URLs: []string{bm.RepositoryUrl},
+	})
+
+	opts := &git.ListOptions{}
+
+	if bm.GithubAccessToken != "" {
+		opts.Auth = &http.BasicAuth{
+			Username: "dockside",
+			Password: bm.GithubAccessToken,
+		}
+	}
+
+	refs, err := remote.List(opts)
+
+	if err != nil {
+		return "", err
+	}
+
+	for _, ref := range refs {
+		if ref.Name() == plumbing.NewBranchReferenceName(bm.DeploymentBranch) {
+			return ref.Hash().String(), nil
+		}
+	}
+
+	return "", errors.New("branch not found")
 }
