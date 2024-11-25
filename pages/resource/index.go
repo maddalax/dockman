@@ -19,14 +19,16 @@ func SaveResourceDetails(ctx *h.RequestContext) *h.Partial {
 		return ui.GenericErrorAlertPartial(ctx, err)
 	}
 
-	redeployOnPushBranch := ctx.FormValue("redeploy-on-push-branch")
 	exposedPort, _ := strconv.Atoi(ctx.FormValue("exposed-port"))
 	dockerfile := ctx.FormValue("dockerfile")
+	deploymentBranch := ctx.FormValue("deployment-branch")
+	autoDeploy := ctx.FormValue("auto-deploy") == "on"
 
 	err = app.ResourcePatch(locator, resource.Id, func(resource *app.Resource) *app.Resource {
 		resource.InstancesPerServer = instancesPerServer
 		bm := resource.BuildMeta.(*app.DockerBuildMeta)
-		bm.RedeployOnPushBranch = redeployOnPushBranch
+		bm.DeployOnNewCommit = autoDeploy
+		bm.DeploymentBranch = deploymentBranch
 		bm.ExposedPort = exposedPort
 		bm.Dockerfile = dockerfile
 		resource.BuildMeta = bm
@@ -104,7 +106,7 @@ func buildMetaFields(resource *app.Resource) *h.Element {
 				}),
 				ui.Checkbox(ui.CheckboxProps{
 					Label:   "Auto Deploy On Push To Branch",
-					Checked: true,
+					Checked: bm.DeployOnNewCommit,
 					Name:    "auto-deploy",
 					Id:      "auto-deploy",
 				}),

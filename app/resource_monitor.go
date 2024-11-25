@@ -131,10 +131,10 @@ func (monitor *ResourceMonitor) ResourceCheckForNewCommits() {
 	for _, res := range list {
 		switch bm := res.BuildMeta.(type) {
 		case *DockerBuildMeta:
-			if bm.RedeployOnPushBranch == "" {
+			if !bm.DeployOnNewCommit {
 				continue
 			}
-			latest, _ := GetLatestCommitOnRemote(bm.RepositoryUrl, bm.RedeployOnPushBranch)
+			latest, _ := GetLatestCommitOnRemote(bm.RepositoryUrl, bm.DeploymentBranch)
 			current := bm.CommitForBuild
 			logger.InfoWithFields("Checking for new commits", map[string]interface{}{
 				"resource": res.Id,
@@ -142,7 +142,7 @@ func (monitor *ResourceMonitor) ResourceCheckForNewCommits() {
 				"current":  current,
 			})
 			if current != "" && latest != "" && latest != current {
-				registry.GetEventHandler().OnNewCommit(res, bm.RedeployOnPushBranch, latest)
+				registry.GetEventHandler().OnNewCommit(res, bm.DeploymentBranch, latest)
 			}
 		}
 	}

@@ -18,6 +18,7 @@ func Checkbox(props CheckboxProps) *h.Element {
 			h.Text("​"),
 			h.Input(
 				"checkbox",
+				h.Name(props.Name),
 				h.Class("size-4 rounded border-gray-300"),
 				h.Id(props.Id),
 				h.Ternary(props.Checked, h.Checked(), nil),

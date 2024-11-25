@@ -84,7 +84,7 @@ func (eh *EventHandler) OnNewCommit(resource *Resource, branch string, commit st
 	})
 	switch bm := resource.BuildMeta.(type) {
 	case *DockerBuildMeta:
-		if strings.ToLower(bm.RedeployOnPushBranch) == strings.ToLower(branch) {
+		if bm.DeployOnNewCommit && strings.ToLower(bm.DeploymentBranch) == strings.ToLower(branch) {
 			buildId := uuid.New().String()
 			logger.InfoWithFields("Starting build from new commit", map[string]any{
 				"resource": resource.Id,

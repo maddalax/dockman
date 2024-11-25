@@ -3,8 +3,10 @@ package app
 import (
 	"dockside/app/logger"
 	"dockside/app/util"
+	"errors"
 	"fmt"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/protocol/packp/sideband"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/hashicorp/golang-lru/v2/expirable"
@@ -27,7 +29,7 @@ var repoCloneCache = expirable.NewLRU[string, *CloneRepoResult](100, nil, time.S
 func (bm *DockerBuildMeta) CloneRepo(request CloneRepoRequest) (*CloneRepoResult, error) {
 
 	hash := util.HashString(
-		fmt.Sprintf("%s-%s", bm.RepositoryUrl, bm.GithubAccessToken),
+		fmt.Sprintf("%s-%s-%s", bm.RepositoryUrl, bm.GithubAccessToken, bm.DeploymentBranch),
 	)
 
 	// pull from cache if we can
@@ -59,13 +61,18 @@ func (bm *DockerBuildMeta) CloneRepo(request CloneRepoRequest) (*CloneRepoResult
 	}
 
 	repo, err := git.PlainClone(tempDir, false, &git.CloneOptions{
-		URL:      bm.RepositoryUrl,
-		Auth:     opts.Auth,
-		Progress: request.Progress,
-		Depth:    1,
+		URL:           bm.RepositoryUrl,
+		Auth:          opts.Auth,
+		Progress:      request.Progress,
+		Depth:         1,
+		ReferenceName: plumbing.ReferenceName(bm.DeploymentBranch),
+		SingleBranch:  true,
 	})
 
 	if err != nil {
+		if errors.Is(err, git.NoMatchingRefSpecError{}) {
+			return nil, errors.New(fmt.Sprintf("branch '%s' not found in repository", bm.DeploymentBranch))
+		}
 		return nil, err
 	}
 
