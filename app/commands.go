@@ -11,12 +11,11 @@ type RunResourceCommand struct {
 	// if we change the instances and existing containers already exist for the new instance indexes, remove them
 	RemoveExisting bool
 	ResponseData   *RunResourceResponse
-	ResponseErr    error
 }
 
 type RunResourceResponse struct {
 	Message string
-	Error   error
+	Error   string
 }
 
 func (c *RunResourceCommand) Execute(agent *Agent) {
@@ -25,13 +24,16 @@ func (c *RunResourceCommand) Execute(agent *Agent) {
 		IgnoreIfRunning: c.IgnoreIfRunning,
 	})
 	if err != nil {
-		c.ResponseErr = err
-	}
-	logger.InfoWithFields("Running resource", map[string]any{
-		"resource_id": c.ResourceId,
-	})
-	c.ResponseData = &RunResourceResponse{
-		Message: "Resource started",
+		c.ResponseData = &RunResourceResponse{
+			Error: err.Error(),
+		}
+	} else {
+		logger.InfoWithFields("Running resource", map[string]any{
+			"resource_id": c.ResourceId,
+		})
+		c.ResponseData = &RunResourceResponse{
+			Message: "Resource started",
+		}
 	}
 }
 
@@ -46,24 +48,26 @@ func (c *RunResourceCommand) Name() string {
 type StopResourceCommand struct {
 	ResourceId   string
 	ResponseData *StopResourceResponse
-	ResponseErr  error
 }
 
 type StopResourceResponse struct {
 	Message string
-	Error   error
+	Error   string
 }
 
 func (c *StopResourceCommand) Execute(agent *Agent) {
 	_, err := ResourceStop(agent, c.ResourceId)
 	if err != nil {
-		c.ResponseErr = err
-	}
-	logger.InfoWithFields("stopping resource", map[string]any{
-		"resource_id": c.ResourceId,
-	})
-	c.ResponseData = &StopResourceResponse{
-		Message: "Resource stopped",
+		c.ResponseData = &StopResourceResponse{
+			Error: err.Error(),
+		}
+	} else {
+		logger.InfoWithFields("stopping resource", map[string]any{
+			"resource_id": c.ResourceId,
+		})
+		c.ResponseData = &StopResourceResponse{
+			Message: "Resource stopped",
+		}
 	}
 }
 

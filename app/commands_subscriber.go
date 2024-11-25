@@ -75,7 +75,7 @@ func (a *Agent) SubscribeToCommands() {
 type SendCommandResponse[T any] struct {
 	Response      T
 	ServerDetails *Server
-	Error         error
+	SendError     error
 }
 
 type SendCommandOpts struct {
@@ -154,7 +154,7 @@ func SendCommand[T any](locator *service.Locator, serverId string, opts SendComm
 		isAccessible := SendPingToServer(locator, serverId)
 
 		if !isAccessible {
-			response.Error = errors.New("server is not accessible")
+			response.SendError = errors.New("server is not accessible")
 			return response, nil
 		}
 	}
@@ -181,7 +181,7 @@ func SendCommand[T any](locator *service.Locator, serverId string, opts SendComm
 		bucket, err := agent.GetCommandResponseBucket()
 
 		if err != nil {
-			response.Error = err
+			response.SendError = err
 			return
 		}
 
@@ -197,7 +197,7 @@ func SendCommand[T any](locator *service.Locator, serverId string, opts SendComm
 			select {
 			case <-ticker.C:
 				// no response before the timeout
-				response.Error = errors.New("no response from server")
+				response.SendError = errors.New("no response from server")
 				return
 			case c := <-watcher.Updates():
 

@@ -17,3 +17,5 @@ var NatsKeyNotFoundError = errors.New("nats: key not found")
 var ResourcePortInUseError = func(port string) error {
 	return fmt.Errorf("port %s is already in use by another process, redeploy the resource to bind to a new port", port)
 }
+var ResourceExposedPortNotSetError = errors.New("resource exposed port not set")
+var NoServersAttachedError = errors.New("no servers attached to resource")

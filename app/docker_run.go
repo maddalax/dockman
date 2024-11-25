@@ -107,12 +107,25 @@ func (c *DockerClient) doRun(resource *Resource, index int, opts RunOptions) err
 		return err
 	}
 
+	exposedPort := 0
+
+	switch b := resource.BuildMeta.(type) {
+	case *DockerBuildMeta:
+		exposedPort = b.ExposedPort
+	}
+
+	if exposedPort == 0 {
+		return ResourceExposedPortNotSetError
+	}
+
+	exposedPortFmt := nat.Port(fmt.Sprintf("%d/tcp", exposedPort))
+
 	// Define port bindings
 	portBindings := nat.PortMap{
-		"3000/tcp": []nat.PortBinding{
+		exposedPortFmt: []nat.PortBinding{
 			{
-				HostIP:   "0.0.0.0",              // Bind to all network interfaces
-				HostPort: strconv.Itoa(hostPort), // Map container port 80 to host port 8080
+				HostIP:   "0.0.0.0",
+				HostPort: strconv.Itoa(hostPort),
 			},
 		},
 	}
@@ -132,13 +145,10 @@ func (c *DockerClient) doRun(resource *Resource, index int, opts RunOptions) err
 		},
 	}
 
-	// ResourceCreate and start a container
 	resp, err := c.cli.ContainerCreate(ctx, &container.Config{
 		Image: imageName,
 		ExposedPorts: map[nat.Port]struct{}{
-			// the port the container exposes
-			// TODO this should be dynamic
-			"3000/tcp": {},
+			exposedPortFmt: {},
 		},
 		AttachStdout: true,
 		AttachStderr: true,

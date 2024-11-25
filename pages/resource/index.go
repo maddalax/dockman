@@ -19,7 +19,6 @@ func SaveResourceDetails(ctx *h.RequestContext) *h.Partial {
 		return ui.GenericErrorAlertPartial(ctx, err)
 	}
 
-	repository := ctx.FormValue("repository")
 	redeployOnPushBranch := ctx.FormValue("redeploy-on-push-branch")
 	exposedPort, _ := strconv.Atoi(ctx.FormValue("exposed-port"))
 	dockerfile := ctx.FormValue("dockerfile")
@@ -27,18 +26,9 @@ func SaveResourceDetails(ctx *h.RequestContext) *h.Partial {
 	err = app.ResourcePatch(locator, resource.Id, func(resource *app.Resource) *app.Resource {
 		resource.InstancesPerServer = instancesPerServer
 		bm := resource.BuildMeta.(*app.DockerBuildMeta)
-		if repository != "" {
-			bm.RepositoryUrl = repository
-		}
-		if redeployOnPushBranch != "" {
-			bm.RedeployOnPushBranch = redeployOnPushBranch
-		}
-		if exposedPort != 0 {
-			bm.ExposedPort = exposedPort
-		}
-		if dockerfile != "" {
-			bm.Dockerfile = dockerfile
-		}
+		bm.RedeployOnPushBranch = redeployOnPushBranch
+		bm.ExposedPort = exposedPort
+		bm.Dockerfile = dockerfile
 		resource.BuildMeta = bm
 		return resource
 	})
@@ -66,7 +56,7 @@ func Index(ctx *h.RequestContext) *h.Page {
 			ui.AlertPlaceholder(),
 			h.Form(
 				h.NoSwap(),
-				h.Class("flex flex-col gap-2"),
+				h.Class("flex flex-col gap-4"),
 				ui.Input(ui.InputProps{
 					Label:        "Resource Name",
 					DefaultValue: resource.Name,
@@ -105,11 +95,25 @@ func buildMetaFields(resource *app.Resource) *h.Element {
 				DefaultValue: bm.RepositoryUrl,
 				Name:         "repository",
 			}),
-			ui.Input(ui.InputProps{
-				Label:        "Redeploy On Push To Branch",
-				DefaultValue: bm.RedeployOnPushBranch,
-				Name:         "redeploy-on-push-branch",
-			}),
+			h.Div(
+				h.Class("flex flex-col gap-1"),
+				ui.Input(ui.InputProps{
+					Label:        "Deployment Branch",
+					DefaultValue: bm.DeploymentBranch,
+					Name:         "deployment-branch",
+				}),
+				ui.Checkbox(ui.CheckboxProps{
+					Label:   "Auto Deploy On Push To Branch",
+					Checked: true,
+					Name:    "auto-deploy",
+					Id:      "auto-deploy",
+				}),
+			),
+			//ui.Input(ui.InputProps{
+			//	Label:        "Redeploy On Push To Branch",
+			//	DefaultValue: bm.RedeployOnPushBranch,
+			//	Name:         "redeploy-on-push-branch",
+			//}),
 			ui.Input(ui.InputProps{
 				Disabled:     true,
 				Label:        "Latest Commit",

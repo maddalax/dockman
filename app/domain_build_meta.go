@@ -27,6 +27,7 @@ type DockerBuildMeta struct {
 	ExposedPort       int      `json:"exposed_port"`
 	// the git commit that was used to build the image
 	CommitForBuild       string `json:"commit_for_build"`
+	DeploymentBranch     string `json:"deployment_branch"`
 	RedeployOnPushBranch string `json:"redeploy_on_push_branch"`
 }
 

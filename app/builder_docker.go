@@ -105,8 +105,8 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 
 		serverName := h.Ternary(response.ServerDetails.Name == "", response.ServerDetails.HostName, response.ServerDetails.Name)
 
-		if response.Response.Error != nil || response.Error != nil {
-			err = h.Ternary(response.Response.Error == nil, response.Error, response.Response.Error).(error)
+		if response.Response.Error != "" || response.SendError != nil {
+			err = h.Ternary(response.Response.Error == "", response.SendError, errors.New(response.Response.Error)).(error)
 			b.LogBuildError(errors.Wrap(err, fmt.Sprintf("Failed to start resource on server %s", serverName)))
 		} else {
 			b.LogBuildMessage(fmt.Sprintf("Resource started on server %s", serverName))

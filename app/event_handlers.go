@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"
+	"strings"
 	"time"
 )
 
@@ -83,7 +84,7 @@ func (eh *EventHandler) OnNewCommit(resource *Resource, branch string, commit st
 	})
 	switch bm := resource.BuildMeta.(type) {
 	case *DockerBuildMeta:
-		if bm.RedeployOnPushBranch == branch {
+		if strings.ToLower(bm.RedeployOnPushBranch) == strings.ToLower(branch) {
 			buildId := uuid.New().String()
 			logger.InfoWithFields("Starting build from new commit", map[string]any{
 				"resource": resource.Id,

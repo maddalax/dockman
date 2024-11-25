@@ -74,6 +74,13 @@ func NewResourceBuilder(serviceLocator *service.Locator, resource *Resource, bui
 	return builder
 }
 
+func (b *ResourceBuilder) CanBuild() error {
+	if len(b.Resource.ServerDetails) == 0 {
+		return NoServersAttachedError
+	}
+	return nil
+}
+
 func (b *ResourceBuilder) onFinish() {
 	logger.InfoWithFields("Builder finished", map[string]any{
 		"resource": b.Resource.Id,
@@ -106,7 +113,6 @@ func (b *ResourceBuilder) BuildError(err error) error {
 }
 
 func (b *ResourceBuilder) Build() error {
-
 	defer func() {
 		b.onFinish()
 	}()
@@ -115,6 +121,12 @@ func (b *ResourceBuilder) Build() error {
 
 	if err != nil {
 		return err
+	}
+
+	err = b.CanBuild()
+
+	if err != nil {
+		return b.BuildError(err)
 	}
 
 	err = b.NatsClient.CreateRunLogStream(b.Resource.Id)
