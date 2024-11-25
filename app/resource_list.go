@@ -3,11 +3,14 @@ package app
 import (
 	"dockside/app/util/json2"
 	"github.com/maddalax/htmgo/framework/service"
+	"github.com/nats-io/nats.go"
 )
 
 func ResourceList(locator *service.Locator) ([]*Resource, error) {
 	client := service.Get[KvClient](locator)
-	bucket, err := client.GetBucket("resources")
+	bucket, err := client.GetOrCreateBucket(&nats.KeyValueConfig{
+		Bucket: "resources",
+	})
 	resources := make([]*Resource, 0)
 
 	if err != nil {

@@ -3,8 +3,7 @@ package app
 import (
 	"dockside/app/logger"
 	"dockside/app/util/filekv"
-	"fmt"
-	"os"
+	"dockside/app/volume"
 	"path/filepath"
 )
 
@@ -21,14 +20,16 @@ func NewServerConfigManager() *ServerConfigManager {
 }
 
 func (m *ServerConfigManager) ConfigPath() string {
-	home, err := os.UserHomeDir()
+	abs, err := filepath.Abs(filepath.Join(volume.GetPersistentVolumePath(), "server_config.json"))
 	if err != nil {
-		home = "./"
-	}
-	abs, err := filepath.Abs(filepath.Join(home, fmt.Sprintf(".%s", AppName), "server_config.json"))
-	if err != nil {
+		logger.ErrorWithFields("Failed to get server config path", err, map[string]any{
+			"volume_path": volume.GetPersistentVolumePath(),
+		})
 		return "./server_config.json"
 	}
+	logger.InfoWithFields("loading server config", map[string]any{
+		"path": abs,
+	})
 	return abs
 }
 

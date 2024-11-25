@@ -13,8 +13,7 @@ func GetStatusPartial(ctx *h.RequestContext) *h.Partial {
 		resource, err := app.ResourceGet(ctx.ServiceLocator(), id)
 
 		if err != nil {
-			// TODO
-			panic(err)
+			return ui.GenericErrorAlertPartial(ctx, err)
 		}
 
 		return h.SwapPartial(

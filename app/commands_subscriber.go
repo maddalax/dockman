@@ -32,7 +32,7 @@ func (a *Agent) SubscribeToCommands() {
 
 		decoder := gob.NewDecoder(buffer)
 		if err := decoder.Decode(&wrapper); err != nil {
-			logger.Error("Failed to decode command: %s", err)
+			logger.Error("Failed to decode command", err)
 			return
 		}
 
@@ -233,7 +233,7 @@ func SendCommand[T any](locator *service.Locator, serverId string, opts SendComm
 
 	subjectName := agent.CommandStreamName(serverId)
 
-	logger.DebugWithFields("sending command", map[string]any{
+	logger.InfoWithFields("sending command", map[string]any{
 		"command":   opts.Command.Name(),
 		"server_id": serverId,
 		"stream":    subjectName,

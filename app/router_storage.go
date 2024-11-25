@@ -44,13 +44,18 @@ func ValidateBlocks(blocks []RouteBlock) error {
 
 func GetRouteTable(locator *service.Locator) ([]RouteBlock, error) {
 	client := KvFromLocator(locator)
-	bucket, err := client.GetBucket("route-table")
+	bucket, err := client.GetOrCreateBucket(&nats.KeyValueConfig{
+		Bucket: "route-table",
+	})
 	if err != nil {
 		return nil, err
 	}
+
 	data, err := bucket.Get("blocks")
+
+	// empty table
 	if err != nil {
-		return nil, err
+		return make([]RouteBlock, 0), nil
 	}
 	var blocks []RouteBlock
 

@@ -11,7 +11,7 @@ CONTAINER_NAME="dockside"
 DOCKER_FILE_PATH="Dockerfile-manager"
 
 # Step 1: Build the image locally (if needed)
-docker build -t "$LOCAL_IMAGE_NAME" -f "$DOCKER_FILE_PATH" .
+docker build --no-cache -t "$LOCAL_IMAGE_NAME" -f "$DOCKER_FILE_PATH" .
 
 # Step 2: Export the image to a tar file
 IMAGE_TAR="dockside.tar"
@@ -29,10 +29,7 @@ ssh "$REMOTE_USER@$REMOTE_HOST" << EOF
 
   # Remove the temporary tar file
   rm -f "$REMOTE_PATH"
-
-  # Pull the latest image to ensure updates
-  docker pull "$LOCAL_IMAGE_NAME"
-
+  
   # Stop and remove the existing container if it exists
   docker stop "$CONTAINER_NAME" 2>/dev/null || true
   docker rm "$CONTAINER_NAME" 2>/dev/null || true

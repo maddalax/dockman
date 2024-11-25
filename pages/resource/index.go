@@ -121,9 +121,10 @@ func buildMetaFields(resource *app.Resource) *h.Element {
 				Name:         "latest-commit",
 			}),
 			ui.Input(ui.InputProps{
-				Label:        "Exposed Port",
+				Label:        "Application Exposed Port",
 				DefaultValue: strconv.Itoa(bm.ExposedPort),
 				Name:         "exposed-port",
+				HelpText:     h.Pf("The port your application listens on inside the container, in the case of a docker deployment, its default value is from the EXPOSE directive in the Dockerfile."),
 			}),
 			ui.Input(ui.InputProps{
 				Label:        "Dockerfile",

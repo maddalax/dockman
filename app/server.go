@@ -30,29 +30,23 @@ func ServerPut(locator *service.Locator, opts ServerPutOpts) error {
 
 	var server *Server
 
-	list, err := ServerList(locator)
+	server, err := ServerGet(locator, opts.Id)
 
 	if err != nil {
-		return err
-	}
-
-	for _, s := range list {
-		if s.Id == opts.Id {
-			server = s
-			break
-		}
-		if s.LocalIpAddress != "" && s.LocalIpAddress == opts.LocalIpAddress {
-			server = s
-			break
-		}
-		if s.RemoteIpAddress != "" && s.RemoteIpAddress == opts.RemoteIpAddress {
-			server = s
-			break
+		if errors.Is(err, nats.ErrKeyNotFound) {
+			server = nil
+		} else {
+			logger.ErrorWithFields("Error getting server", err, map[string]interface{}{
+				"id": opts.Id,
+			})
+			return err
 		}
 	}
 
 	// server exists already
 	if server != nil {
+		// server id might have changed, update it
+		server.Id = opts.Id
 		server.LocalIpAddress = opts.LocalIpAddress
 		server.RemoteIpAddress = opts.RemoteIpAddress
 		server.HostName = opts.HostName
@@ -66,6 +60,7 @@ func ServerPut(locator *service.Locator, opts ServerPutOpts) error {
 			"host_name": opts.HostName,
 		})
 	} else {
+
 		server = &Server{
 			Id:              opts.Id,
 			LocalIpAddress:  opts.LocalIpAddress,

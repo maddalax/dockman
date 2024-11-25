@@ -11,7 +11,9 @@ func Error(message string, err error) {
 }
 
 func ErrorWithFields(message string, err error, fields map[string]any) {
-	fields["error"] = err.Error()
+	if err != nil {
+		fields["error"] = err.Error()
+	}
 	MessageWithFields(message, slog.LevelError, fields)
 }
 

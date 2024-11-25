@@ -4,10 +4,8 @@ import (
 	"dockside/app/logger"
 	"dockside/app/util/networkutil"
 	"fmt"
-	"github.com/maddalax/htmgo/framework/h"
 	"os"
 	"runtime"
-	"strings"
 	"time"
 )
 
@@ -31,19 +29,11 @@ func (a *Agent) resourceStatusMonitor() {
 		return
 	}
 
-	logger.InfoWithFields("Updating resource statuses", map[string]any{
-		"server_id": a.serverId,
-		"count":     len(resources),
-		"resource_ids": strings.Join(h.Map(resources, func(r *Resource) string {
-			return r.Id
-		}), ", "),
-	})
-
 	for _, resource := range resources {
 		update, err := a.CalculateResourceServer(resource)
 
 		if err != nil {
-			logger.ErrorWithFields("Failed to calculate resource status", nil, map[string]any{
+			logger.ErrorWithFields("Failed to calculate resource status", err, map[string]any{
 				"resource_id": resource.Id,
 			})
 			continue

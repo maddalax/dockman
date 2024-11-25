@@ -130,9 +130,9 @@ func renderServerTable[T any](servers []T, rowRenderer func(server T, index int)
 		h.Class("w-full table-auto border-collapse border border-gray-200"),
 		h.THead(
 			h.Tr(
+				h.Th(h.Text("ID"), h.Class("border border-gray-200 px-4 py-2")),
 				h.Th(h.Text("Host Name"), h.Class("border border-gray-200 px-4 py-2")),
-				h.Th(h.Text("Local IP Address"), h.Class("border border-gray-200 px-4 py-2")),
-				h.Th(h.Text("Remote IP Address"), h.Class("border border-gray-200 px-4 py-2")),
+				h.Th(h.Text("IP Address"), h.Class("border border-gray-200 px-4 py-2")),
 				h.Th(h.Text("OS"), h.Class("border border-gray-200 px-4 py-2")),
 				h.Th(h.Text("Last Seen"), h.Class("border border-gray-200 px-4 py-2")),
 				h.Th(h.Text("Status"), h.Class("border border-gray-200 px-4 py-2")),
@@ -153,9 +153,9 @@ func serverBlockRow(server *app.Server, resource *app.Resource, isAssociated boo
 	}
 
 	return h.Tr(
+		h.Td(h.Text(server.Id), h.Class("border border-gray-200 px-4 py-2")),
 		h.Td(h.Text(server.HostName), h.Class("border border-gray-200 px-4 py-2")),
-		h.Td(h.Text(server.LocalIpAddress), h.Class("border border-gray-200 px-4 py-2")),
-		h.Td(h.Text(server.RemoteIpAddress), h.Class("border border-gray-200 px-4 py-2")),
+		h.Td(h.Text(server.IpAddress()), h.Class("border border-gray-200 px-4 py-2")),
 		h.Td(h.Text(server.Os), h.Class("border border-gray-200 px-4 py-2")),
 		h.Td(h.Text(server.LastSeen.Format("2006-01-02 15:04:05")), h.Class("border border-gray-200 px-4 py-2")),
 		h.Td(

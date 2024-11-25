@@ -11,7 +11,7 @@ CONTAINER_NAME="dockside-agent"
 DOCKER_FILE_PATH="Dockerfile-agent"
 
 # Step 1: Build the image locally (if needed)
-docker build -t "$LOCAL_IMAGE_NAME" -f "$DOCKER_FILE_PATH" .
+docker build --no-cache -t "$LOCAL_IMAGE_NAME" -f "$DOCKER_FILE_PATH" .
 
 # Step 2: Export the image to a tar file
 IMAGE_TAR="dockside-agent.tar"
@@ -24,18 +24,15 @@ scp "$IMAGE_TAR" "$REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH"
 ssh "$REMOTE_USER@$REMOTE_HOST" << EOF
   set -e
 
+  # Stop and remove the existing container if it exists
+  docker stop "$CONTAINER_NAME" 2>/dev/null || true
+  docker rm "$CONTAINER_NAME" 2>/dev/null || true
+
   # Load the Docker image
   docker load < "$REMOTE_PATH"
 
   # Remove the temporary tar file
   rm -f "$REMOTE_PATH"
-
-  # Pull the latest image to ensure updates
-  docker pull "$LOCAL_IMAGE_NAME"
-
-  # Stop and remove the existing container if it exists
-  docker stop "$CONTAINER_NAME" 2>/dev/null || true
-  docker rm "$CONTAINER_NAME" 2>/dev/null || true
 
   # Run the container
     docker run -d \
@@ -44,7 +41,7 @@ ssh "$REMOTE_USER@$REMOTE_HOST" << EOF
       --restart unless-stopped \
       -v /data/dockside:/data/dockside \
       -v /var/run/docker.sock:/var/run/docker.sock \
-      -e NATS_HOST=localhost \
+      -e NATS_HOST=100.65.253.122 \
       "$LOCAL_IMAGE_NAME"
 EOF
 

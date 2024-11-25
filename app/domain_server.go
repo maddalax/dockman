@@ -24,3 +24,11 @@ func (server *Server) FormattedName() string {
 	}
 	return server.HostName
 }
+
+func (server *Server) IpAddress() string {
+	// prefer local ip address
+	if server.LocalIpAddress != "" {
+		return server.LocalIpAddress
+	}
+	return server.RemoteIpAddress
+}

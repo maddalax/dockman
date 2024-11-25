@@ -85,6 +85,7 @@ func (v GithubRepositoryValidator) Validate() error {
 		}
 
 		clone, err := meta.CloneRepo(CloneRepoRequest{
+			UseCache: true,
 			Progress: os.Stdout,
 		})
 
@@ -117,6 +118,7 @@ func (v ValidDockerFileValidator) Validate() error {
 
 	// validate it's a valid dockerfile with a quick check
 	file, err := os.Open(dockerfilePath)
+	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
