@@ -209,7 +209,7 @@ func Input(props InputProps) *h.Element {
 
 	// Add help text if provided
 	if props.HelpText != nil {
-		children = append(children, h.P(
+		children = append(children, h.Div(
 			h.Class("text-sm text-muted-foreground mt-1"),
 			props.HelpText,
 		))
