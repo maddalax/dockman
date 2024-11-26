@@ -67,26 +67,26 @@ func Index(ctx *h.RequestContext) *h.Page {
 			ui.AlertPlaceholder(),
 			h.Form(
 				h.NoSwap(),
-				h.Class("flex flex-col gap-4"),
+				h.Class("flex flex-col gap-5"),
 				ui.Input(ui.InputProps{
-					Label:        "Resource Name",
-					DefaultValue: resource.Name,
-					Name:         "name",
-					Disabled:     true,
+					Label:    "Resource Name",
+					Value:    resource.Name,
+					Name:     "name",
+					Disabled: true,
 				}),
 				ui.Input(ui.InputProps{
-					Label:        "Resource Type",
-					DefaultValue: strconv.Itoa(int(resource.RunType)),
-					Disabled:     true,
+					Label:    "Resource Type",
+					Value:    strconv.Itoa(int(resource.RunType)),
+					Disabled: true,
 				}),
 				ui.Input(ui.InputProps{
-					Label:        "Instances Per Server",
-					DefaultValue: strconv.Itoa(resource.InstancesPerServer),
-					Name:         "instances-per-server",
-					HelpText:     h.Pf("Number of instances to run on each server, requests will be automatically load balanced between them."),
+					Label:    "Instances Per Server",
+					Value:    strconv.Itoa(resource.InstancesPerServer),
+					Name:     "instances-per-server",
+					HelpText: h.Pf("Number of instances to run on each server, requests will be automatically load balanced between them."),
 				}),
 				buildMetaFields(resource),
-				ui.SubmitButton(ui.SubmitButtonProps{
+				ui.SubmitButton(ui.ButtonProps{
 					Text:           "Save",
 					SubmittingText: "Saving...",
 					Post:           h.GetPartialPath(SaveResourceDetails),
@@ -99,19 +99,27 @@ func Index(ctx *h.RequestContext) *h.Page {
 func buildMetaFields(resource *app.Resource) *h.Element {
 	switch bm := resource.BuildMeta.(type) {
 	case *app.DockerBuildMeta:
+		branches, err := bm.ListRemoteBranches()
+		if err != nil {
+			branches = []string{}
+		}
 		return h.Fragment(
 			ui.Input(ui.InputProps{
-				Label:        "Repository",
-				Disabled:     true,
-				DefaultValue: bm.RepositoryUrl,
-				Name:         "repository",
+				Label:    "Repository",
+				Disabled: true,
+				Value:    bm.RepositoryUrl,
+				Name:     "repository",
 			}),
 			h.Div(
 				h.Class("flex flex-col gap-1"),
-				ui.Input(ui.InputProps{
-					Label:        "Deployment Branch",
-					DefaultValue: bm.DeploymentBranch,
-					Name:         "deployment-branch",
+				ui.ComboBox(ui.ComboBoxProps{
+					Label:      "Deployment Branch",
+					Name:       "deployment-branch",
+					Value:      bm.DeploymentBranch,
+					ShowSearch: true,
+					Items: h.Map(branches, func(item string) h.KeyValue[string] {
+						return h.KeyValue[string]{Key: item, Value: item}
+					}),
 				}),
 				ui.Checkbox(ui.CheckboxProps{
 					Label:   "Auto Deploy On Push To Branch",
@@ -122,25 +130,25 @@ func buildMetaFields(resource *app.Resource) *h.Element {
 			),
 			//ui.Input(ui.InputProps{
 			//	Label:        "Redeploy On Push To Branch",
-			//	DefaultValue: bm.RedeployOnPushBranch,
+			//	Value: bm.RedeployOnPushBranch,
 			//	Name:         "redeploy-on-push-branch",
 			//}),
 			ui.Input(ui.InputProps{
-				Disabled:     true,
-				Label:        "Latest Commit",
-				DefaultValue: bm.CommitForBuild,
-				Name:         "latest-commit",
+				Disabled: true,
+				Label:    "Latest Commit",
+				Value:    bm.CommitForBuild,
+				Name:     "latest-commit",
 			}),
 			ui.Input(ui.InputProps{
-				Label:        "Application Exposed Port",
-				DefaultValue: strconv.Itoa(bm.ExposedPort),
-				Name:         "exposed-port",
-				HelpText:     h.Pf("The port your application listens on inside the container, in the case of a docker deployment, its default value is from the EXPOSE directive in the Dockerfile."),
+				Label:    "Application Exposed Port",
+				Value:    strconv.Itoa(bm.ExposedPort),
+				Name:     "exposed-port",
+				HelpText: h.Pf("The port your application listens on inside the container, in the case of a docker deployment, its default value is from the EXPOSE directive in the Dockerfile."),
 			}),
 			ui.Input(ui.InputProps{
-				Label:        "Dockerfile",
-				DefaultValue: bm.Dockerfile,
-				Name:         "dockerfile",
+				Label: "Dockerfile",
+				Value: bm.Dockerfile,
+				Name:  "dockerfile",
 			}),
 		)
 	}

@@ -17,7 +17,7 @@ func AdditionalCreateResourceFields(ctx *h.RequestContext) *h.Partial {
 			h.Div(
 				h.Id("submit-error"),
 			),
-			ui.SubmitButton(ui.SubmitButtonProps{
+			ui.SubmitButton(ui.ButtonProps{
 				Text:           "Create Resource",
 				SubmittingText: "Validating...",
 				Class:          "mt-4 w-full",

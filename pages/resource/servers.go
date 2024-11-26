@@ -130,7 +130,7 @@ func renderServerTable[T any](servers []T, rowRenderer func(server T, index int)
 		h.Class("w-full table-auto border-collapse border border-gray-200"),
 		h.THead(
 			h.Tr(
-				h.Th(h.Text("ID"), h.Class("border border-gray-200 px-4 py-2")),
+				h.Th(h.Text("Id"), h.Class("border border-gray-200 px-4 py-2")),
 				h.Th(h.Text("Host Name"), h.Class("border border-gray-200 px-4 py-2")),
 				h.Th(h.Text("IP Address"), h.Class("border border-gray-200 px-4 py-2")),
 				h.Th(h.Text("OS"), h.Class("border border-gray-200 px-4 py-2")),

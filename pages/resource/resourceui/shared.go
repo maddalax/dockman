@@ -88,24 +88,24 @@ func ResourceStatus(locator *service.Locator, resource *app.Resource) *h.Element
 		Text: "Deploy Resource",
 	})
 
-	var stopButton = ui.SubmitButton(ui.SubmitButtonProps{
+	var stopButton = ui.DangerButton(ui.ButtonProps{
 		Post:           h.GetPartialPathWithQs(StopResource, h.NewQs("id", resource.Id)),
 		SubmittingText: "Stopping...",
 		Text:           "Stop",
 	})
 
-	var redeployButton = ui.PrimaryButton(ui.ButtonProps{
+	var redeployButton = ui.SecondaryButton(ui.ButtonProps{
 		Href: urls.ResourceStartDeploymentPath(resource.Id, ""),
 		Text: "Redeploy",
 	})
 
-	var startButton = ui.SubmitButton(ui.SubmitButtonProps{
+	var startButton = ui.SubmitButton(ui.ButtonProps{
 		Post:           h.GetPartialPathWithQs(StartResource, h.NewQs("id", resource.Id)),
 		SubmittingText: "Starting...",
 		Text:           "Start",
 	})
 
-	var restartButton = ui.SubmitButton(ui.SubmitButtonProps{
+	var restartButton = ui.SubmitButton(ui.ButtonProps{
 		Post:           h.GetPartialPathWithQs(RestartResource, h.NewQs("id", resource.Id)),
 		SubmittingText: "Restarting...",
 		Text:           "Restart",

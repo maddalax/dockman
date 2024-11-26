@@ -2,154 +2,184 @@ package ui
 
 import (
 	"github.com/maddalax/htmgo/framework/h"
-	"github.com/maddalax/htmgo/framework/js"
-	"time"
+)
+
+type ButtonSize string
+type ButtonVariant string
+
+const (
+	ButtonSizeXs ButtonSize = "xs"
+	ButtonSizeSm ButtonSize = "sm"
+	ButtonSizeMd ButtonSize = "md"
+	ButtonSizeLg ButtonSize = "lg"
+	ButtonSizeXl ButtonSize = "xl"
+)
+
+const (
+	ButtonVariantDefault     ButtonVariant = "default"
+	ButtonVariantPrimary     ButtonVariant = "primary"
+	ButtonVariantSecondary   ButtonVariant = "secondary"
+	ButtonVariantDestructive ButtonVariant = "destructive"
+	ButtonVariantGhost       ButtonVariant = "ghost"
+	ButtonVariantLink        ButtonVariant = "link"
 )
 
 type ButtonProps struct {
-	Id       string
-	Text     string
+	// Core props
+	Text      string
+	Disabled  bool
+	FullWidth bool
+
+	// Styling
+	Size    ButtonSize
+	Variant ButtonVariant
+	Class   string
+
+	// Icons
+	LeftIcon  *h.Element
+	RightIcon *h.Element
+
+	// HTMX and interaction props
 	Target   string
 	Type     string
 	Trigger  string
 	Get      string
 	Post     string
 	Href     string
-	Class    string
 	Children []h.Ren
-}
 
-type SubmitButtonProps struct {
-	Text           string
+	// Submit button
 	SubmittingText string
-	Class          string
-	Post           string
-	Trigger        string
-	Delay          time.Duration
-}
-
-func PrimaryButton(props ButtonProps) *h.Element {
-	props.Class = h.MergeClasses(props.Class, "border-slate-800 bg-slate-900 hover:bg-slate-800 text-white")
-	return Button(props)
-}
-
-func SecondaryButton(props ButtonProps) *h.Element {
-	props.Class = h.MergeClasses(props.Class, "border-gray-700 bg-gray-700 text-white")
-	return Button(props)
 }
 
 func Button(props ButtonProps) *h.Element {
+	baseClasses := "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium " +
+		"ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 " +
+		"focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 " +
+		"[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
 
-	text := h.Text(props.Text)
+	sizeClasses := map[ButtonSize]string{
+		ButtonSizeXs: "h-8 px-3 text-xs",
+		ButtonSizeSm: "h-9 px-3",
+		ButtonSizeMd: "h-10 px-4 py-2",
+		ButtonSizeLg: "h-11 px-8",
+		ButtonSizeXl: "h-12 px-8",
+	}
+
+	variantClasses := map[ButtonVariant]string{
+		ButtonVariantDefault:     "bg-primary text-primary-foreground hover:bg-primary/90",
+		ButtonVariantPrimary:     "bg-primary text-primary-foreground hover:bg-primary/90",
+		ButtonVariantSecondary:   "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+		ButtonVariantDestructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+		ButtonVariantGhost:       "hover:bg-accent hover:text-accent-foreground",
+		ButtonVariantLink:        "text-primary underline-offset-4 hover:underline",
+	}
+
+	if props.Size == "" {
+		props.Size = ButtonSizeMd
+	}
+
+	if props.Variant == "" {
+		props.Variant = ButtonVariantDefault
+	}
+
+	classes := h.MergeClasses(
+		baseClasses,
+		sizeClasses[props.Size],
+		variantClasses[props.Variant],
+		h.Ternary(props.FullWidth, "w-full", ""),
+		props.Class,
+	)
 
 	tag := h.Ternary(props.Href != "", "a", "button")
 
-	button := h.Tag(tag,
-		h.If(
-			props.Id != "",
-			h.Id(props.Id),
-		),
-		h.If(
-			props.Href != "",
-			h.Href(props.Href),
-		),
-		h.If(
-			props.Children != nil,
-			h.Children(props.Children...),
-		),
-		h.Class("flex gap-1 items-center justify-center border p-2 rounded cursor-hover", props.Class),
-		h.If(
-			props.Get != "",
-			h.Get(props.Get),
-		),
-		h.If(
-			props.Post != "",
-			h.Post(props.Post),
-		),
-		h.If(
-			props.Target != "",
-			h.HxTarget(props.Target),
-		),
+	children := make([]h.Ren, 0)
+
+	if props.LeftIcon != nil {
+		children = append(children, props.LeftIcon)
+	}
+
+	if props.Text != "" {
+		children = append(children, h.Text(props.Text))
+	}
+
+	if props.RightIcon != nil {
+		children = append(children, props.RightIcon)
+	}
+
+	props.Children = append(props.Children, children...)
+
+	return h.Tag(tag,
+		h.Class(classes),
+		h.If(props.Target != "", h.HxTarget(props.Target)),
+		h.If(props.Trigger != "", h.HxTriggerString(props.Trigger)),
+		h.If(props.Get != "", h.Get(props.Get)),
+		h.If(props.Post != "", h.Post(props.Post)),
+		h.If(props.Href != "", h.Href(props.Href)),
 		h.IfElse(
 			props.Type != "",
 			h.Type(props.Type),
 			h.Type("button"),
 		),
-		text,
-	)
-
-	return button
-}
-
-func SubmitButton(props SubmitButtonProps) *h.Element {
-	buttonClasses := h.MergeClasses(
-		"rounded items-center px-3 py-2 border-slate-800 bg-slate-900 hover:bg-slate-800 text-white w-full text-center", props.Class)
-
-	return h.Div(
-		h.OnLoad(
-			// language=JavaScript
-			h.EvalJs(`
-		  let form = self.closest('form');
-      let startLoader = new Function(self.dataset.startLoader);
-			if(form) {
-       form.addEventListener('submit', function() {
-         startLoader.call(self);
-       })
-      } else {
-         // if the button is not in a form, we need to manually trigger the click event
-	       self.addEventListener('click', function() {
-           startLoader.call(self);
-         })
-      }
-     `),
-		),
-		h.OnEvent("data-start-loader",
-			js.RemoveClassOnChildren(".loading", "hidden"),
-			js.SetClassOnChildren(".submit", "hidden"),
-		),
-		h.HxAfterRequest(
-			// delay so the loading spinner doesn't flash too quickly
-			// and we give some feedback to the user
-			js.RunAfterTimeout(props.Delay,
-				js.SetClassOnChildren(".loading", "hidden"),
-				js.RemoveClassOnChildren(".submit", "hidden"),
-			),
-		),
-		h.Class("flex gap-2 justify-center"),
-
-		h.Div(
-			h.OnLoad(
-				// let's make sure the button is the same width as the loading spinner
-				js.EvalJs(`
-					const button = self.nextElementSibling.getBoundingClientRect();
-					self.style.width = button.width + 'px';
-				`),
-			),
-			h.Class("loading hidden text-center", buttonClasses),
-			h.Disabled(),
-			h.Div(
-				h.Class("flex gap-2 items-center justify-start"),
-				spinner(),
-				h.Text(h.Ternary(props.SubmittingText != "", props.SubmittingText, "Loading...")),
-			),
-		),
-
-		h.Button(
-			h.Type("submit"),
-			h.Class("submit", buttonClasses),
-			h.Text(props.Text),
-			h.If(
-				props.Post != "",
-				h.Post(props.Post),
-			),
-		),
+		h.If(props.Disabled, h.Disabled()),
+		h.Children(props.Children...),
 	)
 }
 
-func spinner(children ...h.Ren) *h.Element {
-	return h.Div(
-		h.Children(children...),
-		h.Class("spinner spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full border-slate-200 border-t-transparent"),
-		h.Attribute("role", "status"),
-	)
+// Helper functions for variant buttons
+func DefaultButton(props ButtonProps) *h.Element {
+	props.Variant = ButtonVariantDefault
+	return Button(props)
+}
+
+func PrimaryButton(props ButtonProps) *h.Element {
+	props.Variant = ButtonVariantPrimary
+	return Button(props)
+}
+
+func SecondaryButton(props ButtonProps) *h.Element {
+	props.Variant = ButtonVariantSecondary
+	return Button(props)
+}
+
+func DestructiveButton(props ButtonProps) *h.Element {
+	props.Variant = ButtonVariantDestructive
+	return Button(props)
+}
+
+func GhostButton(props ButtonProps) *h.Element {
+	props.Variant = ButtonVariantGhost
+	return Button(props)
+}
+
+func LinkButton(props ButtonProps) *h.Element {
+	props.Variant = ButtonVariantLink
+	return Button(props)
+}
+
+func DangerButton(props ButtonProps) *h.Element {
+	props.Variant = ButtonVariantDestructive
+	return Button(props)
+}
+
+func SubmitButton(props ButtonProps) *h.Element {
+	props.Type = "submit"
+	return Button(props)
+}
+
+func getSizeIconClass(size ButtonSize) string {
+	switch size {
+	case ButtonSizeXs:
+		return "h-3 w-3"
+	case ButtonSizeSm:
+		return "h-4 w-4"
+	case ButtonSizeMd:
+		return "h-5 w-5"
+	case ButtonSizeLg:
+		return "h-5 w-5"
+	case ButtonSizeXl:
+		return "h-6 w-6"
+	default:
+		return "h-5 w-5"
+	}
 }

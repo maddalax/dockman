@@ -33,9 +33,9 @@ func MainSidebar(ctx *h.RequestContext) *h.Element {
 
 func DesktopSidebar(ctx *h.RequestContext) *h.Element {
 	return h.Div(
-		h.Class("hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-60 lg:flex-col"),
+		h.Class("hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-60 lg:flex-col"),
 		h.Div(
-			h.Class("fixed inset-y-0 z-50 flex w-60 flex-col"),
+			h.Class("fixed inset-y-0 z-40 flex w-60 flex-col"),
 			h.Div(
 				h.Class("flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-4 pb-4"),
 				h.Div(
@@ -85,7 +85,7 @@ func MobileSidebar(ctx *h.RequestContext) *h.Element {
 	)
 
 	return h.Div(
-		h.Class("hidden md:relative z-50 w-60"),
+		h.Class("hidden md:relative z-40 w-60"),
 		h.Id("mobile-sidebar"),
 		h.Role("dialog"),
 		h.Attribute("aria-modal", "true"),
@@ -95,7 +95,7 @@ func MobileSidebar(ctx *h.RequestContext) *h.Element {
 		),
 		CloseButton,
 		h.Div(
-			h.Class("fixed inset-y-0 z-50 flex w-60 flex-col"),
+			h.Class("fixed inset-y-0 z-40 flex w-60 flex-col"),
 			h.Div(
 				h.Class("flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-4 pb-4"),
 				h.Div(
@@ -129,11 +129,16 @@ func ResourceList(ctx *h.RequestContext) *h.Element {
 				h.Text("Resources"),
 				h.Class("text-slate-800 font-bold"),
 			),
-			h.A(
-				h.Text("+ New"),
-				h.Href(urls.NewResourceUrl()),
-				h.Class("bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-2 rounded"),
-			),
+			PrimaryButton(ButtonProps{
+				Size: "xs",
+				Text: "+ New",
+				Href: urls.NewResourceUrl(),
+			}),
+			//h.A(
+			//	h.Text("+ New"),
+			//	h.Href(urls.NewResourceUrl()),
+			//	h.Class("bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-2 rounded"),
+			//),
 		),
 		h.Div(
 			h.Class("flex flex-col gap-2"),
@@ -162,11 +167,6 @@ func ServerList(ctx *h.RequestContext) *h.Element {
 			h.P(
 				h.Text("Servers"),
 				h.Class("text-slate-800 font-bold"),
-			),
-			h.A(
-				h.Text("+ New"),
-				h.Href(urls.NewServerUrl()),
-				h.Class("bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-2 rounded"),
 			),
 		),
 		h.Div(

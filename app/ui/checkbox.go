@@ -12,7 +12,7 @@ type CheckboxProps struct {
 func Checkbox(props CheckboxProps) *h.Element {
 	return h.Label(
 		h.For(props.Id),
-		h.Class("flex cursor-pointer items-start gap-4"),
+		h.Class("flex cursor-pointer items-start gap-2 text-sm"),
 		h.Div(
 			h.Class("flex items-center"),
 			h.Text("​"),
@@ -25,10 +25,8 @@ func Checkbox(props CheckboxProps) *h.Element {
 			),
 		),
 		h.Div(
-			h.Strong(
-				h.Class("font-medium text-gray-900"),
-				h.Text(props.Label),
-			),
+			h.Class("font-medium text-gray-900"),
+			h.Text(props.Label),
 		),
 	)
 }

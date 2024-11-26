@@ -81,7 +81,7 @@ func Setup(ctx *h.RequestContext) *h.Page {
 						h.Class("flex justify-between items-center mb-6"),
 						h.H2F("Route Table", h.Class("text-xl font-bold")),
 						h.Div(
-							ui.SubmitButton(ui.SubmitButtonProps{
+							ui.PrimaryButton(ui.ButtonProps{
 								Text:           "Save Changes",
 								SubmittingText: "Saving...",
 							}),
@@ -163,10 +163,10 @@ func block(props blockProps) *h.Element {
 				),
 			),
 			ui.Input(ui.InputProps{
-				Name:         fmt.Sprintf("hostname-%d", props.index),
-				Placeholder:  "hostname",
-				DefaultValue: props.hostname,
-				Required:     true,
+				Name:        fmt.Sprintf("hostname-%d", props.index),
+				Placeholder: "hostname",
+				Value:       props.hostname,
+				Required:    true,
 			}),
 		),
 
@@ -254,10 +254,10 @@ func block(props blockProps) *h.Element {
 					}),
 				),
 				ui.Input(ui.InputProps{
-					Name:         fmt.Sprintf("path-%d", props.index),
-					Id:           "path",
-					Placeholder:  "(optional) path",
-					DefaultValue: props.path,
+					Name:        fmt.Sprintf("path-%d", props.index),
+					Id:          "path",
+					Placeholder: "(optional) path",
+					Value:       props.path,
 				}),
 			),
 		),

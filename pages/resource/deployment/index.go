@@ -52,7 +52,7 @@ func List(deployments []app.Deployment) *h.Element {
 						h.Div(
 							h.Class("flex flex-col"),
 							h.Pf(
-								"Build ID: %s",
+								"Build Id: %s",
 								deployment.BuildId,
 							),
 							h.Pf(

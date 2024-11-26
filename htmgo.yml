@@ -7,7 +7,7 @@ tailwind: true
 watch_ignore: [".git", "node_modules", "dist/*"]
 
 # files to watch for changes, supports glob patterns through https://github.com/bmatcuk/doublestar
-watch_files: ["**/*.go", "**/*.css", "**/*.md"]
+watch_files: ["**/*.go", "**/*.css", "**/*.md", "**/*.js"]
 
 # files or directories to ignore when automatically registering routes for pages
 # supports glob patterns through https://github.com/bmatcuk/doublestar
