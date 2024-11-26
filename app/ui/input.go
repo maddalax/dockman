@@ -105,8 +105,8 @@ func Input(props InputProps) *h.Element {
 		baseInputClasses(),
 		sizeClasses[props.Size],
 		h.Ternary(props.FullWidth, "w-full", "w-[320px]"), // Set default width if not full width
-		h.Ternary(props.LeadingIcon != nil, "pl-10", ""),
-		h.Ternary(props.TrailingIcon != nil, "pr-10", ""),
+		h.Ternary(props.LeadingIcon != nil, "pl-8", ""),
+		h.Ternary(props.TrailingIcon != nil, "pr-8", ""),
 		props.Class,
 	)
 
@@ -135,14 +135,14 @@ func Input(props InputProps) *h.Element {
 
 	// If we only have an input with no additional elements, return it directly
 	if props.Label == "" && props.Description == "" &&
-		props.HelpText != nil && props.Error == "" &&
+		props.HelpText == nil && props.Error == "" &&
 		props.LeadingIcon == nil && props.TrailingIcon == nil {
 		return input
 	}
 
 	// Create wrapper with label, description, and input
 	wrapperClasses := h.MergeClasses(
-		"space-y-1.5",
+		"input-wrapper space-y-1.5",
 		props.WrapClass,
 	)
 

@@ -3,6 +3,7 @@ package resource
 import (
 	"dockside/app"
 	"dockside/app/ui"
+	"dockside/app/ui/icons"
 	"dockside/pages/resource/resourceui"
 	"github.com/maddalax/htmgo/framework/h"
 	"slices"
@@ -61,33 +62,36 @@ func SaveResourceDetails(ctx *h.RequestContext) *h.Partial {
 }
 
 func Index(ctx *h.RequestContext) *h.Page {
+
 	return resourceui.Page(ctx, func(resource *app.Resource) *h.Element {
 		return h.Div(
 			h.Class("flex flex-col gap-4"),
 			ui.AlertPlaceholder(),
 			h.Form(
 				h.NoSwap(),
-				h.Class("flex flex-col gap-5"),
-				ui.Input(ui.InputProps{
-					Label:    "Resource Name",
-					Value:    resource.Name,
-					Name:     "name",
-					Disabled: true,
-				}),
-				ui.Input(ui.InputProps{
-					Label:    "Resource Type",
-					Value:    strconv.Itoa(int(resource.RunType)),
-					Disabled: true,
-				}),
-				ui.Input(ui.InputProps{
-					Label:    "Instances Per Server",
-					Value:    strconv.Itoa(resource.InstancesPerServer),
-					Name:     "instances-per-server",
-					HelpText: h.Pf("Number of instances to run on each server, requests will be automatically load balanced between them."),
-				}),
-				buildMetaFields(resource),
+				h.Class("flex justify-between pr-2"),
+				h.Div(
+					h.Class("flex flex-col gap-4"),
+					h.Div(
+						h.Class("flex flex-col gap-5"),
+						ui.Input(ui.InputProps{
+							Label:    "Resource Name",
+							Value:    resource.Name,
+							Name:     "name",
+							Disabled: true,
+						}),
+						ui.Input(ui.InputProps{
+							Label:    "Instances Per Server",
+							Type:     ui.InputTypeNumber,
+							Value:    strconv.Itoa(resource.InstancesPerServer),
+							Name:     "instances-per-server",
+							HelpText: h.Pf("Number of instances to run on each server, requests will be automatically load balanced between them."),
+						}),
+						buildMetaFields(resource),
+					),
+				),
 				ui.SubmitButton(ui.ButtonProps{
-					Text:           "Save",
+					Text:           "Save Changes",
 					SubmittingText: "Saving...",
 					Post:           h.GetPartialPath(SaveResourceDetails),
 				}),
@@ -105,18 +109,21 @@ func buildMetaFields(resource *app.Resource) *h.Element {
 		}
 		return h.Fragment(
 			ui.Input(ui.InputProps{
-				Label:    "Repository",
-				Disabled: true,
-				Value:    bm.RepositoryUrl,
-				Name:     "repository",
+				Label:       "Repository",
+				Disabled:    true,
+				Value:       bm.RepositoryUrl,
+				LeadingIcon: icons.GitProviderIcon(bm.RepositoryUrl),
+				Name:        "repository",
 			}),
 			h.Div(
 				h.Class("flex flex-col gap-1"),
 				ui.ComboBox(ui.ComboBoxProps{
-					Label:      "Deployment Branch",
-					Name:       "deployment-branch",
-					Value:      bm.DeploymentBranch,
-					ShowSearch: true,
+					Label:            "Deployment Branch",
+					Name:             "deployment-branch",
+					Value:            bm.DeploymentBranch,
+					LeadingInputIcon: icons.GitBranchIcon(),
+					UseInput:         true,
+					ShowSearch:       true,
 					Items: h.Map(branches, func(item string) h.KeyValue[string] {
 						return h.KeyValue[string]{Key: item, Value: item}
 					}),
@@ -128,11 +135,13 @@ func buildMetaFields(resource *app.Resource) *h.Element {
 					Id:      "auto-deploy",
 				}),
 			),
-			//ui.Input(ui.InputProps{
-			//	Label:        "Redeploy On Push To Branch",
-			//	Value: bm.RedeployOnPushBranch,
-			//	Name:         "redeploy-on-push-branch",
-			//}),
+			ui.Input(ui.InputProps{
+				Label:       "Dockerfile",
+				Value:       bm.Dockerfile,
+				Name:        "dockerfile",
+				LeadingIcon: h.Div(h.Class("w-4 h-4"), icons.DockerIconBlack()),
+				HelpText:    h.Pf("The path to the Dockerfile in the repository, relative to the repository root."),
+			}),
 			ui.Input(ui.InputProps{
 				Disabled: true,
 				Label:    "Latest Commit",
@@ -144,11 +153,6 @@ func buildMetaFields(resource *app.Resource) *h.Element {
 				Value:    strconv.Itoa(bm.ExposedPort),
 				Name:     "exposed-port",
 				HelpText: h.Pf("The port your application listens on inside the container, in the case of a docker deployment, its default value is from the EXPOSE directive in the Dockerfile."),
-			}),
-			ui.Input(ui.InputProps{
-				Label: "Dockerfile",
-				Value: bm.Dockerfile,
-				Name:  "dockerfile",
 			}),
 		)
 	}

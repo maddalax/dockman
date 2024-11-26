@@ -1,10 +1,10 @@
-import {computePosition, autoUpdate, flip} from 'https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.6.12/+esm';
+import {computePosition, autoUpdate, flip, offset} from 'https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.6.12/+esm';
 
 let updateMap = {};
 
 function updatePosition(ref, floating) {
     let opts = {
-        middleware: [flip()],
+        middleware: [flip(), offset(5)],
         placement: 'bottom-start',
     }
 
