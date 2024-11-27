@@ -9,7 +9,8 @@ import (
 )
 
 func RouterDebug(ctx *h.RequestContext) *h.Page {
-	return pages.SidebarPage(ctx,
+	return pages.SidebarPage(
+		ctx,
 		h.Div(
 			h.Class("p-4"),
 			h.H3F(
@@ -17,7 +18,8 @@ func RouterDebug(ctx *h.RequestContext) *h.Page {
 				h.Class("text-xl font-bold mb-6"),
 			),
 			h.Div(
-				h.Class("overflow-x-auto"), // Ensure responsiveness for smaller screens
+				h.Class("overflow-x-auto"),
+				// Ensure responsiveness for smaller screens
 				h.Table(
 					h.Class("w-full border-collapse border border-gray-300"),
 					routerTableHeader(),
@@ -66,7 +68,9 @@ func routerTableRow(metric *app.CustomUpstream) *h.Element {
 		tableCell(strconv.Itoa(int(metric.TotalRequests.Load()))),
 		tableCell(formatTimePretty(metric.LastRequest)),
 		tableCell(fmt.Sprintf("%dms", metric.AverageResponseTime.Milliseconds())),
-		tableCell(h.Ternary(metric.Healthy, "Healthy", "Unhealthy")),
+		tableCell(
+			h.Ternary(metric.Healthy, "Healthy", "Unhealthy"),
+		),
 		h.Td(
 			h.Class("py-2 px-4 text-sm text-gray-700"),
 			upstreamBlockView(metric),

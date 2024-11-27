@@ -21,7 +21,11 @@ func Checkbox(props CheckboxProps) *h.Element {
 				h.Name(props.Name),
 				h.Class("size-4 rounded border-gray-300"),
 				h.Id(props.Id),
-				h.Ternary(props.Checked, h.Checked(), nil),
+				h.Ternary(
+					props.Checked,
+					h.Checked(),
+					nil,
+				),
 			),
 		),
 		h.Div(

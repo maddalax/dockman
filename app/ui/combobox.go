@@ -8,17 +8,24 @@ import (
 
 type ComboBoxProps struct {
 	Items            []h.KeyValue[string]
+	Id               string
 	Value            string
 	Label            string
 	Name             string
+	Placeholder      string
 	ShowSearch       bool
 	UseInput         bool
+	Required         bool
+	HelpText         *h.Element
 	LeadingInputIcon *h.Element
 }
 
 func ComboBox(props ComboBoxProps) *h.Element {
 	defaultText := "Select an item"
-	id := h.GenId(6)
+
+	if props.Id == "" {
+		props.Id = h.GenId(6)
+	}
 
 	if props.Value != "" {
 		selected := h.Find(props.Items, func(item *h.KeyValue[string]) bool {
@@ -114,9 +121,9 @@ func ComboBox(props ComboBoxProps) *h.Element {
 							}
  							
  							const hide = () => {
-                   document.removeEventListener('click', handleDocClick)
-                   stopUpdate()
-                   setTimeout(() => dropdown.classList.add('hidden'), 25);
+							   document.removeEventListener('click', handleDocClick)
+							   stopUpdate()
+							   setTimeout(() => dropdown.classList.add('hidden'), 25);
  							}
                              
               const show = () => {
@@ -147,22 +154,29 @@ func ComboBox(props ComboBoxProps) *h.Element {
 							// handle search
 							input.addEventListener('input', event => {
 											const value = event.target.value.toLowerCase();
+                                            let empty = true;
 											dropdown.querySelectorAll('li').forEach(li => {
 													const text = li.innerText.toLowerCase();
 													if(text.includes(value)) {
 															li.classList.remove('hidden');
+                                                            empty = false;
 													} else {
 															li.classList.add('hidden');
 													}
 											})
+											if(empty) {
+                                                dropdown.classList.add('hidden');
+											} else {
+                                                dropdown.classList.remove('hidden');
+											}
 								})   
-            `, id)),
+            `, props.Id)),
 	)
 
 	dropdown := h.Div(
 		h.Class("relative max-w-[320px]"),
 		h.Div(
-			h.Id(fmt.Sprintf("%s-combobox-options", id)),
+			h.Id(fmt.Sprintf("%s-combobox-options", props.Id)),
 			h.Role("listbox"),
 			h.Class("hidden absolute rounded-md border bg-popover text-popover-foreground shadow-lg outline-none animate-in fade-in-0 zoom-in-95 max-w-[320px]"),
 			h.If(props.ShowSearch, SearchInput(InputProps{
@@ -193,7 +207,10 @@ func ComboBox(props ComboBoxProps) *h.Element {
 		Input(InputProps{
 			Name:        props.Name,
 			Type:        InputTypeSearch,
+			HelpText:    props.HelpText,
 			LeadingIcon: props.LeadingInputIcon,
+			Required:    props.Required,
+			Placeholder: props.Placeholder,
 			Value:       props.Value,
 			Children: []h.Ren{
 				onLoadScriptInput,
@@ -204,7 +221,16 @@ func ComboBox(props ComboBoxProps) *h.Element {
 
 	comboboxButton := h.Div(
 		h.Class("w-full max-w-[320px]"),
-		h.Input("text", h.Name(props.Name), h.Value(props.Value), h.Class("hidden")),
+		h.Input(
+			"text",
+			h.Name(props.Name),
+			h.Value(props.Value),
+			h.Class("hidden"),
+			h.If(
+				props.Required,
+				h.Required(),
+			),
+		),
 		h.Button(
 			h.Type("button"),
 			h.Role("combobox"),

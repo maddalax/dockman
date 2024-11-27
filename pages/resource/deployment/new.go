@@ -28,9 +28,12 @@ func StartNewDeployment(ctx *h.RequestContext) *h.Page {
 
 	// todo better error handling
 	if err != nil {
-		return pages.SidebarPage(ctx, h.Div(
-			h.Pf("failed to find resource"),
-		))
+		return pages.SidebarPage(
+			ctx,
+			h.Div(
+				h.Pf("failed to find resource"),
+			),
+		)
 	}
 
 	b := app.NewResourceBuilder(ctx.ServiceLocator(), resource, buildId)
@@ -45,9 +48,12 @@ func StartNewDeployment(ctx *h.RequestContext) *h.Page {
 
 	// todo better error handling
 	if err != nil {
-		return pages.SidebarPage(ctx, h.Div(
-			h.Pf("failed to start build"),
-		))
+		return pages.SidebarPage(
+			ctx,
+			h.Div(
+				h.Pf("failed to start build"),
+			),
+		)
 	}
 
 	ctx.Redirect(urls.ResourceDeploymentLogUrl(resourceId, buildId), 302)

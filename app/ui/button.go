@@ -100,7 +100,10 @@ func Button(props ButtonProps) *h.Element {
 	}
 
 	if props.Text != "" {
-		children = append(children, h.Text(props.Text))
+		children = append(
+			children,
+			h.Text(props.Text),
+		)
 	}
 
 	if props.RightIcon != nil {
@@ -109,19 +112,38 @@ func Button(props ButtonProps) *h.Element {
 
 	props.Children = append(props.Children, children...)
 
-	return h.Tag(tag,
+	return h.Tag(
+		tag,
 		h.Class(classes),
-		h.If(props.Target != "", h.HxTarget(props.Target)),
-		h.If(props.Trigger != "", h.HxTriggerString(props.Trigger)),
-		h.If(props.Get != "", h.Get(props.Get)),
-		h.If(props.Post != "", h.Post(props.Post)),
-		h.If(props.Href != "", h.Href(props.Href)),
+		h.If(
+			props.Target != "",
+			h.HxTarget(props.Target),
+		),
+		h.If(
+			props.Trigger != "",
+			h.HxTriggerString(props.Trigger),
+		),
+		h.If(
+			props.Get != "",
+			h.Get(props.Get),
+		),
+		h.If(
+			props.Post != "",
+			h.Post(props.Post),
+		),
+		h.If(
+			props.Href != "",
+			h.Href(props.Href),
+		),
 		h.IfElse(
 			props.Type != "",
 			h.Type(props.Type),
 			h.Type("button"),
 		),
-		h.If(props.Disabled, h.Disabled()),
+		h.If(
+			props.Disabled,
+			h.Disabled(),
+		),
 		h.Children(props.Children...),
 	)
 }

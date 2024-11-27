@@ -49,7 +49,11 @@ func ToggleAssociationServerPartial(ctx *h.RequestContext) *h.Partial {
 func ServerPage(ctx *h.RequestContext) *h.Page {
 	return resourceui.Page(ctx, func(resource *app.Resource) *h.Element {
 		return h.Div(
-			h.GetPartialWithQs(ServerListPartial, h.NewQs("resource_id", resource.Id), "load, every 3s"),
+			h.GetPartialWithQs(
+				ServerListPartial,
+				h.NewQs("resource_id", resource.Id),
+				"load, every 3s",
+			),
 		)
 	})
 }
@@ -98,10 +102,12 @@ func ServerListPartial(ctx *h.RequestContext) *h.Partial {
 		h.Div(
 			h.Class("flex flex-col gap-8"),
 			h.Id("resource-servers"),
-
 			// Associated Servers Table
 			h.Div(
-				h.H2(h.Text("Associated Servers"), h.Class("text-xl font-bold mb-4")),
+				h.H2(
+					h.Text("Associated Servers"),
+					h.Class("text-xl font-bold mb-4"),
+				),
 				renderServerTable(
 					associatedDetails,
 					func(server app.ResourceServerWithDetails, index int) *h.Element {
@@ -109,10 +115,12 @@ func ServerListPartial(ctx *h.RequestContext) *h.Partial {
 					},
 				),
 			),
-
 			// Unassociated Servers Table
 			h.Div(
-				h.H2(h.Text("Available Servers"), h.Class("text-xl font-bold mb-4")),
+				h.H2(
+					h.Text("Available Servers"),
+					h.Class("text-xl font-bold mb-4"),
+				),
 				renderServerTable(
 					unassociatedServers,
 					func(server *app.Server, index int) *h.Element {
@@ -130,13 +138,34 @@ func renderServerTable[T any](servers []T, rowRenderer func(server T, index int)
 		h.Class("w-full table-auto border-collapse border border-gray-200"),
 		h.THead(
 			h.Tr(
-				h.Th(h.Text("Id"), h.Class("border border-gray-200 px-4 py-2")),
-				h.Th(h.Text("Host Name"), h.Class("border border-gray-200 px-4 py-2")),
-				h.Th(h.Text("IP Address"), h.Class("border border-gray-200 px-4 py-2")),
-				h.Th(h.Text("OS"), h.Class("border border-gray-200 px-4 py-2")),
-				h.Th(h.Text("Last Seen"), h.Class("border border-gray-200 px-4 py-2")),
-				h.Th(h.Text("Status"), h.Class("border border-gray-200 px-4 py-2")),
-				h.Th(h.Text("Actions"), h.Class("border border-gray-200 px-4 py-2")),
+				h.Th(
+					h.Text("Id"),
+					h.Class("border border-gray-200 px-4 py-2"),
+				),
+				h.Th(
+					h.Text("Host Name"),
+					h.Class("border border-gray-200 px-4 py-2"),
+				),
+				h.Th(
+					h.Text("IP Address"),
+					h.Class("border border-gray-200 px-4 py-2"),
+				),
+				h.Th(
+					h.Text("OS"),
+					h.Class("border border-gray-200 px-4 py-2"),
+				),
+				h.Th(
+					h.Text("Last Seen"),
+					h.Class("border border-gray-200 px-4 py-2"),
+				),
+				h.Th(
+					h.Text("Status"),
+					h.Class("border border-gray-200 px-4 py-2"),
+				),
+				h.Th(
+					h.Text("Actions"),
+					h.Class("border border-gray-200 px-4 py-2"),
+				),
 			),
 		),
 		h.TBody(
@@ -153,11 +182,26 @@ func serverBlockRow(server *app.Server, resource *app.Resource, isAssociated boo
 	}
 
 	return h.Tr(
-		h.Td(h.Text(server.Id), h.Class("border border-gray-200 px-4 py-2")),
-		h.Td(h.Text(server.HostName), h.Class("border border-gray-200 px-4 py-2")),
-		h.Td(h.Text(server.IpAddress()), h.Class("border border-gray-200 px-4 py-2")),
-		h.Td(h.Text(server.Os), h.Class("border border-gray-200 px-4 py-2")),
-		h.Td(h.Text(server.LastSeen.Format("2006-01-02 15:04:05")), h.Class("border border-gray-200 px-4 py-2")),
+		h.Td(
+			h.Text(server.Id),
+			h.Class("border border-gray-200 px-4 py-2"),
+		),
+		h.Td(
+			h.Text(server.HostName),
+			h.Class("border border-gray-200 px-4 py-2"),
+		),
+		h.Td(
+			h.Text(server.IpAddress()),
+			h.Class("border border-gray-200 px-4 py-2"),
+		),
+		h.Td(
+			h.Text(server.Os),
+			h.Class("border border-gray-200 px-4 py-2"),
+		),
+		h.Td(
+			h.Text(server.LastSeen.Format("2006-01-02 15:04:05")),
+			h.Class("border border-gray-200 px-4 py-2"),
+		),
 		h.Td(
 			ui.StatusIndicator(ui.StatusIndicatorProps{
 				RunStatus: runStatus,
@@ -172,11 +216,17 @@ func serverBlockRow(server *app.Server, resource *app.Resource, isAssociated boo
 			h.IfElse(isAssociated,
 				ui.PrimaryButton(ui.ButtonProps{
 					Text: "Remove from resource",
-					Post: h.GetPartialPathWithQs(ToggleAssociationServerPartial, h.NewQs("server_id", server.Id, "resource_id", resource.Id)),
+					Post: h.GetPartialPathWithQs(
+						ToggleAssociationServerPartial,
+						h.NewQs("server_id", server.Id, "resource_id", resource.Id),
+					),
 				}),
 				ui.PrimaryButton(ui.ButtonProps{
 					Text: "Associate with resource",
-					Post: h.GetPartialPathWithQs(ToggleAssociationServerPartial, h.NewQs("server_id", server.Id, "resource_id", resource.Id)),
+					Post: h.GetPartialPathWithQs(
+						ToggleAssociationServerPartial,
+						h.NewQs("server_id", server.Id, "resource_id", resource.Id),
+					),
 				})),
 		),
 	)

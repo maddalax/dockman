@@ -25,7 +25,11 @@ func Page(ctx *h.RequestContext, children func(resource *app.Resource) *h.Elemen
 			h.Class("flex flex-col gap-2 px-8"),
 			PageHeader(ctx, resource),
 			h.Div(
-				h.GetPartialWithQs(GetStatusPartial, h.NewQs("id", resource.Id), "load, every 3s"),
+				h.GetPartialWithQs(
+					GetStatusPartial,
+					h.NewQs("id", resource.Id),
+					"load, every 3s",
+				),
 			),
 			children(resource),
 		),
@@ -42,7 +46,11 @@ func PageHeader(ctx *h.RequestContext, resource *app.Resource) *h.Element {
 		h.Id("resource-page-header"),
 		h.Div(
 			h.Class("flex gap-2 items-center"),
-			h.H3F("%s", resource.Name, h.Class("text-2xl")),
+			h.H3F(
+				"%s",
+				resource.Name,
+				h.Class("text-2xl"),
+			),
 			h.Div(
 				h.Class("ml-0.5 mt-1"),
 				ui.StatusIndicator(ui.StatusIndicatorProps{
@@ -62,9 +70,15 @@ func ResourceStatusError(err error) *h.Element {
 	}
 	switch {
 	case errors.Is(err, app.DockerConnectionError):
-		return ui.ErrorAlert(h.Pf("Failed to connect to docker"), h.Pf("Please check your docker connection"))
+		return ui.ErrorAlert(
+			h.Pf("Failed to connect to docker"),
+			h.Pf("Please check your docker connection"),
+		)
 	}
-	return ui.ErrorAlert(h.Pf("Failed to load resource status"), h.Pf(err.Error()))
+	return ui.ErrorAlert(
+		h.Pf("Failed to load resource status"),
+		h.Pf(err.Error()),
+	)
 }
 
 func ResourceStatusContainer(locator *service.Locator, resource *app.Resource) *h.Element {
@@ -89,7 +103,10 @@ func ResourceStatus(locator *service.Locator, resource *app.Resource) *h.Element
 	})
 
 	var stopButton = ui.DangerButton(ui.ButtonProps{
-		Post:           h.GetPartialPathWithQs(StopResource, h.NewQs("id", resource.Id)),
+		Post: h.GetPartialPathWithQs(
+			StopResource,
+			h.NewQs("id", resource.Id),
+		),
 		SubmittingText: "Stopping...",
 		Text:           "Stop",
 	})
@@ -100,13 +117,19 @@ func ResourceStatus(locator *service.Locator, resource *app.Resource) *h.Element
 	})
 
 	var startButton = ui.SubmitButton(ui.ButtonProps{
-		Post:           h.GetPartialPathWithQs(StartResource, h.NewQs("id", resource.Id)),
+		Post: h.GetPartialPathWithQs(
+			StartResource,
+			h.NewQs("id", resource.Id),
+		),
 		SubmittingText: "Starting...",
 		Text:           "Start",
 	})
 
 	var restartButton = ui.SubmitButton(ui.ButtonProps{
-		Post:           h.GetPartialPathWithQs(RestartResource, h.NewQs("id", resource.Id)),
+		Post: h.GetPartialPathWithQs(
+			RestartResource,
+			h.NewQs("id", resource.Id),
+		),
 		SubmittingText: "Restarting...",
 		Text:           "Restart",
 	})

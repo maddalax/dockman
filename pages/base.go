@@ -64,7 +64,11 @@ func NavBar() *h.Element {
 
 	var OpenMobileSidebarButton = h.Button(
 		h.OnClick(
-			js.EvalCommandsOnSelector("#mobile-sidebar", js.AddClass("relative"), js.RemoveClass("hidden")),
+			js.EvalCommandsOnSelector(
+				"#mobile-sidebar",
+				js.AddClass("relative"),
+				js.RemoveClass("hidden"),
+			),
 		),
 		h.Type("button"),
 		h.Class("-m-2.5 p-2.5 text-gray-700 lg:hidden"),

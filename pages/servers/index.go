@@ -12,15 +12,18 @@ func ServerListPartial(ctx *h.RequestContext) *h.Partial {
 }
 
 func ServerListPage(ctx *h.RequestContext) *h.Page {
-	return pages.SidebarPage(ctx, h.Div(
-		h.H1F("Servers"),
+	return pages.SidebarPage(
+		ctx,
 		h.Div(
-			h.GetPartial(ServerListPartial, "load, every 3s"),
+			h.H1F("Servers"),
+			h.Div(
+				h.GetPartial(ServerListPartial, "load, every 3s"),
+			),
+			h.Div(
+				h.Id("server-list"),
+			),
 		),
-		h.Div(
-			h.Id("server-list"),
-		),
-	))
+	)
 }
 
 func serverList(ctx *h.RequestContext) *h.Element {
@@ -48,31 +51,49 @@ func ServerBlockDetails(server *app.Server) *h.Element {
 	return h.Div(
 		h.Class("bg-white shadow-md rounded-lg p-4"),
 		h.P(
-			h.Span(h.Class("font-bold"), h.Text("Host Name: ")),
+			h.Span(
+				h.Class("font-bold"),
+				h.Text("Host Name: "),
+			),
 			h.Text(server.HostName),
 			h.Class("text-slate-800"),
 		),
-		h.If(server.Name != "", h.P(
-			h.Text(server.Name),
-			h.Class("text-slate font-bold"),
-		)),
+		h.If(
+			server.Name != "",
+			h.P(
+				h.Text(server.Name),
+				h.Class("text-slate font-bold"),
+			),
+		),
 		h.P(
-			h.Span(h.Class("font-bold"), h.Text("Local IP Address: ")),
+			h.Span(
+				h.Class("font-bold"),
+				h.Text("Local IP Address: "),
+			),
 			h.Text(server.LocalIpAddress),
 			h.Class("text-slate-800"),
 		),
 		h.P(
-			h.Span(h.Class("font-bold"), h.Text("Remote IP Address: ")),
+			h.Span(
+				h.Class("font-bold"),
+				h.Text("Remote IP Address: "),
+			),
 			h.Text(server.RemoteIpAddress),
 			h.Class("text-slate-800"),
 		),
 		h.P(
-			h.Span(h.Class("font-bold"), h.Text("OS: ")),
+			h.Span(
+				h.Class("font-bold"),
+				h.Text("OS: "),
+			),
 			h.Text(server.Os),
 			h.Class("text-slate-800"),
 		),
 		h.P(
-			h.Span(h.Class("font-bold"), h.Text("Last Seen: ")),
+			h.Span(
+				h.Class("font-bold"),
+				h.Text("Last Seen: "),
+			),
 			h.Text(server.LastSeen.Format("2006-01-02 15:04:05")),
 			h.Class("text-slate-800"),
 		),

@@ -41,12 +41,15 @@ func Deployment(ctx *h.RequestContext) *h.Page {
 
 func List(deployments []app.Deployment) *h.Element {
 	return h.Div(
-		h.Class("flex flex-col gap-4 max-w-md"), // Increase gap for better spacing between cards
+		h.Class("flex flex-col gap-4 max-w-md"),
+		// Increase gap for better spacing between cards
 		h.List(deployments, func(deployment app.Deployment, index int) *h.Element {
 			return h.Div(
-				h.Class("bg-white shadow-md rounded-lg overflow-hidden border border-gray-200"), // Card styling
+				h.Class("bg-white shadow-md rounded-lg overflow-hidden border border-gray-200"),
+				// Card styling
 				h.Div(
-					h.Class("p-4"), // Padding for card content
+					h.Class("p-4"),
+					// Padding for card content
 					h.Div(
 						h.Class("flex justify-between items-center mb-2"),
 						h.Div(

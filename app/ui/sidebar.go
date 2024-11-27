@@ -42,7 +42,10 @@ func DesktopSidebar(ctx *h.RequestContext) *h.Element {
 					h.Class("mt-2 flex h-10 shrink-0 items-center"),
 					h.Div(
 						h.Class("h-6 w-auto"),
-						h.H3F("dockside", h.Class("text-xl font-bold")),
+						h.H3F(
+							"dockside",
+							h.Class("text-xl font-bold"),
+						),
 					),
 				),
 				RoutingSection(),
@@ -60,7 +63,11 @@ func MobileSidebar(ctx *h.RequestContext) *h.Element {
 		h.Button(
 			h.Type("button"),
 			h.OnClick(
-				js.EvalCommandsOnSelector("#mobile-sidebar", js.RemoveClass("relative"), js.AddClass("hidden")),
+				js.EvalCommandsOnSelector(
+					"#mobile-sidebar",
+					js.RemoveClass("relative"),
+					js.AddClass("hidden"),
+				),
 			),
 			h.Class("-m-2.5 p-2.5"),
 			h.Span(
@@ -134,11 +141,12 @@ func ResourceList(ctx *h.RequestContext) *h.Element {
 				Text: "+ New",
 				Href: urls.NewResourceUrl(),
 			}),
-			//h.A(
-			//	h.Text("+ New"),
-			//	h.Href(urls.NewResourceUrl()),
-			//	h.Class("bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-2 rounded"),
-			//),
+
+		//h.A(
+		//	h.Text("+ New"),
+		//	h.Href(urls.NewResourceUrl()),
+		//	h.Class("bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-2 rounded"),
+		//),
 		),
 		h.Div(
 			h.Class("flex flex-col gap-2"),
@@ -174,7 +182,9 @@ func ServerList(ctx *h.RequestContext) *h.Element {
 			h.List(list, func(server *app.Server, index int) *h.Element {
 				return h.A(
 					h.Href(urls.ServerUrl(server.Id)),
-					h.Text(h.Ternary(server.Name != "", server.Name, server.HostName)),
+					h.Text(
+						h.Ternary(server.Name != "", server.Name, server.HostName),
+					),
 					h.Class("text-slate-900 hover:text-brand-400"),
 				)
 			}),

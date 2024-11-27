@@ -28,7 +28,6 @@ func CreateForm(ctx *h.RequestContext) *h.Element {
 			h.NoSwap(),
 			h.PostPartial(SubmitHandler),
 			h.Class("space-y-4 w-full"),
-
 			ui.Input(ui.InputProps{
 				Id:          "name",
 				Label:       "Name",
@@ -36,17 +35,8 @@ func CreateForm(ctx *h.RequestContext) *h.Element {
 				Required:    true,
 				Placeholder: "Enter resource name",
 			}),
-
-			ui.Input(ui.InputProps{
-				Id:          "environment",
-				Label:       "Environment",
-				Name:        "environment",
-				Required:    true,
-				Placeholder: "Enter environment",
-			}),
-
+			EnvironmentInput(ctx),
 			DeploymentChoiceSelector(),
-
 			AdditionalFieldsForDeploymentType(ctx, ""),
 		),
 	)
@@ -96,14 +86,16 @@ func SubmitHandler(ctx *h.RequestContext) *h.Partial {
 	})
 
 	if err != nil {
-		return h.SwapPartial(ctx,
+		return h.SwapPartial(
+			ctx,
 			h.Div(
 				h.Id("submit-error"),
 				ui.ErrorAlert(
 					h.Pf("Unable to create resource"),
 					h.Pf(err.Error()),
 				),
-			))
+			),
+		)
 	}
 
 	return h.RedirectPartial(

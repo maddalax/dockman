@@ -101,7 +101,6 @@ func StreamDetails(ctx *h.RequestContext, stream *nats.StreamInfo) *h.Element {
 			h.Text(stream.Config.Name),
 			h.Class("font-bold"),
 		),
-
 		h.Div(
 			h.Class("w-[100% - 300px] h-full"),
 			ui.LogBody(ui.LogBodyOptions{

@@ -8,12 +8,21 @@ import (
 
 func DeploymentChoiceSelector() *h.Element {
 	return h.Div(
-		h.H2F("Deployment Type"),
+		ui.FieldLabel("Deployment Type"),
 		h.FieldSet(
-			h.Class("flex flex-wrap mt-1"),
-			h.Tag("legend", h.Class("sr-only")),
-			DockerFileChoice(),
-			DockerRegistryChoice(),
+			h.Class("flex flex-wrap gap-2 mt-1"),
+			h.Tag(
+				"legend",
+				h.Class("sr-only"),
+			),
+			h.Div(
+				h.Class("max-w-[40%]"),
+				DockerFileChoice(),
+			),
+			h.Div(
+				h.Class("max-w-[40%]"),
+				DockerRegistryChoice(),
+			),
 		),
 	)
 }
@@ -28,7 +37,11 @@ func DockerFileChoice() *h.Element {
 		InputValue:     t,
 		Id:             t,
 		DefaultChecked: false,
-		InputProps:     h.GetPartialWithQs(AdditionalCreateResourceFields, h.NewQs("deployment_type", t), "change"),
+		InputProps: h.GetPartialWithQs(
+			AdditionalCreateResourceFields,
+			h.NewQs("deployment_type", t),
+			"change",
+		),
 	})
 }
 
@@ -42,6 +55,10 @@ func DockerRegistryChoice() *h.Element {
 		InputValue:     t,
 		Id:             t,
 		DefaultChecked: false,
-		InputProps:     h.GetPartialWithQs(AdditionalCreateResourceFields, h.NewQs("deployment_type", t), "change"),
+		InputProps: h.GetPartialWithQs(
+			AdditionalCreateResourceFields,
+			h.NewQs("deployment_type", t),
+			"change",
+		),
 	})
 }

@@ -1,6 +1,7 @@
 package create
 
 import (
+	"dockside/app"
 	"dockside/app/ui"
 	"dockside/app/ui/icons"
 	"fmt"
@@ -32,7 +33,9 @@ func EnvironmentVariables(ctx *h.RequestContext) *h.Element {
 
 	return h.Div(
 		h.Class("flex flex-col gap-2"),
-		h.Label(h.Text("Environment Variables")),
+		h.Label(
+			h.Text("Environment Variables"),
+		),
 		ui.Repeater(ctx, ui.RepeaterProps{
 			DefaultItems: []*h.Element{
 				item(0),
@@ -77,13 +80,16 @@ func AdditionalFieldsForDeploymentType(ctx *h.RequestContext, deploymentType str
 				Name:        "git-repository",
 				Placeholder: "https://github.com/maddalax/dockside",
 				Children: []h.Ren{
-					h.OnEvent(hx.KeyUpEvent, js.EvalJs(
-						// language=JavaScript
-						`
+					h.OnEvent(
+						hx.KeyUpEvent,
+						js.EvalJs(
+							// language=JavaScript
+							`
            let next = document.getElementById("git-access-token-input");
            let isGithub = self.value.toLowerCase().includes("github.com/");
            isGithub ? next.classList.remove("hidden") : next.classList.add("hidden");
-					`)),
+					`),
+					),
 				},
 			}),
 			h.Div(
@@ -128,4 +134,51 @@ func AdditionalFieldsForDeploymentType(ctx *h.RequestContext, deploymentType str
 	return h.Div(
 		h.Id("additional-create-resource-fields"),
 	)
+}
+
+func EnvironmentInput(ctx *h.RequestContext) *h.Element {
+	var options []h.KeyValue[string]
+	resources, err := app.ResourceList(ctx.ServiceLocator())
+
+	if err == nil {
+		for _, resource := range resources {
+			options = append(options, h.KeyValue[string]{
+				Key:   resource.Environment,
+				Value: resource.Environment,
+			})
+		}
+	}
+
+	options = h.Unique(options, func(item h.KeyValue[string]) string {
+		return item.Value
+	})
+
+	if len(options) == 0 {
+		options = []h.KeyValue[string]{
+			{
+				Key:   "production",
+				Value: "production",
+			},
+			{
+				Key:   "staging",
+				Value: "staging",
+			},
+			{
+				Key:   "dev",
+				Value: "dev",
+			},
+		}
+	}
+
+	return ui.ComboBox(ui.ComboBoxProps{
+		Items:       options,
+		UseInput:    true,
+		ShowSearch:  true,
+		Id:          "environment",
+		Label:       "Environment",
+		Name:        "environment",
+		Required:    true,
+		Placeholder: "Enter environment",
+		HelpText:    h.Pf("You may select an existing environment or type a new one into the input."),
+	})
 }

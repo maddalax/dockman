@@ -18,18 +18,21 @@ type ChoiceCardProps struct {
 func ChoiceCard(props ChoiceCardProps) *h.Element {
 	return h.Label(
 		h.For(props.Id),
-		h.ClassX("flex flex-col rounded-lg text-center max-w-[250px] mr-4 mb-4 shadow-sm border-2 border-slate-100", h.ClassMap{
+		h.ClassX("w-full flex flex-col rounded-lg text-center mr-4 mb-4 shadow-sm border-2 border-slate-100", h.ClassMap{
 			"bg-white has-[:checked]:bg-brand-50 has-[:checked]:border-brand-200": true,
 		}),
 		h.Div(
 			h.Class("flex flex-1 flex-col p-4"),
-			h.If(props.Icon != nil, h.Div(
-				h.Class("mx-auto max-h-32 max-w-	32 shrink-0 rounded-full"),
-				props.Icon,
-			)),
+			h.If(
+				props.Icon != nil,
+				h.Div(
+					h.Class("mx-auto max-h-16 max-w-16 shrink-0 rounded-full"),
+					props.Icon,
+				),
+			),
 			h.H3(
 				h.ClassX("text-sm font-medium text-gray-900", h.ClassMap{
-					"mt-6": props.Icon != nil,
+					"mt-4": props.Icon != nil,
 				}),
 				h.Text(props.Title),
 			),

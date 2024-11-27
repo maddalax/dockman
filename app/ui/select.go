@@ -18,13 +18,25 @@ type SelectProps struct {
 
 func Select(props SelectProps) *h.Element {
 	return h.Select(
-		h.If(props.Required, h.Required()),
+		h.If(
+			props.Required,
+			h.Required(),
+		),
 		h.Class("w-full rounded border p-2 focus:outline-none focus:ring-0 focus:border-gray-400"),
-		h.If(props.Id != "", h.Id(props.Id)),
-		h.If(props.Name != "", h.Name(props.Name)),
+		h.If(
+			props.Id != "",
+			h.Id(props.Id),
+		),
+		h.If(
+			props.Name != "",
+			h.Name(props.Name),
+		),
 		h.List(props.Items, func(item Item, index int) *h.Element {
 			return h.Option(
-				h.If(item.Value == props.Value, h.Selected()),
+				h.If(
+					item.Value == props.Value,
+					h.Selected(),
+				),
 				h.Value(item.Value),
 				h.Text(item.Text),
 			)

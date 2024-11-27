@@ -44,7 +44,11 @@ func RootPage(ctx *h.RequestContext, children ...h.Ren) *h.Page {
 				h.Meta("og:description", description),
 				h.Link(assets.MainCss, "stylesheet"),
 				h.Script(assets.HtmgoJs),
-				h.Tag("script", h.Attribute("src", assets.FloatingUiJs), h.Attribute("type", "module")),
+				h.Tag(
+					"script",
+					h.Attribute("src", assets.FloatingUiJs),
+					h.Attribute("type", "module"),
+				),
 			),
 			h.Body(
 				h.Class("h-full"),

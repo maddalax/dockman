@@ -4,6 +4,7 @@ import (
 	"context"
 	"dockside/app"
 	"dockside/app/logger"
+	"dockside/app/volume"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
@@ -94,11 +95,7 @@ func (m *FluentdManager) StartContainer() error {
 		},
 	}
 
-	fluentConfPath, err := filepath.Abs("./fluent.conf")
-
-	if err != nil {
-		return err
-	}
+	fluentConfPath := filepath.Join(volume.GetPersistentVolumePath(), "fluentd.conf")
 
 	err = os.WriteFile(fluentConfPath, []byte(FluentdConfig), 0644)
 
@@ -132,7 +129,7 @@ func (m *FluentdManager) StartContainer() error {
 		if strings.Contains(err.Error(), "container is running") {
 			return nil
 		}
-		if !client.IsErrNotFound(err) {
+		if !client.IsErrNotFound(err) || strings.Contains(err.Error(), "No such container") {
 			err = nil
 		} else {
 			return err

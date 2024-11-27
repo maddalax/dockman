@@ -10,6 +10,7 @@ require (
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/gobwas/glob v0.2.3
 	github.com/google/uuid v1.6.0
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/maddalax/htmgo/extensions/websocket v0.0.0-20241116145200-825c4dd7ecca
 	github.com/maddalax/htmgo/framework v1.0.3-0.20241116145258-909d38c7f412
 	github.com/maddalax/multiproxy v0.0.0-20241122165622-0c1a6ced1956
@@ -43,7 +44,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/gorilla/css v1.0.1 // indirect
-	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect

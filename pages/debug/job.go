@@ -11,7 +11,8 @@ import (
 )
 
 func IntervalJobDebug(ctx *h.RequestContext) *h.Page {
-	return pages.SidebarPage(ctx,
+	return pages.SidebarPage(
+		ctx,
 		h.Div(
 			h.Class("p-4"),
 			h.H3F(
@@ -19,7 +20,8 @@ func IntervalJobDebug(ctx *h.RequestContext) *h.Page {
 				h.Class("text-xl font-bold mb-6"),
 			),
 			h.Div(
-				h.Class("overflow-x-auto"), // Ensure responsiveness for smaller screens
+				h.Class("overflow-x-auto"),
+				// Ensure responsiveness for smaller screens
 				h.Table(
 					h.Class("w-full border-collapse border border-gray-300"),
 					tableHeader(),
@@ -82,7 +84,10 @@ func tableRow(metric *app.JobMetric) *h.Element {
 		h.Class("border-b border-gray-300 hover:bg-gray-50"),
 		tableCell(metric.JobName),
 		tableCell(metric.Interval.String()),
-		tableCell(metric.Status, h.Ternary(metric.Status == "running", "text-green-700", "text-red-700")),
+		tableCell(
+			metric.Status,
+			h.Ternary(metric.Status == "running", "text-green-700", "text-red-700"),
+		),
 		tableCell(formatTimePretty(metric.LastRan)),
 		tableCell(strconv.Itoa(metric.TotalRuns)),
 		tableCell(metric.LastRunDuration.String()),

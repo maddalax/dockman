@@ -73,13 +73,15 @@ func Setup(ctx *h.RequestContext) *h.Page {
 				h.NoSwap(),
 				h.TriggerChildren(),
 				h.PostPartial(SaveRouteTable),
-
 				h.Div(
 					h.Class("flex flex-col gap-4 pr-8 mt-6 w-full"),
 					ui.AlertPlaceholder(),
 					h.Div(
 						h.Class("flex justify-between items-center mb-6"),
-						h.H2F("Route Table", h.Class("text-xl font-bold")),
+						h.H2F(
+							"Route Table",
+							h.Class("text-xl font-bold"),
+						),
 						h.Div(
 							ui.PrimaryButton(ui.ButtonProps{
 								Text:           "Save Changes",
@@ -88,7 +90,6 @@ func Setup(ctx *h.RequestContext) *h.Page {
 						),
 					),
 				),
-
 				ui.Repeater(ctx, ui.RepeaterProps{
 					DefaultItems: util.MapSlice(table, func(rb app.RouteBlock, index int) *h.Element {
 						return block(blockProps{
@@ -147,7 +148,10 @@ func block(props blockProps) *h.Element {
 				ui.SimpleTooltip(
 					h.Class("text-slate-600 text-sm max-w-[300px]"),
 					h.Div(
-						h.P(h.Text("Hostname Matching"), h.Class("font-bold")),
+						h.P(
+							h.Text("Hostname Matching"),
+							h.Class("font-bold"),
+						),
 						h.Class("flex flex-col gap-2"),
 						h.P(
 							h.Text("Enter the hostname that you want to match, such as 'example.com', `app.example.com`, or `localhost:3000`."),
@@ -155,11 +159,15 @@ func block(props blockProps) *h.Element {
 					),
 				),
 				// label
-				h.Label(h.P(
-					h.Text("When "),
-					h.Span(h.Text("hostname"), h.Class("font-bold")),
-					h.Text(" is"),
-				),
+				h.Label(
+					h.P(
+						h.Text("When "),
+						h.Span(
+							h.Text("hostname"),
+							h.Class("font-bold"),
+						),
+						h.Text(" is"),
+					),
 				),
 			),
 			ui.Input(ui.InputProps{
@@ -169,7 +177,6 @@ func block(props blockProps) *h.Element {
 				Required:    true,
 			}),
 		),
-
 		h.Div(
 			h.Class("flex flex-col gap-2"),
 			h.Div(
@@ -178,7 +185,10 @@ func block(props blockProps) *h.Element {
 				ui.SimpleTooltip(
 					h.Class("text-slate-600 text-sm max-w-[300px]"),
 					h.Div(
-						h.P(h.Text("Path Matching (optional)"), h.Class("font-bold")),
+						h.P(
+							h.Text("Path Matching (optional)"),
+							h.Class("font-bold"),
+						),
 						h.Class("flex flex-col gap-2"),
 						h.P(
 							h.Text("If you only want to route to this app if its a specific path for that hostname, such as /blog, enter it here."),
@@ -187,9 +197,13 @@ func block(props blockProps) *h.Element {
 							h.Text("Leave it blank to route all paths."),
 						),
 						h.Div(
-							h.P(h.Text("Glob Matching"), h.Class("font-bold")),
-							h.P(h.Text(
-								"Glob matching is supported. For example, /blog/* will match /blog/my-article, /blog/2021, etc. "),
+							h.P(
+								h.Text("Glob Matching"),
+								h.Class("font-bold"),
+							),
+							h.P(
+								h.Text(
+									"Glob matching is supported. For example, /blog/* will match /blog/my-article, /blog/2021, etc. "),
 								h.A(
 									h.Text("Learn more"),
 									h.Class("text-blue-500 underline"),
@@ -201,14 +215,17 @@ func block(props blockProps) *h.Element {
 					),
 				),
 				// label
-				h.Label(h.P(
-					h.Class("flex gap-1 items-center"),
-					h.Text("When "),
-					h.Span(h.Text("path"), h.Class("font-bold")),
-				),
+				h.Label(
+					h.P(
+						h.Class("flex gap-1 items-center"),
+						h.Text("When "),
+						h.Span(
+							h.Text("path"),
+							h.Class("font-bold"),
+						),
+					),
 				),
 			),
-
 			h.Div(
 				h.Class("flex gap-2 items-center"),
 				h.Div(
@@ -261,7 +278,6 @@ func block(props blockProps) *h.Element {
 				}),
 			),
 		),
-
 		h.Div(
 			h.Class("flex flex-col gap-2 max-w-[350px] w-full"),
 			h.LabelFor("app-selection", "then route to"),

@@ -31,9 +31,15 @@ func StartResource(ctx *h.RequestContext) *h.Partial {
 	})
 
 	if err != nil {
-		return h.SwapPartial(ctx, h.Fragment(
-			ui.ErrorAlert(h.Pf(err.Error()), h.Empty()),
-		))
+		return h.SwapPartial(
+			ctx,
+			h.Fragment(
+				ui.ErrorAlert(
+					h.Pf(err.Error()),
+					h.Empty(),
+				),
+			),
+		)
 	}
 
 	resource, err := app.ResourceGet(ctx.ServiceLocator(), id)
@@ -52,9 +58,15 @@ func StopResource(ctx *h.RequestContext) *h.Partial {
 	_, err := app.SendResourceStopCommand(ctx.ServiceLocator(), id)
 
 	if err != nil {
-		return h.SwapPartial(ctx, h.Fragment(
-			ui.ErrorAlert(h.Pf(err.Error()), h.Empty()),
-		))
+		return h.SwapPartial(
+			ctx,
+			h.Fragment(
+				ui.ErrorAlert(
+					h.Pf(err.Error()),
+					h.Empty(),
+				),
+			),
+		)
 	}
 
 	resource, err := app.ResourceGet(ctx.ServiceLocator(), id)

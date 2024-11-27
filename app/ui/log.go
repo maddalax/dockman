@@ -30,7 +30,8 @@ func LogBody(opts LogBodyOptions) *h.Element {
 			`),
 		),
 		// Scroll to the bottom when a new message is added
-		h.OnEvent("htmx:wsAfterMessage",
+		h.OnEvent(
+			"htmx:wsAfterMessage",
 			js.EvalJs(fmt.Sprintf(`
 				// Remove excess logs
 				const logs = document.getElementById('build-log');

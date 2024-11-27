@@ -80,11 +80,16 @@ func baseInputClasses() string {
 		"focus-visible:outline-none focus-visible:ring-2 " +
 		"focus-visible:ring-gray-950 dark:focus-visible:ring-gray-300 " +
 		"focus-visible:ring-offset-2 disabled:cursor-not-allowed " +
-		"disabled:bg-[rgba(0,0,0,0.05)] outline-none"
+		"disabled:bg-[rgba(0,0,0,0.05)] outline-none focus:ring-0 focus:border-none"
 }
 
 // Input creates a new input component with the provided props
 func Input(props InputProps) *h.Element {
+
+	if props.Id == "" {
+		props.Id = props.Name
+	}
+
 	if props.Type == "" {
 		props.Type = InputTypeText
 	}
@@ -104,7 +109,8 @@ func Input(props InputProps) *h.Element {
 	inputClasses := h.MergeClasses(
 		baseInputClasses(),
 		sizeClasses[props.Size],
-		h.Ternary(props.FullWidth, "w-full", "w-[320px]"), // Set default width if not full width
+		h.Ternary(props.FullWidth, "w-full", "w-[320px]"),
+		// Set default width if not full width
 		h.Ternary(props.LeadingIcon != nil, "pl-8", ""),
 		h.Ternary(props.TrailingIcon != nil, "pr-8", ""),
 		props.Class,
@@ -118,19 +124,58 @@ func Input(props InputProps) *h.Element {
 		h.Value(props.Value),
 		h.Placeholder(props.Placeholder),
 		h.Class(inputClasses),
-		h.If(props.Children != nil, h.Children(props.Children...)),
-		h.If(props.Required, h.Required()),
-		h.If(props.Disabled, h.Disabled()),
-		h.If(props.ReadOnly, h.ReadOnly()),
-		h.If(props.AutoFocus, h.AutoFocus()),
-		h.If(props.Min != "", h.Min(props.Min)),
-		h.If(props.Max != "", h.Max(props.Max)),
-		h.If(props.Step != "", h.Step(props.Step)),
-		h.If(props.Pattern != "", h.Pattern(props.Pattern)),
-		h.If(props.Target != "", h.HxTarget(props.Target)),
-		h.If(props.Trigger != "", h.HxTriggerString(props.Trigger)),
-		h.If(props.Get != "", h.Get(props.Get)),
-		h.If(props.Post != "", h.Post(props.Post)),
+		h.If(
+			props.Children != nil,
+			h.Children(props.Children...),
+		),
+		h.If(
+			props.Required,
+			h.Required(),
+		),
+		h.If(
+			props.Disabled,
+			h.Disabled(),
+		),
+		h.If(
+			props.ReadOnly,
+			h.ReadOnly(),
+		),
+		h.If(
+			props.AutoFocus,
+			h.AutoFocus(),
+		),
+		h.If(
+			props.Min != "",
+			h.Min(props.Min),
+		),
+		h.If(
+			props.Max != "",
+			h.Max(props.Max),
+		),
+		h.If(
+			props.Step != "",
+			h.Step(props.Step),
+		),
+		h.If(
+			props.Pattern != "",
+			h.Pattern(props.Pattern),
+		),
+		h.If(
+			props.Target != "",
+			h.HxTarget(props.Target),
+		),
+		h.If(
+			props.Trigger != "",
+			h.HxTriggerString(props.Trigger),
+		),
+		h.If(
+			props.Get != "",
+			h.Get(props.Get),
+		),
+		h.If(
+			props.Post != "",
+			h.Post(props.Post),
+		),
 	)
 
 	// If we only have an input with no additional elements, return it directly
@@ -150,14 +195,9 @@ func Input(props InputProps) *h.Element {
 
 	// Add label if provided
 	if props.Label != "" {
-		labelClasses := h.MergeClasses(
-			"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-			props.LabelClass,
-		)
-		children = append(children, h.Label(
+		children = append(children, FieldLabel(
+			props.Label,
 			h.For(props.Id),
-			h.Class(labelClasses),
-			h.Text(props.Label),
 		))
 	}
 
@@ -167,10 +207,13 @@ func Input(props InputProps) *h.Element {
 			"text-sm text-muted-foreground",
 			props.DescriptionClass,
 		)
-		children = append(children, h.P(
-			h.Class(descriptionClasses),
-			h.Text(props.Description),
-		))
+		children = append(
+			children,
+			h.P(
+				h.Class(descriptionClasses),
+				h.Text(props.Description),
+			),
+		)
 	}
 
 	// Create input container for icons
@@ -178,41 +221,54 @@ func Input(props InputProps) *h.Element {
 	if props.LeadingIcon != nil || props.TrailingIcon != nil {
 		inputWrapperClasses := h.MergeClasses(
 			"relative",
-			h.Ternary(props.FullWidth, "w-full", "w-[320px]"), // Match input width
+			h.Ternary(props.FullWidth, "w-full", "w-[320px]"),
+			// Match input width
 		)
 
 		iconChildren := make([]h.Ren, 0)
 
 		if props.LeadingIcon != nil {
-			iconChildren = append(iconChildren, h.Div(
-				h.Class("absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"),
-				props.LeadingIcon,
-			))
+			iconChildren = append(
+				iconChildren,
+				h.Div(
+					h.Class("absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"),
+					props.LeadingIcon,
+				),
+			)
 		}
 
 		iconChildren = append(iconChildren, input)
 
 		if props.TrailingIcon != nil {
-			iconChildren = append(iconChildren, h.Div(
-				h.Class("absolute right-3 top-1/2 -translate-y-1/2"),
-				props.TrailingIcon,
-			))
+			iconChildren = append(
+				iconChildren,
+				h.Div(
+					h.Class("absolute right-3 top-1/2 -translate-y-1/2"),
+					props.TrailingIcon,
+				),
+			)
 		}
 
-		children = append(children, h.Div(
-			h.Class(inputWrapperClasses),
-			h.Children(iconChildren...),
-		))
+		children = append(
+			children,
+			h.Div(
+				h.Class(inputWrapperClasses),
+				h.Children(iconChildren...),
+			),
+		)
 	} else {
 		children = append(children, input)
 	}
 
 	// Add help text if provided
 	if props.HelpText != nil {
-		children = append(children, h.Div(
-			h.Class("text-sm text-muted-foreground mt-1"),
-			props.HelpText,
-		))
+		children = append(
+			children,
+			h.Div(
+				h.Class("text-sm text-muted-foreground mt-1"),
+				props.HelpText,
+			),
+		)
 	}
 
 	// Add error message if provided
@@ -221,10 +277,13 @@ func Input(props InputProps) *h.Element {
 			"text-sm font-medium text-destructive mt-1",
 			props.ErrorClass,
 		)
-		children = append(children, h.P(
-			h.Class(errorClasses),
-			h.Text(props.Error),
-		))
+		children = append(
+			children,
+			h.P(
+				h.Class(errorClasses),
+				h.Text(props.Error),
+			),
+		)
 	}
 
 	return h.Div(
@@ -297,10 +356,22 @@ func Textarea(props TextareaProps) *h.Element {
 		h.Value(props.Value),
 		h.Placeholder(props.Placeholder),
 		h.Class(classes),
-		h.If(props.Required, h.Required()),
-		h.If(props.Disabled, h.Disabled()),
-		h.If(props.ReadOnly, h.ReadOnly()),
-		h.If(props.Rows > 0, h.Rows(props.Rows)),
+		h.If(
+			props.Required,
+			h.Required(),
+		),
+		h.If(
+			props.Disabled,
+			h.Disabled(),
+		),
+		h.If(
+			props.ReadOnly,
+			h.ReadOnly(),
+		),
+		h.If(
+			props.Rows > 0,
+			h.Rows(props.Rows),
+		),
 	)
 
 	// If we only have a textarea with no additional elements, return it directly
@@ -318,11 +389,14 @@ func Textarea(props TextareaProps) *h.Element {
 			"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
 			props.LabelClass,
 		)
-		children = append(children, h.Label(
-			h.For(props.Id),
-			h.Class(labelClasses),
-			h.Text(props.Label),
-		))
+		children = append(
+			children,
+			h.Label(
+				h.For(props.Id),
+				h.Class(labelClasses),
+				h.Text(props.Label),
+			),
+		)
 	}
 
 	// Add description if provided
@@ -331,20 +405,26 @@ func Textarea(props TextareaProps) *h.Element {
 			"text-sm text-muted-foreground",
 			props.DescriptionClass,
 		)
-		children = append(children, h.P(
-			h.Class(descriptionClasses),
-			h.Text(props.Description),
-		))
+		children = append(
+			children,
+			h.P(
+				h.Class(descriptionClasses),
+				h.Text(props.Description),
+			),
+		)
 	}
 
 	children = append(children, textarea)
 
 	// Add help text if provided
 	if props.HelpText != nil {
-		children = append(children, h.P(
-			h.Class("text-sm text-muted-foreground mt-1"),
-			props.HelpText,
-		))
+		children = append(
+			children,
+			h.P(
+				h.Class("text-sm text-muted-foreground mt-1"),
+				props.HelpText,
+			),
+		)
 	}
 
 	// Add error message if provided
@@ -353,10 +433,13 @@ func Textarea(props TextareaProps) *h.Element {
 			"text-sm font-medium text-destructive mt-1",
 			props.ErrorClass,
 		)
-		children = append(children, h.P(
-			h.Class(errorClasses),
-			h.Text(props.Error),
-		))
+		children = append(
+			children,
+			h.P(
+				h.Class(errorClasses),
+				h.Text(props.Error),
+			),
+		)
 	}
 
 	return h.Div(

@@ -30,7 +30,11 @@ func SaveResourceDetails(ctx *h.RequestContext) *h.Partial {
 	case *app.DockerBuildMeta:
 		branches, err := bm.ListRemoteBranches()
 		if err == nil && !slices.Contains(branches, deploymentBranch) {
-			return ui.ErrorAlertPartial(ctx, h.Pf("Invalid branch"), h.Pf("The deployment branch you specified does not exist in the repository"))
+			return ui.ErrorAlertPartial(
+				ctx,
+				h.Pf("Invalid branch"),
+				h.Pf("The deployment branch you specified does not exist in the repository"),
+			)
 		}
 	}
 
@@ -78,6 +82,12 @@ func Index(ctx *h.RequestContext) *h.Page {
 							Label:    "Resource Name",
 							Value:    resource.Name,
 							Name:     "name",
+							Disabled: true,
+						}),
+						ui.Input(ui.InputProps{
+							Label:    "Environment",
+							Value:    resource.Environment,
+							Name:     "environment",
 							Disabled: true,
 						}),
 						ui.Input(ui.InputProps{
@@ -136,11 +146,14 @@ func buildMetaFields(resource *app.Resource) *h.Element {
 				}),
 			),
 			ui.Input(ui.InputProps{
-				Label:       "Dockerfile",
-				Value:       bm.Dockerfile,
-				Name:        "dockerfile",
-				LeadingIcon: h.Div(h.Class("w-4 h-4"), icons.DockerIconBlack()),
-				HelpText:    h.Pf("The path to the Dockerfile in the repository, relative to the repository root."),
+				Label: "Dockerfile",
+				Value: bm.Dockerfile,
+				Name:  "dockerfile",
+				LeadingIcon: h.Div(
+					h.Class("w-4 h-4"),
+					icons.DockerIconBlack(),
+				),
+				HelpText: h.Pf("The path to the Dockerfile in the repository, relative to the repository root."),
 			}),
 			ui.Input(ui.InputProps{
 				Disabled: true,
