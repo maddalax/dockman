@@ -178,7 +178,7 @@ func ComboBox(props ComboBoxProps) *h.Element {
 		h.Div(
 			h.Id(fmt.Sprintf("%s-combobox-options", props.Id)),
 			h.Role("listbox"),
-			h.Class("hidden absolute rounded-md border bg-popover text-popover-foreground shadow-lg outline-none animate-in fade-in-0 zoom-in-95 max-w-[320px]"),
+			h.Class("hidden absolute z-40 rounded-md border bg-popover text-popover-foreground shadow-lg outline-none animate-in fade-in-0 zoom-in-95 max-w-[320px]"),
 			h.If(props.ShowSearch, SearchInput(InputProps{
 				AutoFocus:   true,
 				Placeholder: "Search...",

@@ -40,18 +40,14 @@ type InputProps struct {
 	FullWidth   bool
 
 	// Styling
-	Size      InputSize
-	Class     string
-	WrapClass string
+	Size  InputSize
+	Class string
 
 	// Label, description, and help text
-	Label            string
-	LabelClass       string
-	Description      string
-	DescriptionClass string
-	HelpText         *h.Element
-	Error            string
-	ErrorClass       string
+	Label       string
+	Description string
+	HelpText    *h.Element
+	Error       string
 
 	// Icons
 	LeadingIcon  *h.Element
@@ -178,117 +174,61 @@ func Input(props InputProps) *h.Element {
 		),
 	)
 
-	// If we only have an input with no additional elements, return it directly
-	if props.Label == "" && props.Description == "" &&
-		props.HelpText == nil && props.Error == "" &&
-		props.LeadingIcon == nil && props.TrailingIcon == nil {
+	needsWrapper :=
+		props.Label != "" || props.Description != "" || props.HelpText != nil || props.Error != "" ||
+			props.LeadingIcon != nil || props.TrailingIcon != nil
+
+	if !needsWrapper {
 		return input
 	}
 
-	// Create wrapper with label, description, and input
-	wrapperClasses := h.MergeClasses(
-		"input-wrapper space-y-1.5",
-		props.WrapClass,
-	)
-
-	children := make([]h.Ren, 0)
-
-	// Add label if provided
-	if props.Label != "" {
-		children = append(children, FieldLabel(
+	return h.Div(
+		h.Class("input-wrapper space-y-1.5"),
+		h.If(props.Label != "", FieldLabel(
 			props.Label,
 			h.For(props.Id),
-		))
-	}
-
-	// Add description if provided
-	if props.Description != "" {
-		descriptionClasses := h.MergeClasses(
-			"text-sm text-muted-foreground",
-			props.DescriptionClass,
-		)
-		children = append(
-			children,
+		)),
+		h.If(
+			props.Description != "",
 			h.P(
-				h.Class(descriptionClasses),
+				h.Class("text-sm text-muted-foreground"),
 				h.Text(props.Description),
 			),
-		)
-	}
-
-	// Create input container for icons
-	// If we have icons, wrap the input in a relative container that matches input width
-	if props.LeadingIcon != nil || props.TrailingIcon != nil {
-		inputWrapperClasses := h.MergeClasses(
-			"relative",
-			h.Ternary(props.FullWidth, "w-full", "w-[320px]"),
-			// Match input width
-		)
-
-		iconChildren := make([]h.Ren, 0)
-
-		if props.LeadingIcon != nil {
-			iconChildren = append(
-				iconChildren,
+		),
+		h.Div(
+			h.Class(
+				h.MergeClasses("relative flex items-center"),
+			),
+			h.If(
+				props.LeadingIcon != nil,
 				h.Div(
-					h.Class("absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"),
+					h.Class("absolute left-2.5 z-1"),
 					props.LeadingIcon,
 				),
-			)
-		}
-
-		iconChildren = append(iconChildren, input)
-
-		if props.TrailingIcon != nil {
-			iconChildren = append(
-				iconChildren,
+			),
+			input,
+			h.If(
+				props.TrailingIcon != nil,
 				h.Div(
-					h.Class("absolute right-3 top-1/2 -translate-y-1/2"),
+					h.Class("absolute right-2.5 z-1"),
 					props.TrailingIcon,
 				),
-			)
-		}
-
-		children = append(
-			children,
-			h.Div(
-				h.Class(inputWrapperClasses),
-				h.Children(iconChildren...),
 			),
-		)
-	} else {
-		children = append(children, input)
-	}
-
-	// Add help text if provided
-	if props.HelpText != nil {
-		children = append(
-			children,
+		),
+		h.If(
+			props.HelpText != nil,
 			h.Div(
 				h.Class("text-sm text-muted-foreground mt-1"),
 				props.HelpText,
 			),
-		)
-	}
-
-	// Add error message if provided
-	if props.Error != "" {
-		errorClasses := h.MergeClasses(
-			"text-sm font-medium text-destructive mt-1",
-			props.ErrorClass,
-		)
-		children = append(
-			children,
+		),
+		h.If(
+			props.Error != "",
 			h.P(
-				h.Class(errorClasses),
+				h.Class("text-sm font-medium text-destructive mt-1"),
 				h.Text(props.Error),
 			),
-		)
-	}
-
-	return h.Div(
-		h.Class(wrapperClasses),
-		h.Children(children...),
+		),
 	)
 }
 
@@ -327,123 +267,4 @@ func SearchInput(props InputProps) *h.Element {
 func FileInput(props InputProps) *h.Element {
 	props.Type = InputTypeFile
 	return Input(props)
-}
-
-// TextareaProps extends InputProps for textarea-specific properties
-type TextareaProps struct {
-	InputProps
-	Rows int
-}
-
-// Textarea creates a new textarea component with the provided props
-func Textarea(props TextareaProps) *h.Element {
-	baseClasses := "flex min-h-[80px] w-full rounded-md border border-input " +
-		"bg-background px-3 py-2 text-sm ring-offset-background " +
-		"placeholder:text-muted-foreground focus-visible:outline-none " +
-		"focus-visible:ring-2 focus-visible:ring-gray-950 " +
-		"dark:focus-visible:ring-gray-300 focus-visible:ring-offset-2 " +
-		"disabled:cursor-not-allowed disabled:bg-background/50 outline-none"
-
-	classes := h.MergeClasses(
-		baseClasses,
-		h.Ternary(props.Error != "", "border-destructive", ""),
-		props.Class,
-	)
-
-	textarea := h.TextArea(
-		h.Name(props.Name),
-		h.Id(props.Id),
-		h.Value(props.Value),
-		h.Placeholder(props.Placeholder),
-		h.Class(classes),
-		h.If(
-			props.Required,
-			h.Required(),
-		),
-		h.If(
-			props.Disabled,
-			h.Disabled(),
-		),
-		h.If(
-			props.ReadOnly,
-			h.ReadOnly(),
-		),
-		h.If(
-			props.Rows > 0,
-			h.Rows(props.Rows),
-		),
-	)
-
-	// If we only have a textarea with no additional elements, return it directly
-	if props.Label == "" && props.Description == "" &&
-		props.HelpText != nil && props.Error == "" {
-		return textarea
-	}
-
-	// Create wrapper with label, description, and textarea
-	children := make([]h.Ren, 0)
-
-	// Add label if provided
-	if props.Label != "" {
-		labelClasses := h.MergeClasses(
-			"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-			props.LabelClass,
-		)
-		children = append(
-			children,
-			h.Label(
-				h.For(props.Id),
-				h.Class(labelClasses),
-				h.Text(props.Label),
-			),
-		)
-	}
-
-	// Add description if provided
-	if props.Description != "" {
-		descriptionClasses := h.MergeClasses(
-			"text-sm text-muted-foreground",
-			props.DescriptionClass,
-		)
-		children = append(
-			children,
-			h.P(
-				h.Class(descriptionClasses),
-				h.Text(props.Description),
-			),
-		)
-	}
-
-	children = append(children, textarea)
-
-	// Add help text if provided
-	if props.HelpText != nil {
-		children = append(
-			children,
-			h.P(
-				h.Class("text-sm text-muted-foreground mt-1"),
-				props.HelpText,
-			),
-		)
-	}
-
-	// Add error message if provided
-	if props.Error != "" {
-		errorClasses := h.MergeClasses(
-			"text-sm font-medium text-destructive mt-1",
-			props.ErrorClass,
-		)
-		children = append(
-			children,
-			h.P(
-				h.Class(errorClasses),
-				h.Text(props.Error),
-			),
-		)
-	}
-
-	return h.Div(
-		h.Class("space-y-1.5"),
-		h.Children(children...),
-	)
 }
