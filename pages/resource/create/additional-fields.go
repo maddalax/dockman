@@ -10,18 +10,21 @@ func AdditionalCreateResourceFields(ctx *h.RequestContext) *h.Partial {
 	return h.SwapPartial(
 		ctx,
 		h.Div(
-			h.Class("flex flex-col gap-4"),
+			h.Class("flex flex-col gap-2"),
 			h.Id("additional-create-resource-fields"),
 			AdditionalFieldsForDeploymentType(ctx, deploymentType),
 			EnvironmentVariables(ctx),
 			h.Div(
 				h.Id("submit-error"),
 			),
-			ui.SubmitButton(ui.ButtonProps{
-				Text:           "Create Resource",
-				SubmittingText: "Validating...",
-				Class:          "mt-4 w-full",
-			}),
+			h.Div(
+				ui.SubmitButton(ui.ButtonProps{
+					FullWidth:      false,
+					Text:           "Create Resource",
+					SubmittingText: "Validating...",
+					Class:          "mt-4",
+				}),
+			),
 		),
 	)
 }

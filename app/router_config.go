@@ -7,10 +7,15 @@ import (
 	"strings"
 )
 
+// ReloadConfig force reloads the router configuration
 func ReloadConfig(locator *service.Locator) {
 	loadConfig(locator)
+	lb := GetServiceRegistry(locator).GetReverseProxy().lb
+	lb.ApplyStagedUpstreams()
 }
 
+// loadConfig calculates the new configuration for the router, but does not apply it,
+// it must be applied by calling ApplyStagedUpstreams
 func loadConfig(locator *service.Locator) {
 	builder := NewConfigBuilder(locator)
 	table, err := GetRouteTable(locator)

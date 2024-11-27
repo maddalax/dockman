@@ -141,12 +141,6 @@ func ResourceList(ctx *h.RequestContext) *h.Element {
 				Text: "+ New",
 				Href: urls.NewResourceUrl(),
 			}),
-
-		//h.A(
-		//	h.Text("+ New"),
-		//	h.Href(urls.NewResourceUrl()),
-		//	h.Class("bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-2 rounded"),
-		//),
 		),
 		h.Div(
 			h.Class("flex flex-col gap-2"),

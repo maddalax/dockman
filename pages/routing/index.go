@@ -83,7 +83,7 @@ func Setup(ctx *h.RequestContext) *h.Page {
 							h.Class("text-xl font-bold"),
 						),
 						h.Div(
-							ui.PrimaryButton(ui.ButtonProps{
+							ui.SubmitButton(ui.ButtonProps{
 								Text:           "Save Changes",
 								SubmittingText: "Saving...",
 							}),

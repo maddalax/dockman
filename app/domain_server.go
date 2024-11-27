@@ -14,8 +14,8 @@ type Server struct {
 
 func (server *Server) IsAccessible() bool {
 	now := time.Now()
-	// has sent an update in the last 10 seconds
-	return now.Sub(server.LastSeen) < time.Second*10
+	// has sent an update in the last 30 seconds
+	return now.Sub(server.LastSeen) < time.Second*30
 }
 
 func (server *Server) FormattedName() string {

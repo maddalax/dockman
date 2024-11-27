@@ -87,7 +87,7 @@ func Button(props ButtonProps) *h.Element {
 		baseClasses,
 		sizeClasses[props.Size],
 		variantClasses[props.Variant],
-		h.Ternary(props.FullWidth, "w-full", ""),
+		h.Ternary(props.FullWidth, "w-full", "w-auto"),
 		props.Class,
 	)
 

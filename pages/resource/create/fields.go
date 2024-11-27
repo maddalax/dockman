@@ -42,10 +42,8 @@ func EnvironmentVariables(ctx *h.RequestContext) *h.Element {
 			},
 			Id: "environment-variables",
 			OnAdd: func(data ws.HandlerData) {
-				//ws.BroadcastServerSideEvent("increment", map[string]any{})
 			},
 			OnRemove: func(data ws.HandlerData, index int) {
-				//ws.BroadcastServerSideEvent("decrement", map[string]any{})
 			},
 			AddButton: h.Button(
 				h.Type("button"),

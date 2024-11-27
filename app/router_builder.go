@@ -1,12 +1,14 @@
 package app
 
 import (
+	"dockside/app/logger"
 	"dockside/app/util/must"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type ConfigBuilder struct {
@@ -45,6 +47,12 @@ func (b *ConfigBuilder) Append(resource *Resource, block *RouteBlock, lb *multip
 
 		// skip if server is not accessible
 		if !server.IsAccessible() {
+			logger.InfoWithFields("Server is not accessible", map[string]any{
+				"serverId":  server.Id,
+				"lastCheck": server.LastSeen.String(),
+				"now":       time.Now().String(),
+				"diff":      time.Since(server.LastSeen).String(),
+			})
 			continue
 		}
 

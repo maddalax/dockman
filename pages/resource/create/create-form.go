@@ -16,11 +16,11 @@ func DeploymentChoiceSelector() *h.Element {
 				h.Class("sr-only"),
 			),
 			h.Div(
-				h.Class("max-w-[40%]"),
+				h.Class("max-w-[250px]"),
 				DockerFileChoice(),
 			),
 			h.Div(
-				h.Class("max-w-[40%]"),
+				h.Class("max-w-[250px]"),
 				DockerRegistryChoice(),
 			),
 		),
@@ -49,7 +49,7 @@ func DockerRegistryChoice() *h.Element {
 	t := "docker_registry"
 	return ui.ChoiceCard(ui.ChoiceCardProps{
 		Title:          "Docker Registry",
-		Description:    "Run your application from an existing Docker image in a registry",
+		Description:    "Run your application from an existing Docker image",
 		Icon:           icons.DockerIconBlack(),
 		InputName:      "deployment-type",
 		InputValue:     t,
