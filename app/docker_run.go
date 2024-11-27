@@ -101,7 +101,7 @@ func (c *DockerClient) doRun(resource *Resource, index int, opts RunOptions) err
 		}
 	}
 
-	hostPort, err := FindOpenPort(3000)
+	hostPort, err := FindOpenPort()
 
 	if err != nil {
 		return err

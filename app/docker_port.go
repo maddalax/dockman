@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-func FindOpenPort(startPort int) (int, error) {
-	minp := startPort
-	maxp := 65534
+func FindOpenPort() (int, error) {
+	minp := 1024
+	maxp := 49151
 	attempts := 0
 	for {
 		attempts++
@@ -30,5 +30,5 @@ func FindOpenPort(startPort int) (int, error) {
 		time.Sleep(time.Millisecond * 10)
 	}
 
-	return 0, fmt.Errorf("no open ports found starting from %d", startPort)
+	return 0, fmt.Errorf("no open ports found starting from %d to %d", minp, maxp)
 }
