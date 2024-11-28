@@ -75,8 +75,9 @@ func ServerListPartial(ctx *h.RequestContext) *h.Partial {
 	}
 
 	table := ui.NewTable()
+	table2 := ui.NewTable()
 
-	table.AddColumns([]string{
+	columns := []string{
 		"Id",
 		"Host Name",
 		"IP Address",
@@ -84,16 +85,12 @@ func ServerListPartial(ctx *h.RequestContext) *h.Partial {
 		"Last Seen",
 		"Status",
 		"Actions",
-	})
+	}
+
+	table.AddColumns(columns)
+	table2.AddColumns(columns)
 
 	for _, server := range servers {
-		table.AddRow()
-
-		runStatus := app.RunStatusNotRunning
-		if server.IsAccessible() {
-			runStatus = app.RunStatusRunning
-		}
-
 		isAssociated := false
 
 		for _, detail := range resource.ServerDetails {
@@ -103,12 +100,24 @@ func ServerListPartial(ctx *h.RequestContext) *h.Partial {
 			}
 		}
 
-		table.AddCellText(server.Id[:8])
-		table.AddCellText(server.HostName)
-		table.AddCellText(server.IpAddress())
-		table.AddCellText(server.Os)
-		table.AddCellText(server.LastSeen.Format("2006-01-02 15:04:05"))
-		table.AddCell(ui.StatusIndicator(ui.StatusIndicatorProps{
+		t := table
+		if !isAssociated {
+			t = table2
+		}
+
+		t.AddRow()
+
+		runStatus := app.RunStatusNotRunning
+		if server.IsAccessible() {
+			runStatus = app.RunStatusRunning
+		}
+
+		t.AddCellText(server.Id[:8])
+		t.AddCellText(server.HostName)
+		t.AddCellText(server.IpAddress())
+		t.AddCellText(server.Os)
+		t.AddCellText(server.LastSeen.Format("2006-01-02 15:04:05"))
+		t.AddCell(ui.StatusIndicator(ui.StatusIndicatorProps{
 			RunStatus: runStatus,
 			TextMap: map[app.RunStatus]string{
 				app.RunStatusNotRunning: "Not Accessible",
@@ -117,7 +126,7 @@ func ServerListPartial(ctx *h.RequestContext) *h.Partial {
 		}))
 
 		text := h.Ternary(isAssociated, "Remove from resource", "Associate with resource")
-		table.AddCell(
+		t.AddCell(
 			h.Button(
 				h.Text(text),
 				h.Class("text-blue-500 hover:text-blue-700"),
@@ -128,7 +137,6 @@ func ServerListPartial(ctx *h.RequestContext) *h.Partial {
 				),
 			),
 		)
-
 	}
 
 	// Render the page with two tables
@@ -137,7 +145,21 @@ func ServerListPartial(ctx *h.RequestContext) *h.Partial {
 			h.Class("flex flex-col gap-8"),
 			h.Id("resource-servers"),
 			// Associated Servers Table
-			table.Render(),
+			h.Div(
+				h.Class("flex flex-col gap-4"),
+				h.H2(
+					h.Text("Associated Servers"),
+				),
+				table.Render(),
+			),
+			// Available Servers Table
+			h.Div(
+				h.Class("flex flex-col gap-4"),
+				h.H2(
+					h.Text("Available Servers"),
+				),
+				table2.Render(),
+			),
 		),
 	)
 }
