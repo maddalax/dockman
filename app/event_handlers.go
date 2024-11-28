@@ -108,7 +108,7 @@ func (eh *EventHandler) OnNewCommit(resource *Resource, branch string, commit st
 				"branch":   branch,
 				"commit":   commit,
 			})
-			b := NewResourceBuilder(eh.locator, resource, buildId)
+			b := NewResourceBuilder(eh.locator, resource, buildId, fmt.Sprintf("Auto Deploy (%s)", branch))
 			_ = b.StartBuildAsync(time.Second)
 		}
 	}

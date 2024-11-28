@@ -14,6 +14,7 @@ const (
 type CreateDeploymentRequest struct {
 	ResourceId string
 	BuildId    string
+	Source     string
 }
 
 type UpdateDeploymentStatusRequest struct {
@@ -29,4 +30,5 @@ type Deployment struct {
 	BuildId      string           `json:"buildId"`
 	Status       DeploymentStatus `json:"status"`
 	StatusReason string           `json:"statusReason"`
+	Source       string           `json:"Source"`
 }

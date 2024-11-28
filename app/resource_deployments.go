@@ -99,6 +99,7 @@ func CreateDeployment(locator *service.Locator, request CreateDeploymentRequest)
 		CreatedAt:  time.Now(),
 		BuildId:    request.BuildId,
 		Status:     DeploymentStatusPending,
+		Source:     request.Source,
 	}))
 
 	if err != nil {

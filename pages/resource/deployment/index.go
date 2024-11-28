@@ -41,6 +41,7 @@ func ListPartial(ctx *h.RequestContext) *h.Partial {
 
 	table.AddColumns([]string{
 		"Build Id",
+		"Source",
 		"Commit",
 		"Ran at",
 		"Status",
@@ -58,6 +59,7 @@ func ListPartial(ctx *h.RequestContext) *h.Partial {
 		table.AddRow()
 
 		table.AddCellText(deployment.BuildId[:8])
+		table.AddCellText(deployment.Source)
 
 		commitHashUrl := ""
 

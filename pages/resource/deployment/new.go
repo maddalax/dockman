@@ -36,7 +36,7 @@ func StartNewDeployment(ctx *h.RequestContext) *h.Page {
 		)
 	}
 
-	b := app.NewResourceBuilder(ctx.ServiceLocator(), resource, buildId)
+	b := app.NewResourceBuilder(ctx.ServiceLocator(), resource, buildId, "Manual (User Requested)")
 
 	if isExistingBuild {
 		// starting a new build, clear any previous logs for this build

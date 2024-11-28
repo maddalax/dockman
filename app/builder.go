@@ -11,6 +11,7 @@ import (
 var builderLock = sync.Mutex{}
 
 type ResourceBuilder struct {
+	Source            string
 	Resource          *Resource
 	BuilderRegistry   *BuilderRegistry
 	BuildId           string
@@ -29,7 +30,7 @@ type ResourceBuilder struct {
 	Finished           bool
 }
 
-func NewResourceBuilder(serviceLocator *service.Locator, resource *Resource, buildId string) *ResourceBuilder {
+func NewResourceBuilder(serviceLocator *service.Locator, resource *Resource, buildId string, source string) *ResourceBuilder {
 	builderLock.Lock()
 	defer builderLock.Unlock()
 	registry := GetBuilderRegistry(serviceLocator)
@@ -40,6 +41,7 @@ func NewResourceBuilder(serviceLocator *service.Locator, resource *Resource, bui
 	}
 	natsClient := service.Get[KvClient](serviceLocator)
 	builder := &ResourceBuilder{
+		Source:          source,
 		BuilderRegistry: registry,
 		Resource:        resource,
 		BuildId:         buildId,
@@ -154,6 +156,7 @@ func (b *ResourceBuilder) Build() error {
 	err = CreateDeployment(b.ServiceLocator, CreateDeploymentRequest{
 		ResourceId: b.Resource.Id,
 		BuildId:    b.BuildId,
+		Source:     b.Source,
 	})
 
 	if err != nil {
