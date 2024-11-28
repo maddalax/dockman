@@ -38,13 +38,16 @@ func (l *DistributedLock) Lock() error {
 	_, err = bucket.Create(l.key, []byte("locked"))
 	if err != nil {
 		if errors.Is(err, nats.ErrKeyExists) {
-			// wait for the builderRegistryLock to be released
+			// wait for the lock to be released
 			success := util.WaitFor(l.timeout, 25*time.Millisecond, func() bool {
+				logger.DebugWithFields("waiting for lock", map[string]any{
+					"key": l.key,
+				})
 				_, err = bucket.Create(l.key, []byte("locked"))
 				return err == nil
 			})
 			if !success {
-				return errors.New("builderRegistryLock timeout")
+				return errors.New("lock timeout")
 			}
 		} else {
 			return err

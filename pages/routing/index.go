@@ -84,8 +84,7 @@ func Setup(ctx *h.RequestContext) *h.Page {
 						),
 						h.Div(
 							ui.SubmitButton(ui.ButtonProps{
-								Text:           "Save Changes",
-								SubmittingText: "Saving...",
+								Text: "Save Changes",
 							}),
 						),
 					),

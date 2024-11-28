@@ -18,6 +18,13 @@ func (a *Agent) monitorInstanceCount() {
 		wg.Add()
 		go func() {
 			defer wg.Done()
+			lock := ResourceStatusLock(a.locator, resource.Id)
+			err := lock.Lock()
+			if err != nil {
+				logger.Error("Failed to lock resource", err)
+				return
+			}
+			defer lock.Unlock()
 			switch resource.BuildMeta.(type) {
 			case *DockerBuildMeta, *DockerRegistryMeta:
 				a.monitorDockerInstanceCount(resource)
@@ -36,6 +43,19 @@ func (a *Agent) monitorDockerInstanceCount(resource *Resource) {
 	containers, err := client.GetRunningContainers(resource)
 	if err != nil {
 		logger.Error("Failed to get running containers", err)
+		return
+	}
+	if resource.Stopped {
+		logger.InfoWithFields("resource is stopped, stopping all running containers", map[string]any{
+			"resource_id": resource.Id,
+			"count":       len(containers),
+		})
+		if len(containers) > 0 {
+			err = client.Stop(resource)
+			if err != nil {
+				logger.Error("Failed to stop resource", err)
+			}
+		}
 		return
 	}
 	// matches, all good

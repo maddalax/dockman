@@ -15,6 +15,7 @@ type Resource struct {
 	BuildMeta          BuildMeta         `json:"build_meta"`
 	Env                map[string]string `json:"env"`
 	ServerDetails      []ResourceServer  `json:"server_details"`
+	Stopped            bool              `json:"stopped"`
 }
 
 type HostPort struct {
@@ -61,6 +62,7 @@ func (resource *Resource) MarshalJSON() ([]byte, error) {
 		"build_meta":           json.RawMessage(buildMeta),
 		"env":                  resource.Env,
 		"server_details":       json.RawMessage(serverDetails),
+		"stopped":              resource.Stopped,
 	})
 }
 
@@ -77,6 +79,10 @@ func (resource *Resource) UnmarshalJSON(data []byte) error {
 	resource.Environment = temp["environment"].(string)
 	resource.InstancesPerServer = int(temp["instances_per_server"].(float64))
 	resource.RunType = RunType(temp["run_type"].(float64))
+
+	if temp["stopped"] != nil {
+		resource.Stopped = temp["stopped"].(bool)
+	}
 
 	env, ok := temp["env"].(map[string]interface{})
 

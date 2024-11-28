@@ -19,10 +19,9 @@ func AdditionalCreateResourceFields(ctx *h.RequestContext) *h.Partial {
 			),
 			h.Div(
 				ui.SubmitButton(ui.ButtonProps{
-					FullWidth:      false,
-					Text:           "Create Resource",
-					SubmittingText: "Validating...",
-					Class:          "mt-4",
+					FullWidth: false,
+					Text:      "Create Resource",
+					Class:     "mt-4",
 				}),
 			),
 		),

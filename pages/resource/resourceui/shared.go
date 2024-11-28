@@ -102,18 +102,19 @@ func ResourceStatus(locator *service.Locator, resource *app.Resource) *h.Element
 		Text: "Deploy Resource",
 	})
 
-	var stopButton = ui.DangerButton(ui.ButtonProps{
+	var stopButton = ui.SubmitButton(ui.ButtonProps{
+		Variant: ui.ButtonVariantDestructive,
 		Post: h.GetPartialPathWithQs(
 			StopResource,
 			h.NewQs("id", resource.Id),
 		),
-		SubmittingText: "Stopping...",
-		Text:           "Stop",
+		Text: "Stop",
 	})
 
-	var redeployButton = ui.SecondaryButton(ui.ButtonProps{
-		Href: urls.ResourceStartDeploymentPath(resource.Id, ""),
-		Text: "Redeploy",
+	var redeployButton = ui.SubmitButton(ui.ButtonProps{
+		Variant: ui.ButtonVariantSecondary,
+		Href:    urls.ResourceStartDeploymentPath(resource.Id, ""),
+		Text:    "Redeploy",
 	})
 
 	var startButton = ui.SubmitButton(ui.ButtonProps{
@@ -121,8 +122,7 @@ func ResourceStatus(locator *service.Locator, resource *app.Resource) *h.Element
 			StartResource,
 			h.NewQs("id", resource.Id),
 		),
-		SubmittingText: "Starting...",
-		Text:           "Start",
+		Text: "Start",
 	})
 
 	var restartButton = ui.SubmitButton(ui.ButtonProps{
@@ -130,8 +130,7 @@ func ResourceStatus(locator *service.Locator, resource *app.Resource) *h.Element
 			RestartResource,
 			h.NewQs("id", resource.Id),
 		),
-		SubmittingText: "Restarting...",
-		Text:           "Restart",
+		Text: "Restart",
 	})
 
 	return h.Div(

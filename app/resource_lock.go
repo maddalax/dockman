@@ -7,13 +7,13 @@ import (
 )
 
 func ResourceStatusLock(locator *service.Locator, resourceId string) *DistributedLock {
-	key := fmt.Sprintf("resource-status-builderRegistryLock-%s", resourceId)
+	key := fmt.Sprintf("resource-status-lock-%s", resourceId)
 	lock := KvFromLocator(locator).NewLock(key, 10*time.Second)
 	return lock
 }
 
 func ResourcePatchLock(locator *service.Locator, resourceId string) *DistributedLock {
-	key := fmt.Sprintf("resource-patch-builderRegistryLock-%s", resourceId)
+	key := fmt.Sprintf("resource-patch-lock-%s", resourceId)
 	lock := KvFromLocator(locator).NewLock(key, 10*time.Second)
 	return lock
 }

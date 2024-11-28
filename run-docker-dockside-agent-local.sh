@@ -41,7 +41,7 @@ ssh "$REMOTE_USER@$REMOTE_HOST" << EOF
       --restart unless-stopped \
       -v /data/dockside:/data/dockside \
       -v /var/run/docker.sock:/var/run/docker.sock \
-      -e NATS_HOST=localhost \
+      -e NATS_HOST=100.81.35.2 \
       "$LOCAL_IMAGE_NAME"
 EOF
 

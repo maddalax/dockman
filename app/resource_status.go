@@ -69,6 +69,16 @@ func ResourceStart(agent *Agent, resourceId string, opts StartOpts) (*Resource, 
 	LogChange(agent.locator, subject.ResourceStarted, map[string]any{
 		"resource_id": resource.Id,
 	})
+
+	err = ResourcePatch(agent.locator, resourceId, func(resource *Resource) *Resource {
+		resource.Stopped = false
+		return resource
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
 	switch resource.RunType {
 	case RunTypeDockerBuild, RunTypeDockerRegistry:
 		client, err := DockerConnect(agent.locator)
@@ -113,6 +123,13 @@ func ResourceStop(agent *Agent, resourceId string) (*Resource, error) {
 	LogChange(agent.locator, subject.ResourceStopped, map[string]any{
 		"resource_id": resource.Id,
 	})
+	err = ResourcePatch(agent.locator, resourceId, func(resource *Resource) *Resource {
+		resource.Stopped = true
+		return resource
+	})
+	if err != nil {
+		return nil, err
+	}
 	switch resource.RunType {
 	case RunTypeDockerBuild, RunTypeDockerRegistry:
 		client, err := DockerConnect(agent.locator)

@@ -92,9 +92,8 @@ func Index(ctx *h.RequestContext) *h.Page {
 					),
 				),
 				ui.SubmitButton(ui.ButtonProps{
-					Text:           "Save Changes",
-					SubmittingText: "Saving...",
-					Post:           h.GetPartialPath(SaveResourceDetails),
+					Text: "Save Changes",
+					Post: h.GetPartialPath(SaveResourceDetails),
 				}),
 			),
 		)

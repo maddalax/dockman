@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/maddalax/htmgo/framework/h"
+	"github.com/maddalax/htmgo/framework/js"
 )
 
 type ButtonSize string
@@ -48,8 +49,7 @@ type ButtonProps struct {
 	Href     string
 	Children []h.Ren
 
-	// Submit button
-	SubmittingText string
+	ShowLoader bool
 }
 
 func Button(props ButtonProps) *h.Element {
@@ -81,6 +81,10 @@ func Button(props ButtonProps) *h.Element {
 
 	if props.Variant == "" {
 		props.Variant = ButtonVariantDefault
+	}
+
+	if props.ShowLoader {
+		appendLoaderProps(&props)
 	}
 
 	classes := h.MergeClasses(
@@ -186,7 +190,62 @@ func DangerButton(props ButtonProps) *h.Element {
 
 func SubmitButton(props ButtonProps) *h.Element {
 	props.Type = "submit"
+	props.ShowLoader = true
 	return Button(props)
+}
+
+func appendLoaderProps(props *ButtonProps) {
+	props.LeftIcon = spinner()
+
+	if props.Children == nil {
+		props.Children = make([]h.Ren, 0)
+	}
+
+	props.Children = append(
+		props.Children,
+		h.OnLoad(
+			// language=JavaScript
+			h.EvalJs(`
+		  let form = self.closest('form');
+      		let startLoader = new Function(self.dataset.startLoader);
+			if(form) {
+			   form.addEventListener('submit', function() {
+				 startLoader.call(self);
+			   })
+      		} else {
+			 // if the button is not in a form, we need to manually trigger the click event
+			   self.addEventListener('click', function() {
+			   startLoader.call(self);
+			 })
+      }
+     `),
+		),
+	)
+
+	props.Children = append(
+		props.Children,
+		h.OnEvent(
+			"data-start-loader",
+			js.RunAfterTimeout(
+				100,
+				js.AddAttribute("disabled", ""),
+				js.RemoveClassOnChildren(".spinner", "hidden"),
+			),
+		),
+	)
+
+	props.Children = append(
+		props.Children,
+		h.HxAfterRequest(
+			// delay so the loading spinner doesn't flash too quickly
+			// and we give some feedback to the user
+			js.RunAfterTimeout(
+				100,
+				js.RemoveAttribute("disabled"),
+				js.SetClassOnChildren(".spinner", "hidden"),
+			),
+		),
+	)
 }
 
 func getSizeIconClass(size ButtonSize) string {
@@ -204,4 +263,12 @@ func getSizeIconClass(size ButtonSize) string {
 	default:
 		return "h-5 w-5"
 	}
+}
+
+func spinner(children ...h.Ren) *h.Element {
+	return h.Div(
+		h.Children(children...),
+		h.Class("hidden spinner spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full border-slate-200 border-t-transparent"),
+		h.Attribute("role", "status"),
+	)
 }
