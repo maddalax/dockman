@@ -4,24 +4,25 @@ import (
 	"dockside/app/util/json2"
 	"encoding/json"
 	"github.com/maddalax/htmgo/framework/service"
+	"slices"
 	"time"
 )
 
-func UpdateDeploymentStatus(locator *service.Locator, request UpdateDeploymentStatusRequest) error {
-	deployment, err := GetDeployment(locator, request.ResourceId, request.BuildId)
+func PatchDeployment(locator *service.Locator, resourceId string, buildId string, cb func(deployment *Deployment) *Deployment) error {
+	client := service.Get[KvClient](locator)
+
+	bucket, _ := client.GetResourceDeployBucket(resourceId)
+
+	deployment, err := GetDeployment(locator, resourceId, buildId)
+
 	if err != nil {
 		return err
 	}
-	deployment.Status = request.Status
-	return SetDeployment(locator, *deployment)
-}
 
-func SetDeployment(locator *service.Locator, deployment Deployment) error {
-	client := service.Get[KvClient](locator)
+	// apply the patch
+	deployment = cb(deployment)
 
-	bucket, _ := client.GetResourceDeployBucket(deployment.ResourceId)
-
-	_, err := bucket.Put(deployment.BuildId, json2.SerializeOrEmpty(deployment))
+	_, err = bucket.Put(deployment.BuildId, json2.SerializeOrEmpty(deployment))
 
 	if err != nil {
 		return err
@@ -59,6 +60,10 @@ func GetDeployments(locator *service.Locator, resourceId string) ([]Deployment, 
 		mapped = append(mapped, *d)
 	}
 
+	slices.SortFunc(mapped, func(a, b Deployment) int {
+		return int(b.CreatedAt.Sub(a.CreatedAt).Milliseconds())
+	})
+
 	return mapped, nil
 }
 
@@ -86,10 +91,19 @@ func GetDeployment(locator *service.Locator, resourceId string, buildId string) 
 }
 
 func CreateDeployment(locator *service.Locator, request CreateDeploymentRequest) error {
-	return SetDeployment(locator, Deployment{
+	client := service.Get[KvClient](locator)
+	bucket, _ := client.GetResourceDeployBucket(request.ResourceId)
+
+	_, err := bucket.Put(request.BuildId, json2.SerializeOrEmpty(Deployment{
 		ResourceId: request.ResourceId,
 		CreatedAt:  time.Now(),
 		BuildId:    request.BuildId,
 		Status:     DeploymentStatusPending,
-	})
+	}))
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

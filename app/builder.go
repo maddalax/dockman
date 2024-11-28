@@ -23,6 +23,7 @@ type ResourceBuilder struct {
 	LogBuildError      func(err error)
 	LogRunMessage      func(message string)
 	UpdateDeployStatus func(status DeploymentStatus)
+	PatchDeployment    func(cb func(deployment *Deployment) *Deployment)
 	PendingCancel      bool
 	CancelBuildFunc    func() error
 	Finished           bool
@@ -56,16 +57,24 @@ func NewResourceBuilder(serviceLocator *service.Locator, resource *Resource, bui
 			natsClient.LogRunMessage(resource.Id, message)
 		},
 		UpdateDeployStatus: func(status DeploymentStatus) {
-			err := UpdateDeploymentStatus(serviceLocator, UpdateDeploymentStatusRequest{
-				ResourceId: resource.Id,
-				BuildId:    buildId,
-				Status:     status,
+			err := PatchDeployment(serviceLocator, resource.Id, buildId, func(deployment *Deployment) *Deployment {
+				deployment.Status = status
+				return deployment
 			})
 			if err != nil {
 				logger.ErrorWithFields("failed to update deployment status", err, map[string]any{
 					"resource": resource.Id,
 					"build":    buildId,
 					"status":   status,
+				})
+			}
+		},
+		PatchDeployment: func(cb func(deployment *Deployment) *Deployment) {
+			err := PatchDeployment(serviceLocator, resource.Id, buildId, cb)
+			if err != nil {
+				logger.ErrorWithFields("failed to patch deployment", err, map[string]any{
+					"resource": resource.Id,
+					"build":    buildId,
 				})
 			}
 		},
@@ -108,7 +117,11 @@ func (b *ResourceBuilder) ClearLogs() {
 
 func (b *ResourceBuilder) BuildError(err error) error {
 	b.LogBuildError(err)
-	b.UpdateDeployStatus(DeploymentStatusFailed)
+	b.PatchDeployment(func(deployment *Deployment) *Deployment {
+		deployment.Status = DeploymentStatusFailed
+		deployment.StatusReason = err.Error()
+		return deployment
+	})
 	return err
 }
 

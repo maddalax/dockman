@@ -3,6 +3,7 @@ package urls
 import (
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
+	"strings"
 )
 
 func WithQs(url string, pairs ...string) string {
@@ -51,4 +52,11 @@ func NewResourceUrl() string {
 
 func NewServerUrl() string {
 	return WithQs("/server/create")
+}
+
+func RepoCommitHashUrl(repoUrl string, commit string) string {
+	if strings.Contains(repoUrl, "github.com") {
+		return fmt.Sprintf("%s/commit/%s", repoUrl, commit)
+	}
+	return ""
 }

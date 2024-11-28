@@ -83,8 +83,6 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 
 	b.LogBuildMessage(fmt.Sprintf("Container built with commit %s", result.Commit))
 
-	b.UpdateDeployStatus(DeploymentStatusSucceeded)
-
 	err = ResourcePatch(b.ServiceLocator, b.Resource.Id, func(resource *Resource) *Resource {
 		resource.BuildMeta.(*DockerBuildMeta).CommitForBuild = result.Commit
 		return resource
@@ -93,6 +91,11 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 	if err != nil {
 		b.LogBuildError(err)
 	}
+
+	b.PatchDeployment(func(deployment *Deployment) *Deployment {
+		deployment.Commit = result.Commit
+		return deployment
+	})
 
 	b.LogBuildMessage("Successfully saved image, starting process on enabled servers...")
 
@@ -104,6 +107,9 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 		return b.BuildError(err)
 	}
 
+	hasStartError := false
+	didAnyStart := false
+
 	for _, response := range responses {
 
 		serverName := h.Ternary(response.ServerDetails.Name == "", response.ServerDetails.HostName, response.ServerDetails.Name)
@@ -111,20 +117,34 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 		if response.Response.Error != "" || response.SendError != nil {
 			err = h.Ternary(response.Response.Error == "", response.SendError, errors.New(response.Response.Error)).(error)
 			b.LogBuildError(errors.Wrap(err, fmt.Sprintf("Failed to start resource on server %s", serverName)))
+			hasStartError = true
 		} else {
 			b.LogBuildMessage(fmt.Sprintf("Resource started on server %s", serverName))
+			didAnyStart = true
 		}
 	}
 
-	b.LogBuildMessage(
-		h.Render(
-			h.A(
-				h.Href(urls.ResourceRunLogUrl(b.Resource.Id)),
-				h.Text("View run logs"),
-				h.Class("underline text-brand-500"),
+	if hasStartError {
+		b.PatchDeployment(func(deployment *Deployment) *Deployment {
+			deployment.Status = DeploymentStatusFailed
+			deployment.StatusReason = "Failed to start on one or more servers"
+			return deployment
+		})
+	} else {
+		b.UpdateDeployStatus(DeploymentStatusSucceeded)
+	}
+
+	if didAnyStart {
+		b.LogBuildMessage(
+			h.Render(
+				h.A(
+					h.Href(urls.ResourceRunLogUrl(b.Resource.Id)),
+					h.Text("View run logs"),
+					h.Class("underline text-brand-500"),
+				),
 			),
-		),
-	)
+		)
+	}
 
 	return nil
 }

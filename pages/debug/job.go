@@ -2,6 +2,7 @@ package debug
 
 import (
 	"dockside/app"
+	"dockside/app/ui"
 	"dockside/pages"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
@@ -29,13 +30,7 @@ func IntervalJobDebug(ctx *h.RequestContext) *h.Page {
 			h.Div(
 				h.Class("overflow-x-auto"),
 				// Ensure responsiveness for smaller screens
-				h.Table(
-					h.Class("w-full border-collapse border border-gray-300"),
-					tableHeader(),
-					h.TBody(
-						h.GetPartial(JobMetricsPartial, "load, every 3s"),
-					),
-				),
+				h.GetPartial(JobMetricsPartial, "load, every 3s"),
 			),
 		),
 	)
@@ -76,11 +71,54 @@ func JobMetricsPartial(ctx *h.RequestContext) *h.Partial {
 		return strings.Compare(keyA, keyB)
 	})
 
-	return h.NewPartial(
-		h.List(metrics, func(item *app.JobMetric, index int) *h.Element {
-			return tableRow(item)
-		}),
-	)
+	table := ui.NewTable()
+
+	table.AddColumns([]string{
+		"Source",
+		"Status",
+		"Job Name",
+		"Description",
+		"Interval",
+		"Last Ran",
+		"Total Runs",
+		"Last Run Duration",
+		"Actions",
+	})
+
+	for _, metric := range metrics {
+		table.AddRow()
+
+		table.WithCellTexts(
+			metric.JobSource,
+			metric.Status,
+			metric.JobName,
+			metric.JobDescription,
+			metric.Interval.String(),
+			formatTimePretty(metric.LastRan),
+			strconv.Itoa(metric.TotalRuns),
+			metric.LastRunDuration.String(),
+		)
+
+		table.AddCell(
+			h.Ternary(
+				metric.JobSource == "dockside",
+				h.Button(
+					h.NoSwap(),
+					h.PostPartialWithQs(
+						ToggleJob,
+						h.NewQs("job", fmt.Sprintf("%s-%s", metric.JobSource, metric.JobName)),
+					),
+					h.Text(
+						h.Ternary(metric.JobPaused, "Resume", "Pause"),
+					),
+					h.Class("text-blue-500 hover:text-blue-700"),
+				),
+				h.Empty(),
+			),
+		)
+	}
+
+	return h.NewPartial(table.Render())
 }
 
 func ToggleJob(ctx *h.RequestContext) *h.Partial {
@@ -95,76 +133,6 @@ func ToggleJob(ctx *h.RequestContext) *h.Partial {
 	}
 	job.Toggle()
 	return h.EmptyPartial()
-}
-
-func tableHeader() *h.Element {
-	return h.THead(
-		h.Tr(
-			h.Class("bg-gray-100 text-left border-b border-gray-300"),
-			tableHeaderCell("Source"),
-			tableHeaderCell("Status"),
-			tableHeaderCell("Job Name"),
-			tableHeaderCell("Description"),
-			tableHeaderCell("Interval"),
-			tableHeaderCell("Last Ran"),
-			tableHeaderCell("Total Runs"),
-			tableHeaderCell("Last Run Duration"),
-			tableHeaderCell("Actions"),
-		),
-	)
-}
-
-func tableHeaderCell(label string) *h.Element {
-	return h.Th(
-		h.Class("py-2 px-4 text-sm font-semibold text-gray-700"),
-		h.Text(label),
-	)
-}
-
-func tableRow(metric *app.JobMetric) *h.Element {
-	return h.Tr(
-		h.Class("border-b border-gray-300 hover:bg-gray-50"),
-		tableCell(metric.JobSource),
-		tableCell(
-			metric.Status,
-			h.Ternary(metric.Status == "running", "text-green-700", "text-red-700"),
-		),
-		tableCell(metric.JobName),
-		tableCell(metric.JobDescription),
-		tableCell(metric.Interval.String()),
-		tableCell(formatTimePretty(metric.LastRan)),
-		tableCell(strconv.Itoa(metric.TotalRuns)),
-		tableCell(metric.LastRunDuration.String()),
-		h.Td(
-			h.Class("py-2 px-4 text-sm text-gray-700"),
-			// can only pause or resume dockside jobs, not server jobs
-			h.If(
-				metric.JobSource == "dockside",
-				h.Button(
-					h.NoSwap(),
-					h.PostPartialWithQs(
-						ToggleJob,
-						h.NewQs("job", fmt.Sprintf("%s-%s", metric.JobSource, metric.JobName)),
-					),
-					h.Text(
-						h.Ternary(metric.JobPaused, "Resume", "Pause"),
-					),
-					h.Class("text-blue-500 hover:text-blue-700"),
-				),
-			),
-		),
-	)
-}
-
-func tableCell(value string, classes ...string) *h.Element {
-	classes = append(classes, "py-2 px-4 text-sm text-gray-700")
-	return h.Td(
-		h.Class(classes...),
-		h.Pf(
-			value,
-			h.Class("truncate"),
-		),
-	)
 }
 
 func calculateRunStatus(metric *app.JobMetric) string {
