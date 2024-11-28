@@ -53,15 +53,6 @@ func SaveResourceDetails(ctx *h.RequestContext) *h.Partial {
 		return ui.GenericErrorAlertPartial(ctx, err)
 	}
 
-	// changed instances per server, start the resource so that the new instances are created or removed
-	if resource.InstancesPerServer != instancesPerServer {
-		go app.SendResourceStartCommand(locator, resource.Id, app.StartOpts{
-			IgnoreIfRunning: true,
-			// if we change the instances and existing containers already exist for the new instance indexes, remove them
-			RemoveExisting: true,
-		})
-	}
-
 	return ui.SuccessAlertPartial(ctx, "Resource updated", "Resource details have been updated successfully")
 }
 

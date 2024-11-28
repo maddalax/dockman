@@ -16,7 +16,10 @@ type JobMetricsManager struct {
 
 type JobMetric struct {
 	JobName         string
+	JobSource       string
+	JobDescription  string
 	Status          string
+	JobPaused       bool
 	LastRan         time.Time
 	Interval        time.Duration
 	TotalRuns       int
@@ -53,6 +56,9 @@ func (jb *JobMetricsManager) GetMetrics() []*JobMetric {
 		if err != nil {
 			continue
 		}
+		if metric.JobSource == "" {
+			continue
+		}
 		metrics = append(metrics, metric)
 	}
 
@@ -75,10 +81,13 @@ func (jb *JobMetricsManager) SaveJobMetric(job *Job) {
 	}
 	err = kv.PutJson(bucket, job.name, &JobMetric{
 		JobName:         job.name,
+		JobSource:       job.source,
+		JobDescription:  job.description,
 		Status:          job.status,
 		LastRan:         job.lastRunTime,
 		TotalRuns:       job.totalRuns,
 		Interval:        job.interval,
+		JobPaused:       job.IsPaused(),
 		LastRunDuration: job.lastRunDuration,
 	})
 	if err != nil {
@@ -95,5 +104,13 @@ func (jb *JobMetricsManager) OnJobFinished(job *Job) {
 }
 
 func (jb *JobMetricsManager) OnJobStopped(job *Job) {
+	jb.SaveJobMetric(job)
+}
+
+func (jb *JobMetricsManager) OnJobPaused(job *Job) {
+	jb.SaveJobMetric(job)
+}
+
+func (jb *JobMetricsManager) OnJobResumed(job *Job) {
 	jb.SaveJobMetric(job)
 }

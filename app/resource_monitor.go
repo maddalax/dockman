@@ -47,10 +47,11 @@ func NewMonitor(locator *service.Locator) *ResourceMonitor {
 
 func (monitor *ResourceMonitor) Start() {
 	runner := IntervalJobRunnerFromLocator(monitor.locator)
-	runner.Add("ResourceRunStatusMonitor", time.Second*3, monitor.RunStatusMonitorJob)
-	runner.Add("ResourceServerCleanup", time.Minute, monitor.ResourceServerCleanup)
-	runner.Add("ServerConnectionMonitor", time.Second*5, monitor.ServerConnectionMonitor)
-	runner.Add("ResourceCheckForNewCommits", time.Minute*1, monitor.ResourceCheckForNewCommits)
+	source := "dockside"
+	runner.Add(source, "ResourceRunStatusMonitor", "Checks to see if resources are running or stopped", time.Second*3, monitor.RunStatusMonitorJob)
+	runner.Add(source, "ResourceServerCleanup", "Detaches servers that no longer exist from resources", time.Minute, monitor.ResourceServerCleanup)
+	runner.Add(source, "ServerConnectionMonitor", "Monitors if connected servers are still connected by checking for a heartbeat", time.Second*5, monitor.ServerConnectionMonitor)
+	runner.Add(source, "ResourceCheckForNewCommits", "Checks if a resource has a new commit and starts a new deployment if enabled", time.Second*30, monitor.ResourceCheckForNewCommits)
 }
 
 // RunStatusMonitorJob Monitors the run status of resources and updates the status if necessary

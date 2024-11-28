@@ -21,8 +21,9 @@ func CreateReverseProxy(locator *service.Locator) *ReverseProxy {
 
 func (r *ReverseProxy) Setup() {
 	registry := GetServiceRegistry(r.locator)
+	source := "dockside"
 	// Start the upstream port monitor to detect changes in the upstreams
-	registry.GetJobRunner().Add("ReverseProxyCheckUpstreamPorts", time.Second*2, func() {
+	registry.GetJobRunner().Add(source, "ReverseProxyCheckUpstreamPorts", "Checks the ports the running containers are on for each connected server, so the reverse proxy knows where to route to.", time.Second*2, func() {
 		r.UpstreamPortMonitor(r.locator)
 	})
 }

@@ -46,6 +46,22 @@ func (eh *EventHandler) OnJobStopped(job *Job) {
 	registry.GetJobMetricsManager().OnJobStopped(job)
 }
 
+func (eh *EventHandler) OnJobResumed(job *Job) {
+	registry := GetServiceRegistry(eh.locator)
+	logger.DebugWithFields("job resumed", map[string]any{
+		"job_name": job.name,
+	})
+	registry.GetJobMetricsManager().OnJobResumed(job)
+}
+
+func (eh *EventHandler) OnJobPaused(job *Job) {
+	registry := GetServiceRegistry(eh.locator)
+	logger.DebugWithFields("job paused", map[string]any{
+		"job_name": job.name,
+	})
+	registry.GetJobMetricsManager().OnJobPaused(job)
+}
+
 func (eh *EventHandler) OnServerDisconnected(server *Server) {
 	logger.InfoWithFields("server disconnected", map[string]any{
 		"server_id": server.Id,
