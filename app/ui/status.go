@@ -10,7 +10,7 @@ type StatusIndicatorProps struct {
 	TextMap   map[app.RunStatus]string
 }
 
-func StatusIndicator(props StatusIndicatorProps) h.Ren {
+func StatusIndicator(props StatusIndicatorProps) *h.Element {
 	var colorClass string
 	var animationClass string
 

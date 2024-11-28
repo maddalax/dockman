@@ -67,35 +67,69 @@ func ServerListPartial(ctx *h.RequestContext) *h.Partial {
 		return ui.GenericErrorAlertPartial(ctx, err)
 	}
 
-	// Get detailed list of associated servers
-	associatedDetails := h.Map(resource.ServerDetails, func(details app.ResourceServer) app.ResourceServerWithDetails {
-		server, err := app.ServerGet(locator, details.ServerId)
-		if err != nil {
-			return app.ResourceServerWithDetails{}
-		}
-		return app.ResourceServerWithDetails{
-			ResourceServer: &details,
-			Details:        server,
-		}
-	})
-
 	// Get list of all available servers
-	allServers, err := app.ServerList(locator)
+	servers, err := app.ServerList(locator)
 
 	if err != nil {
 		return ui.GenericErrorAlertPartial(ctx, err)
 	}
 
-	// Identify unassociated servers
-	associatedServerIds := make(map[string]bool)
+	table := ui.NewTable()
 
-	for _, server := range associatedDetails {
-		associatedServerIds[server.Details.Id] = true
-	}
-
-	unassociatedServers := h.Filter(allServers, func(server *app.Server) bool {
-		return !associatedServerIds[server.Id]
+	table.AddColumns([]string{
+		"Id",
+		"Host Name",
+		"IP Address",
+		"OS",
+		"Last Seen",
+		"Status",
+		"Actions",
 	})
+
+	for _, server := range servers {
+		table.AddRow()
+
+		runStatus := app.RunStatusNotRunning
+		if server.IsAccessible() {
+			runStatus = app.RunStatusRunning
+		}
+
+		isAssociated := false
+
+		for _, detail := range resource.ServerDetails {
+			if detail.ServerId == server.Id {
+				isAssociated = true
+				break
+			}
+		}
+
+		table.AddCellText(server.Id[:8])
+		table.AddCellText(server.HostName)
+		table.AddCellText(server.IpAddress())
+		table.AddCellText(server.Os)
+		table.AddCellText(server.LastSeen.Format("2006-01-02 15:04:05"))
+		table.AddCell(ui.StatusIndicator(ui.StatusIndicatorProps{
+			RunStatus: runStatus,
+			TextMap: map[app.RunStatus]string{
+				app.RunStatusNotRunning: "Not Accessible",
+				app.RunStatusRunning:    "Connected",
+			},
+		}))
+
+		text := h.Ternary(isAssociated, "Remove from resource", "Associate with resource")
+		table.AddCell(
+			h.Button(
+				h.Text(text),
+				h.Class("text-blue-500 hover:text-blue-700"),
+				h.GetPartialWithQs(
+					ToggleAssociationServerPartial,
+					h.NewQs("server_id", server.Id, "resource_id", resource.Id),
+					"click",
+				),
+			),
+		)
+
+	}
 
 	// Render the page with two tables
 	return h.NewPartial(
@@ -103,131 +137,7 @@ func ServerListPartial(ctx *h.RequestContext) *h.Partial {
 			h.Class("flex flex-col gap-8"),
 			h.Id("resource-servers"),
 			// Associated Servers Table
-			h.Div(
-				h.H2(
-					h.Text("Associated Servers"),
-					h.Class("text-xl font-bold mb-4"),
-				),
-				renderServerTable(
-					associatedDetails,
-					func(server app.ResourceServerWithDetails, index int) *h.Element {
-						return serverBlockRow(server.Details, resource, true)
-					},
-				),
-			),
-			// Unassociated Servers Table
-			h.Div(
-				h.H2(
-					h.Text("Available Servers"),
-					h.Class("text-xl font-bold mb-4"),
-				),
-				renderServerTable(
-					unassociatedServers,
-					func(server *app.Server, index int) *h.Element {
-						return serverBlockRow(server, resource, false)
-					},
-				),
-			),
-		),
-	)
-}
-
-// Helper to render a table
-func renderServerTable[T any](servers []T, rowRenderer func(server T, index int) *h.Element) *h.Element {
-	return h.Table(
-		h.Class("w-full table-auto border-collapse border border-gray-200"),
-		h.THead(
-			h.Tr(
-				h.Th(
-					h.Text("Id"),
-					h.Class("border border-gray-200 px-4 py-2"),
-				),
-				h.Th(
-					h.Text("Host Name"),
-					h.Class("border border-gray-200 px-4 py-2"),
-				),
-				h.Th(
-					h.Text("IP Address"),
-					h.Class("border border-gray-200 px-4 py-2"),
-				),
-				h.Th(
-					h.Text("OS"),
-					h.Class("border border-gray-200 px-4 py-2"),
-				),
-				h.Th(
-					h.Text("Last Seen"),
-					h.Class("border border-gray-200 px-4 py-2"),
-				),
-				h.Th(
-					h.Text("Status"),
-					h.Class("border border-gray-200 px-4 py-2"),
-				),
-				h.Th(
-					h.Text("Actions"),
-					h.Class("border border-gray-200 px-4 py-2"),
-				),
-			),
-		),
-		h.TBody(
-			h.List(servers, rowRenderer),
-		),
-	)
-}
-
-// Helper to render a server block as a row
-func serverBlockRow(server *app.Server, resource *app.Resource, isAssociated bool) *h.Element {
-	runStatus := app.RunStatusNotRunning
-	if server.IsAccessible() {
-		runStatus = app.RunStatusRunning
-	}
-
-	return h.Tr(
-		h.Td(
-			h.Text(server.Id),
-			h.Class("border border-gray-200 px-4 py-2"),
-		),
-		h.Td(
-			h.Text(server.HostName),
-			h.Class("border border-gray-200 px-4 py-2"),
-		),
-		h.Td(
-			h.Text(server.IpAddress()),
-			h.Class("border border-gray-200 px-4 py-2"),
-		),
-		h.Td(
-			h.Text(server.Os),
-			h.Class("border border-gray-200 px-4 py-2"),
-		),
-		h.Td(
-			h.Text(server.LastSeen.Format("2006-01-02 15:04:05")),
-			h.Class("border border-gray-200 px-4 py-2"),
-		),
-		h.Td(
-			ui.StatusIndicator(ui.StatusIndicatorProps{
-				RunStatus: runStatus,
-				TextMap: map[app.RunStatus]string{
-					app.RunStatusNotRunning: "Not Accessible",
-					app.RunStatusRunning:    "Connected",
-				},
-			}),
-			h.Class("border border-gray-200 px-4 py-2"),
-		),
-		h.Td(
-			h.IfElse(isAssociated,
-				ui.PrimaryButton(ui.ButtonProps{
-					Text: "Remove from resource",
-					Post: h.GetPartialPathWithQs(
-						ToggleAssociationServerPartial,
-						h.NewQs("server_id", server.Id, "resource_id", resource.Id),
-					),
-				}),
-				ui.PrimaryButton(ui.ButtonProps{
-					Text: "Associate with resource",
-					Post: h.GetPartialPathWithQs(
-						ToggleAssociationServerPartial,
-						h.NewQs("server_id", server.Id, "resource_id", resource.Id),
-					),
-				})),
+			table.Render(),
 		),
 	)
 }
