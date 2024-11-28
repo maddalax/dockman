@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"dockside/app/logger"
+	"dockman/app/logger"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -140,7 +140,7 @@ func (c *DockerClient) doRun(resource *Resource, index int, opts RunOptions) err
 			Config: map[string]string{
 				"fluentd-address": "localhost:24224",
 				"fluentd-async":   "true",
-				"labels":          "dockside.resource.id,dockside.build.id",
+				"labels":          "dockman.resource.id,dockman.build.id",
 			},
 		},
 	}

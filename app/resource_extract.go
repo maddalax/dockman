@@ -1,7 +1,7 @@
 package app
 
 import (
-	"dockside/app/util/fileio"
+	"dockman/app/util/fileio"
 	"os"
 	"path/filepath"
 	"strconv"

@@ -1,7 +1,7 @@
 package app
 
 import (
-	"dockside/app/subject"
+	"dockman/app/subject"
 	"errors"
 	"fmt"
 	"github.com/nats-io/nats.go"

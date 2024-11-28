@@ -1,8 +1,8 @@
 package main
 
 import (
-	"dockside/__htmgo"
-	"dockside/app"
+	"dockman/__htmgo"
+	"dockman/app"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket"
 	ws2 "github.com/maddalax/htmgo/extensions/websocket/opts"

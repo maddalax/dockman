@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"dockside/app"
-	"dockside/app/urls"
+	"dockman/app"
+	"dockman/app/urls"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
 )
@@ -43,7 +43,7 @@ func DesktopSidebar(ctx *h.RequestContext) *h.Element {
 					h.Div(
 						h.Class("h-6 w-auto"),
 						h.H3F(
-							"dockside",
+							"dockman",
 							h.Class("text-xl font-bold"),
 						),
 					),

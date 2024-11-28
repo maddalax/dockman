@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"dockside/app"
+	"dockman/app"
 	"github.com/maddalax/htmgo/framework/h"
 )
 

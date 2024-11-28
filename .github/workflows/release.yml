@@ -1,4 +1,4 @@
-name: Release Dockside
+name: Release dockman
 
 on:
   workflow_dispatch:
@@ -32,8 +32,8 @@ jobs:
           file: ./Dockerfile-manager
           platforms: linux/amd64
           push: true
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/dockside:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/dockside:cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/dockman:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/dockman:cache,mode=max
           tags: |
-            ghcr.io/${{ github.repository_owner }}/dockside:latest
-            ghcr.io/${{ github.repository_owner }}/dockside:${{ steps.vars.outputs.short_sha }}
+            ghcr.io/${{ github.repository_owner }}/dockman:latest
+            ghcr.io/${{ github.repository_owner }}/dockman:${{ steps.vars.outputs.short_sha }}

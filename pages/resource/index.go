@@ -1,10 +1,10 @@
 package resource
 
 import (
-	"dockside/app"
-	"dockside/app/ui"
-	"dockside/app/ui/icons"
-	"dockside/pages/resource/resourceui"
+	"dockman/app"
+	"dockman/app/ui"
+	"dockman/app/ui/icons"
+	"dockman/pages/resource/resourceui"
 	"github.com/maddalax/htmgo/framework/h"
 	"slices"
 	"strconv"

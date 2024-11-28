@@ -2,8 +2,8 @@ package app
 
 import (
 	"context"
-	"dockside/app/logger"
-	"dockside/app/subject"
+	"dockman/app/logger"
+	"dockman/app/subject"
 	"errors"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"

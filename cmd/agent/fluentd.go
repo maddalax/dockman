@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"dockside/app"
-	"dockside/app/logger"
-	"dockside/app/volume"
+	"dockman/app"
+	"dockman/app/logger"
+	"dockman/app/volume"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"

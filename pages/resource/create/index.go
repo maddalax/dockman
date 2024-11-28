@@ -1,10 +1,10 @@
 package create
 
 import (
-	"dockside/app"
-	"dockside/app/ui"
-	"dockside/app/urls"
-	"dockside/pages"
+	"dockman/app"
+	"dockman/app/ui"
+	"dockman/app/urls"
+	"dockman/pages"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 )

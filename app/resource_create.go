@@ -1,7 +1,7 @@
 package app
 
 import (
-	"dockside/app/subject"
+	"dockman/app/subject"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"

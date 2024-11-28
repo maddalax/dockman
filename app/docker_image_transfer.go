@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"dockside/app/logger"
+	"dockman/app/logger"
 	"fmt"
 	"github.com/docker/docker/client"
 	"github.com/nats-io/nats.go"
@@ -63,7 +63,7 @@ func (c *DockerClient) HasLatestImage(imageId string) bool {
 	}
 
 	buildId := store.GetBuildId(imageId)
-	currentBuildId := imageInfo.Config.Labels["dockside.build.id"]
+	currentBuildId := imageInfo.Config.Labels["dockman.build.id"]
 
 	logger.InfoWithFields("Checking docker image, if we have latest", map[string]interface{}{
 		"imageId":        imageId,

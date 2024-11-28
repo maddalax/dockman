@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"dockside/app/subject"
+	"dockman/app/subject"
 	"github.com/nats-io/nats.go"
 	"io"
 )

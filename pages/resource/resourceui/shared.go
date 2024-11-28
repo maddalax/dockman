@@ -1,10 +1,10 @@
 package resourceui
 
 import (
-	"dockside/app"
-	"dockside/app/ui"
-	"dockside/app/urls"
-	"dockside/pages"
+	"dockman/app"
+	"dockman/app/ui"
+	"dockman/app/urls"
+	"dockman/pages"
 	"errors"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/service"

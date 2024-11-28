@@ -1,4 +1,4 @@
-name: Release Dockside Agent
+name: Release dockman Agent
 
 on:
   workflow_dispatch:
@@ -32,8 +32,8 @@ jobs:
           file: ./Dockerfile-agent
           platforms: linux/amd64
           push: true
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/dockside:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/dockside:cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/dockman:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/dockman:cache,mode=max
           tags: |
-            ghcr.io/${{ github.repository_owner }}/dockside-agent:latest
-            ghcr.io/${{ github.repository_owner }}/dockside-agent:${{ steps.vars.outputs.short_sha }}
+            ghcr.io/${{ github.repository_owner }}/dockman-agent:latest
+            ghcr.io/${{ github.repository_owner }}/dockman-agent:${{ steps.vars.outputs.short_sha }}

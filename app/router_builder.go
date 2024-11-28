@@ -1,8 +1,8 @@
 package app
 
 import (
-	"dockside/app/logger"
-	"dockside/app/util/must"
+	"dockman/app/logger"
+	"dockman/app/util/must"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"

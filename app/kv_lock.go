@@ -1,8 +1,8 @@
 package app
 
 import (
-	"dockside/app/logger"
-	"dockside/app/util"
+	"dockman/app/logger"
+	"dockman/app/util"
 	"errors"
 	"fmt"
 	"github.com/nats-io/nats.go"

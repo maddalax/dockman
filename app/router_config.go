@@ -1,7 +1,7 @@
 package app
 
 import (
-	"dockside/app/logger"
+	"dockman/app/logger"
 	"github.com/maddalax/htmgo/framework/service"
 	"slices"
 	"strings"

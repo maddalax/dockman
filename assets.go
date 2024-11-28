@@ -4,7 +4,7 @@
 package main
 
 import (
-	"dockside/app/embedded"
+	"dockman/app/embedded"
 	"io/fs"
 )
 

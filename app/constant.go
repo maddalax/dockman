@@ -1,3 +1,3 @@
 package app
 
-const AppName = "dockside"
+const AppName = "dockman"

@@ -1,7 +1,7 @@
 package app
 
 import (
-	"dockside/app/util/json2"
+	"dockman/app/util/json2"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/service"
 	"strings"

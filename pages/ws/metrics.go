@@ -1,7 +1,7 @@
 package ws
 
 import (
-	"dockside/pages"
+	"dockman/pages"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket/session"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"

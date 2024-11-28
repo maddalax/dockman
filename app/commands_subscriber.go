@@ -2,7 +2,7 @@ package app
 
 import (
 	"bytes"
-	"dockside/app/logger"
+	"dockman/app/logger"
 	"encoding/gob"
 	"errors"
 	"github.com/maddalax/htmgo/framework/service"

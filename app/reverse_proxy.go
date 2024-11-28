@@ -1,7 +1,7 @@
 package app
 
 import (
-	"dockside/app/logger"
+	"dockman/app/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/maddalax/multiproxy"
@@ -21,7 +21,7 @@ func CreateReverseProxy(locator *service.Locator) *ReverseProxy {
 
 func (r *ReverseProxy) Setup() {
 	registry := GetServiceRegistry(r.locator)
-	source := "dockside"
+	source := "dockman"
 	// Start the upstream port monitor to detect changes in the upstreams
 	registry.GetJobRunner().Add(source, "ReverseProxyCheckUpstreamPorts", "Checks the ports the running containers are on for each connected server, so the reverse proxy knows where to route to.", time.Second*2, func() {
 		r.UpstreamPortMonitor(r.locator)

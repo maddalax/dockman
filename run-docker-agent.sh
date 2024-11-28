@@ -1,25 +1,25 @@
 #!/bin/bash
 
 # Pull the latest image
-docker pull ghcr.io/maddalax/dockside-agent:latest
+docker pull ghcr.io/maddalax/dockman-agent:latest
 
 # Stop and remove the existing container, if any
-docker stop dockside-agent 2>/dev/null || true
-docker rm dockside-agent 2>/dev/null || true
+docker stop dockman-agent 2>/dev/null || true
+docker rm dockman-agent 2>/dev/null || true
 
 # Determine the volume mount path
 if [[ "$(uname)" != "Linux" ]]; then
-  VOLUME_PATH="$HOME/.dockside/data"
+  VOLUME_PATH="$HOME/.dockman/data"
 else
-  VOLUME_PATH="/data/dockside"
+  VOLUME_PATH="/data/dockman"
 fi
 
 # Run the container
 docker run -d \
   --network host \
-  --name dockside-agent \
+  --name dockman-agent \
   --restart unless-stopped \
-  -v "${VOLUME_PATH}:/data/dockside" \
+  -v "${VOLUME_PATH}:/data/dockman" \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -e NATS_HOST=localhost \
-  ghcr.io/maddalax/dockside-agent:latest
+  ghcr.io/maddalax/dockman-agent:latest

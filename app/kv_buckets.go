@@ -1,7 +1,7 @@
 package app
 
 import (
-	"dockside/app/util/must"
+	"dockman/app/util/must"
 	"fmt"
 	"github.com/nats-io/nats.go"
 )

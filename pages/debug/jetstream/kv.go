@@ -1,8 +1,8 @@
 package jetstream
 
 import (
-	"dockside/app"
-	"dockside/pages"
+	"dockman/app"
+	"dockman/pages"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"

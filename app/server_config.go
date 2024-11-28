@@ -1,9 +1,9 @@
 package app
 
 import (
-	"dockside/app/logger"
-	"dockside/app/util/filekv"
-	"dockside/app/volume"
+	"dockman/app/logger"
+	"dockman/app/util/filekv"
+	"dockman/app/volume"
 	"path/filepath"
 )
 

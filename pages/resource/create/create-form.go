@@ -1,8 +1,8 @@
 package create
 
 import (
-	"dockside/app/ui"
-	"dockside/app/ui/icons"
+	"dockman/app/ui"
+	"dockman/app/ui/icons"
 	"github.com/maddalax/htmgo/framework/h"
 )
 

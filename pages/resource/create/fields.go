@@ -1,9 +1,9 @@
 package create
 
 import (
-	"dockside/app"
-	"dockside/app/ui"
-	"dockside/app/ui/icons"
+	"dockman/app"
+	"dockman/app/ui"
+	"dockman/app/ui/icons"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
@@ -76,7 +76,7 @@ func AdditionalFieldsForDeploymentType(ctx *h.RequestContext, deploymentType str
 				Id:          "git-repository",
 				Label:       "Git Repository Url",
 				Name:        "git-repository",
-				Placeholder: "https://github.com/maddalax/dockside",
+				Placeholder: "https://github.com/maddalax/dockman",
 				Children: []h.Ren{
 					h.OnEvent(
 						hx.KeyUpEvent,

@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"dockside/app/urls"
+	"dockman/app/urls"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/maddalax/htmgo/framework/h"
@@ -59,9 +59,9 @@ func (b *ResourceBuilder) runDockerImageBuilder(buildMeta *DockerBuildMeta) erro
 		Dockerfile: buildMeta.Dockerfile,
 		BuildID:    dockerBuildId,
 		Labels: map[string]string{
-			"dockside.resource.id": b.Resource.Id,
-			"dockside.build.id":    b.BuildId,
-			"git.commit.hash":      result.Commit,
+			"dockman.resource.id": b.Resource.Id,
+			"dockman.build.id":    b.BuildId,
+			"git.commit.hash":     result.Commit,
 		},
 		Tags: []string{
 			fmt.Sprintf(fmt.Sprintf("%s:latest", imageName)),

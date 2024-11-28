@@ -1,7 +1,7 @@
 package app
 
 import (
-	"dockside/app/logger"
+	"dockman/app/logger"
 	"github.com/docker/docker/api/types"
 )
 

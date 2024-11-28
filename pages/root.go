@@ -1,7 +1,7 @@
 package pages
 
 import (
-	"dockside/__htmgo/assets"
+	"dockman/__htmgo/assets"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket/session"
 	"github.com/maddalax/htmgo/framework/h"

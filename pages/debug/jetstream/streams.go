@@ -2,9 +2,9 @@ package jetstream
 
 import (
 	"context"
-	"dockside/app"
-	"dockside/app/ui"
-	"dockside/pages"
+	"dockman/app"
+	"dockman/app/ui"
+	"dockman/pages"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"

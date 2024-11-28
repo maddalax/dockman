@@ -23,9 +23,9 @@ function stopUpdate(ref) {
     }
 }
 
-window.dockside = window.dockside || {}
+window.dockman = window.dockman || {}
 
-window.dockside.floating = {
+window.dockman.floating = {
     updateMap,
     updatePosition,
     stopUpdate

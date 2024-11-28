@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"dockside/app/logger"
+	"dockman/app/logger"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"

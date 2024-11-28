@@ -1,7 +1,7 @@
 package app
 
 import (
-	"dockside/app/logger"
+	"dockman/app/logger"
 	"errors"
 	"github.com/gobwas/glob"
 	"net/http"

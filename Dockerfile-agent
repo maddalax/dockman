@@ -18,7 +18,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go binary for Linux
-RUN go build -o ./dist/dockside-agent ./cmd/agent
+RUN go build -o ./dist/dockman-agent ./cmd/agent
 
 
 # Stage 2: Create the smallest possible image
@@ -31,4 +31,4 @@ WORKDIR /app
 COPY --from=builder /app/dist .
 
 # Command to run the binary
-CMD ["./dockside-agent"]
+CMD ["./dockman-agent"]

@@ -1,7 +1,7 @@
 package pages
 
 import (
-	"dockside/app/ui"
+	"dockman/app/ui"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
 	"strings"

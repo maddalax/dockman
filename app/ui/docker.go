@@ -2,9 +2,9 @@ package ui
 
 import (
 	"context"
-	"dockside/app"
-	"dockside/app/subject"
-	"dockside/app/urls"
+	"dockman/app"
+	"dockman/app/subject"
+	"dockman/app/urls"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/nats-io/nats.go"

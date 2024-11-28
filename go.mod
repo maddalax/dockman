@@ -1,4 +1,4 @@
-module dockside
+module dockman
 
 go 1.23.0
 

@@ -2,7 +2,7 @@ package logger
 
 import (
 	"context"
-	"dockside/app/util/must"
+	"dockman/app/util/must"
 	"log/slog"
 )
 

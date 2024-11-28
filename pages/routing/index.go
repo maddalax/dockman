@@ -1,11 +1,11 @@
 package routing
 
 import (
-	"dockside/app"
-	"dockside/app/ui"
-	"dockside/app/ui/icons"
-	"dockside/app/util"
-	"dockside/pages"
+	"dockman/app"
+	"dockman/app/ui"
+	"dockman/app/ui/icons"
+	"dockman/app/util"
+	"dockman/pages"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 	"time"

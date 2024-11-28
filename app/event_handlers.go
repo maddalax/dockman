@@ -1,7 +1,7 @@
 package app
 
 import (
-	"dockside/app/logger"
+	"dockman/app/logger"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/service"

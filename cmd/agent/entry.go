@@ -1,8 +1,8 @@
 package main
 
 import (
-	"dockside/app"
-	"dockside/app/logger"
+	"dockman/app"
+	"dockman/app/logger"
 	service2 "github.com/maddalax/htmgo/framework/service"
 )
 

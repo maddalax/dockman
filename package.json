@@ -1,7 +1,7 @@
 {
-  "name": "dockside",
+  "name": "dockman",
   "version": "1.0.0",
-  "description": "> [!CAUTION] > dockside is currently in heavy development and should not be used at this time.",
+  "description": "> [!CAUTION] > dockman is currently in heavy development and should not be used at this time.",
   "main": "tailwind.config.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

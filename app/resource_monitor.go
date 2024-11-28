@@ -1,7 +1,7 @@
 package app
 
 import (
-	"dockside/app/logger"
+	"dockman/app/logger"
 	"github.com/maddalax/htmgo/framework/service"
 	"time"
 )
@@ -47,7 +47,7 @@ func NewMonitor(locator *service.Locator) *ResourceMonitor {
 
 func (monitor *ResourceMonitor) Start() {
 	runner := IntervalJobRunnerFromLocator(monitor.locator)
-	source := "dockside"
+	source := "dockman"
 	runner.Add(source, "ResourceRunStatusMonitor", "Checks to see if resources are running or stopped", time.Second*3, monitor.RunStatusMonitorJob)
 	runner.Add(source, "ResourceServerCleanup", "Detaches servers that no longer exist from resources", time.Minute, monitor.ResourceServerCleanup)
 	runner.Add(source, "ServerConnectionMonitor", "Monitors if connected servers are still connected by checking for a heartbeat", time.Second*5, monitor.ServerConnectionMonitor)

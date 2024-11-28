@@ -1,8 +1,8 @@
 package app
 
 import (
-	"dockside/app/logger"
-	"dockside/app/util/json2"
+	"dockman/app/logger"
+	"dockman/app/util/json2"
 	"github.com/maddalax/htmgo/framework/service"
 	"github.com/nats-io/nats.go"
 	"slices"

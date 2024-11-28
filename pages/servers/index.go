@@ -1,9 +1,9 @@
 package servers
 
 import (
-	"dockside/app"
-	"dockside/app/ui"
-	"dockside/pages"
+	"dockman/app"
+	"dockman/app/ui"
+	"dockman/pages"
 	"github.com/maddalax/htmgo/framework/h"
 )
 

@@ -1,7 +1,7 @@
 > [!CAUTION]
-> dockside is currently in heavy development and should not be used at this time.
+> dockman is currently in heavy development and should not be used at this time.
 
-dockside is a simple but powerful platform as as service tool to help self host your own apps, written in pure go, compiled as a single binary.
+dockman is a simple but powerful platform as as service tool to help self host your own apps, written in pure go, compiled as a single binary.
 
 Stack:
 - golang

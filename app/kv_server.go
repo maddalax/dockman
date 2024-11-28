@@ -1,8 +1,8 @@
 package app
 
 import (
-	"dockside/app/logger"
-	"dockside/app/volume"
+	"dockman/app/logger"
+	"dockman/app/volume"
 	"github.com/nats-io/nats-server/v2/server"
 	"time"
 )

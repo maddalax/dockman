@@ -1,9 +1,9 @@
 package deployment
 
 import (
-	"dockside/app"
-	"dockside/app/urls"
-	"dockside/pages"
+	"dockman/app"
+	"dockman/app/urls"
+	"dockman/pages"
 	"github.com/google/uuid"
 	"github.com/maddalax/htmgo/framework/h"
 	"time"

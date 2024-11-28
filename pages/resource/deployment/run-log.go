@@ -2,9 +2,9 @@ package deployment
 
 import (
 	"context"
-	"dockside/app"
-	"dockside/app/ui"
-	"dockside/pages/resource/resourceui"
+	"dockman/app"
+	"dockman/app/ui"
+	"dockman/pages/resource/resourceui"
 	"github.com/maddalax/htmgo/extensions/websocket/ws"
 	"github.com/maddalax/htmgo/framework/h"
 )

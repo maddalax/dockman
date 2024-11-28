@@ -1,9 +1,9 @@
 package debug
 
 import (
-	"dockside/app"
-	"dockside/app/ui"
-	"dockside/pages"
+	"dockman/app"
+	"dockman/app/ui"
+	"dockman/pages"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 	"strconv"

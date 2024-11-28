@@ -1,9 +1,9 @@
 package debug
 
 import (
-	"dockside/app"
-	"dockside/app/ui"
-	"dockside/pages"
+	"dockman/app"
+	"dockman/app/ui"
+	"dockman/pages"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 	"slices"
@@ -101,7 +101,7 @@ func JobMetricsPartial(ctx *h.RequestContext) *h.Partial {
 
 		table.AddCell(
 			h.Ternary(
-				metric.JobSource == "dockside",
+				metric.JobSource == "dockman",
 				h.Button(
 					h.NoSwap(),
 					h.PostPartialWithQs(

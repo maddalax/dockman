@@ -1,8 +1,8 @@
 package app
 
 import (
-	"dockside/app/logger"
-	"dockside/app/util/networkutil"
+	"dockman/app/logger"
+	"dockman/app/util/networkutil"
 	"fmt"
 	"os"
 	"runtime"
@@ -15,7 +15,7 @@ func (a *Agent) RegisterMonitor() {
 	if err == nil {
 		source = fmt.Sprintf("server-%s", server.FormattedName())
 	}
-	a.registry.GetJobRunner().Add(source, "ServerUpdateStatus", "Sends latest details about the server to the dockside host, the heartbeat.", 3*time.Second, a.updateStatus)
+	a.registry.GetJobRunner().Add(source, "ServerUpdateStatus", "Sends latest details about the server to the dockman host, the heartbeat.", 3*time.Second, a.updateStatus)
 	a.registry.GetJobRunner().Add(source, "ServerResourceStatusMonitor", "Sends latest details about the status of all running resources on the server", 3*time.Second, a.resourceStatusMonitor)
 	a.registry.GetJobRunner().Add(source, "ServerMonitorInstanceCount", "Monitors how many resources are currently running vs how many should be based on config and ensures they match.", 3*time.Second, a.monitorInstanceCount)
 }

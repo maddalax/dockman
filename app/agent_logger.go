@@ -2,7 +2,7 @@ package app
 
 import (
 	"bytes"
-	"dockside/app/logger"
+	"dockman/app/logger"
 	"encoding/json"
 	"github.com/maddalax/htmgo/framework/service"
 	"time"
@@ -12,8 +12,8 @@ type DockerLog struct {
 	ContainerId   string    `json:"container_id"`
 	Log           string    `json:"log"`
 	ContainerName string    `json:"container_name"`
-	BuildId       string    `json:"dockside.build.id"`
-	ResourceId    string    `json:"dockside.resource.id"`
+	BuildId       string    `json:"dockman.build.id"`
+	ResourceId    string    `json:"dockman.resource.id"`
 	Time          time.Time `json:"timestamp"`
 	HostName      string    `json:"hostname"`
 }

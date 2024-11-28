@@ -5,16 +5,16 @@ set -e
 # Configuration
 REMOTE_USER="root" # Replace with remote SSH username
 REMOTE_HOST="fedora-server" # Replace with remote host address or IP
-REMOTE_PATH="/tmp/dockside.tar" # Temporary path for the tar file on the remote machine
-LOCAL_IMAGE_NAME="ghcr.io/maddalax/dockside:latest"
-CONTAINER_NAME="dockside"
+REMOTE_PATH="/tmp/dockman.tar" # Temporary path for the tar file on the remote machine
+LOCAL_IMAGE_NAME="ghcr.io/maddalax/dockman:latest"
+CONTAINER_NAME="dockman"
 DOCKER_FILE_PATH="Dockerfile-manager"
 
 # Step 1: Build the image locally (if needed)
 docker build --no-cache -t "$LOCAL_IMAGE_NAME" -f "$DOCKER_FILE_PATH" .
 
 # Step 2: Export the image to a tar file
-IMAGE_TAR="dockside.tar"
+IMAGE_TAR="dockman.tar"
 docker save -o "$IMAGE_TAR" "$LOCAL_IMAGE_NAME"
 
 # Step 3: Transfer the tar file to the remote machine
@@ -37,9 +37,9 @@ ssh "$REMOTE_USER@$REMOTE_HOST" << EOF
   # Run the container
   docker run -d \
     --network host \
-    --name dockside \
+    --name dockman \
     --restart unless-stopped \
-    -v /data/dockside:/data/dockside \
+    -v /data/dockman:/data/dockman \
     -v /var/run/docker.sock:/var/run/docker.sock \
     "$LOCAL_IMAGE_NAME"
 EOF

@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"dockside/app/ui/icons"
+	"dockman/app/ui/icons"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 )
@@ -48,7 +48,7 @@ func ComboBox(props ComboBoxProps) *h.Element {
               let search = dropdown.querySelector('input')
               let valueInput = self.previousElementSibling
 
- 							let stopUpdate = () => window.dockside.floating.stopUpdate(button) 
+ 							let stopUpdate = () => window.dockman.floating.stopUpdate(button) 
  							
  							const handleDocClick = (event) => {
 								const withinBoundaries = event.composedPath().includes(button) || event.composedPath().includes(dropdown);
@@ -67,7 +67,7 @@ func ComboBox(props ComboBoxProps) *h.Element {
                 // close dropdown when clicking outside	
    					    document.addEventListener('click', handleDocClick)
                 dropdown.classList.remove('hidden');
-                window.dockside.floating.updatePosition(button, dropdown);
+                window.dockman.floating.updatePosition(button, dropdown);
               }
               
 							// dropdown opened
@@ -111,7 +111,7 @@ func ComboBox(props ComboBoxProps) *h.Element {
 						  let dropdown = document.getElementById('%s-combobox-options');
               let input = self
 
- 							let stopUpdate = () => window.dockside.floating.stopUpdate(input) 
+ 							let stopUpdate = () => window.dockman.floating.stopUpdate(input) 
  							
  							const handleDocClick = (event) => {
 								const withinBoundaries = event.composedPath().includes(input) || event.composedPath().includes(dropdown);
@@ -130,7 +130,7 @@ func ComboBox(props ComboBoxProps) *h.Element {
                 // close dropdown when clicking outside	
    					    document.addEventListener('click', handleDocClick)
                 dropdown.classList.remove('hidden');
-                window.dockside.floating.updatePosition(input, dropdown);
+                window.dockman.floating.updatePosition(input, dropdown);
               }
               
 							// dropdown opened

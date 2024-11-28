@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"dockside/app"
-	"dockside/app/util"
+	"dockman/app"
+	"dockman/app/util"
 	"fmt"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"

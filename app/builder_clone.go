@@ -1,8 +1,8 @@
 package app
 
 import (
-	"dockside/app/logger"
-	"dockside/app/util"
+	"dockman/app/logger"
+	"dockman/app/util"
 	"errors"
 	"fmt"
 	"github.com/go-git/go-git/v5"
@@ -61,7 +61,7 @@ func (bm *DockerBuildMeta) CloneRepo(request CloneRepoRequest) (*CloneRepoResult
 
 	if bm.GithubAccessToken != "" {
 		opts.Auth = &http.BasicAuth{
-			Username: "dockside",
+			Username: "dockman",
 			Password: bm.GithubAccessToken,
 		}
 	}
@@ -116,7 +116,7 @@ func (bm *DockerBuildMeta) ListRemoteBranches() ([]string, error) {
 
 	if bm.GithubAccessToken != "" {
 		opts.Auth = &http.BasicAuth{
-			Username: "dockside",
+			Username: "dockman",
 			Password: bm.GithubAccessToken,
 		}
 	}
@@ -151,7 +151,7 @@ func (bm *DockerBuildMeta) GetLatestCommitOnRemote() (string, error) {
 
 	if bm.GithubAccessToken != "" {
 		opts.Auth = &http.BasicAuth{
-			Username: "dockside",
+			Username: "dockman",
 			Password: bm.GithubAccessToken,
 		}
 	}

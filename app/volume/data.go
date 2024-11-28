@@ -7,19 +7,19 @@ import (
 )
 
 func GetPersistentVolumePath() string {
-	storeDir := "/data/dockside"
+	storeDir := "/data/dockman"
 	useAbs := true
 
 	if runtime.GOOS == "windows" {
-		storeDir = "C:/data/dockside"
+		storeDir = "C:/data/dockman"
 	}
 
 	if runtime.GOOS == "darwin" {
 		dir, err := os.UserHomeDir()
 		if err == nil {
-			storeDir = filepath.Join(dir, ".dockside")
+			storeDir = filepath.Join(dir, ".dockman")
 		} else {
-			storeDir = "./dockside"
+			storeDir = "./dockman"
 			useAbs = false
 		}
 	}
