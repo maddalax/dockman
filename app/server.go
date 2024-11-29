@@ -146,3 +146,17 @@ func ServerList(locator *service.Locator) ([]*Server, error) {
 
 	return servers, nil
 }
+
+func ServerDelete(locator *service.Locator, id string) error {
+	client := service.Get[KvClient](locator)
+
+	bucket, err := client.GetOrCreateBucket(&nats.KeyValueConfig{
+		Bucket: "servers",
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return bucket.Delete(id)
+}
