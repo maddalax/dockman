@@ -116,6 +116,13 @@ func UserCreate(locator *service.Locator, user *User) (*User, error) {
 	return user, nil
 }
 
+func CurrentUser(ctx *h.RequestContext) *User {
+	if ctx.Get("user") != nil {
+		return ctx.Get("user").(*User)
+	}
+	return nil
+}
+
 func UserGetByPredicate(locator *service.Locator, predicate func(user *User) bool) (*User, error) {
 	client := service.Get[KvClient](locator)
 	users, err := client.GetOrCreateBucket(&nats.KeyValueConfig{

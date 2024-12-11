@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/maddalax/htmgo/framework/h"
 	"net/http"
+	"strings"
 )
 
 func UseLoginRequiredMiddleware(router *chi.Mux) {
@@ -14,6 +15,7 @@ func UseLoginRequiredMiddleware(router *chi.Mux) {
 			allowedPaths := []string{
 				"/login",
 				"/logout",
+				"/dev/livereload",
 				h.GetPartialPath(pages.RegisterUser),
 				h.GetPartialPath(pages.LoginUser)}
 
@@ -22,6 +24,11 @@ func UseLoginRequiredMiddleware(router *chi.Mux) {
 					handler.ServeHTTP(w, r)
 					return
 				}
+			}
+
+			if strings.HasPrefix(r.URL.Path, "/public/") {
+				handler.ServeHTTP(w, r)
+				return
 			}
 
 			ctx := h.GetRequestContext(r)

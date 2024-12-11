@@ -2,6 +2,7 @@ package pages
 
 import (
 	"dockman/__htmgo/assets"
+	"dockman/app"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket/session"
 	"github.com/maddalax/htmgo/framework/h"
@@ -17,6 +18,8 @@ func RootPage(ctx *h.RequestContext, children ...h.Ren) *h.Page {
 	description := "an example of the htmgo template"
 	author := "htmgo"
 	url := "https://htmgo.dev"
+
+	isAuthed := app.CurrentUser(ctx) != nil
 
 	return h.NewPage(
 		h.Html(
@@ -52,7 +55,7 @@ func RootPage(ctx *h.RequestContext, children ...h.Ren) *h.Page {
 			),
 			h.Body(
 				h.Class("h-full"),
-				WsConnect(ctx),
+				h.If(isAuthed, WsConnect(ctx)),
 				h.TriggerChildren(),
 				h.Fragment(children...),
 			),
