@@ -54,7 +54,7 @@ func (monitor *ResourceMonitor) Start() {
 	runner.Add(source, "ResourceServerCleanup", "Detaches servers that no longer exist from resources", time.Minute, monitor.ResourceServerCleanup)
 	runner.Add(source, "ServerConnectionMonitor", "Monitors if connected servers are still connected by checking for a heartbeat", time.Second*5, monitor.ServerConnectionMonitor)
 	runner.Add(source, "ResourceCheckForNewCommits", "Checks if a resource has a new commit and starts a new deployment if enabled", time.Second*30, monitor.ResourceCheckForNewCommits)
-	runner.Add(source, "ServerDuplicateCleanup", "Checks if there are any servers with the same remote ip and dedupes them", time.Second*30, monitor.CleanupDuplicateServers)
+	runner.Add(source, "ServerDuplicateCleanup", "Checks if there are any servers with the same remote ip and deduplicates them", time.Second*30, monitor.CleanupDuplicateServers)
 
 }
 

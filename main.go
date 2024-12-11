@@ -3,6 +3,7 @@ package main
 import (
 	"dockman/__htmgo"
 	"dockman/app"
+	"dockman/middleware"
 	"fmt"
 	"github.com/maddalax/htmgo/extensions/websocket"
 	ws2 "github.com/maddalax/htmgo/extensions/websocket/opts"
@@ -42,13 +43,14 @@ func main() {
 	h.Start(h.AppOpts{
 		ServiceLocator: locator,
 		LiveReload:     true,
-		Register: func(app *h.App) {
-
-			app.Use(func(ctx *h.RequestContext) {
+		Register: func(a *h.App) {
+			a.Use(func(ctx *h.RequestContext) {
 				session.CreateSession(ctx)
 			})
 
-			websocket.EnableExtension(app, ws2.ExtensionOpts{
+			middleware.UseLoginRequiredMiddleware(a.Router)
+
+			websocket.EnableExtension(a, ws2.ExtensionOpts{
 				WsPath: "/ws",
 				RoomName: func(ctx *h.RequestContext) string {
 					return "all"
@@ -68,10 +70,10 @@ func main() {
 
 			cfg := config.Get()
 			// change this in htmgo.yml (public_asset_path)
-			app.Router.Handle(fmt.Sprintf("%s/*", cfg.PublicAssetPath),
+			a.Router.Handle(fmt.Sprintf("%s/*", cfg.PublicAssetPath),
 				http.StripPrefix(cfg.PublicAssetPath, http.FileServerFS(sub)))
 
-			__htmgo.Register(app.Router)
+			__htmgo.Register(a.Router)
 		},
 	})
 }

@@ -125,7 +125,7 @@ func ServerListPartial(ctx *h.RequestContext) *h.Partial {
 			},
 		}))
 
-		text := h.Ternary(isAssociated, "Remove from resource", "Associate with resource")
+		text := h.Ternary(isAssociated, "Detach", "Attach")
 		t.AddCell(
 			h.Button(
 				h.Text(text),

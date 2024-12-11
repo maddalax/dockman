@@ -52,6 +52,19 @@ func SuccessAlert(title *h.Element, message *h.Element) *h.Element {
 }
 
 func ErrorAlert(title *h.Element, message *h.Element) *h.Element {
+
+	if message == nil {
+		return h.Div(
+			h.Id("ui-alert"),
+			h.Role("alert"),
+			h.Class("rounded border-s-4 border-red-500 bg-red-50 p-4 w-full"),
+			h.P(
+				h.Class("text-sm text-red-700"),
+				title,
+			),
+		)
+	}
+
 	return h.Div(
 		h.Id("ui-alert"),
 		h.Role("alert"),
