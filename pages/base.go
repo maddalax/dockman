@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"dockman/app"
 	"dockman/app/ui"
 	"github.com/maddalax/htmgo/framework/h"
 	"github.com/maddalax/htmgo/framework/js"
@@ -60,8 +61,7 @@ func Link(text string, href string, additionalClasses ...string) *h.Element {
 	)
 }
 
-func NavBar() *h.Element {
-
+func NavBar(ctx *h.RequestContext) *h.Element {
 	var OpenMobileSidebarButton = h.Button(
 		h.OnClick(
 			js.EvalCommandsOnSelector(
@@ -99,11 +99,13 @@ func NavBar() *h.Element {
 			h.Class("h-6 w-px bg-gray-200 lg:hidden"),
 			h.Attribute("aria-hidden", "true"),
 		),
-		SearchBar(),
+		SearchBar(ctx),
 	)
 }
 
-func SearchBar() *h.Element {
+func SearchBar(ctx *h.RequestContext) *h.Element {
+	user := app.CurrentUser(ctx)
+
 	return h.Div(
 		h.Class("flex flex-1 gap-x-4 self-stretch lg:gap-x-6"),
 		h.Form(
@@ -136,33 +138,11 @@ func SearchBar() *h.Element {
 			),
 		),
 		h.Div(
-			h.Class("flex items-center gap-x-4 lg:gap-x-6"),
-			h.Button(
-				h.Type("button"),
-				h.Class("-m-2.5 p-2.5 text-gray-400 hover:text-gray-500"),
-				h.Span(
-					h.Class("sr-only"),
-					h.Text("View notifications"),
-				),
-				h.Svg(
-					h.Class("size-6"),
-					h.Attribute("fill", "none"),
-					h.Attribute("viewBox", "0 0 24 24"),
-					h.Attribute("stroke-width", "1.5"),
-					h.Attribute("stroke", "currentColor"),
-					h.Attribute("aria-hidden", "true"),
-					h.Attribute("data-slot", "icon"),
-					h.Path(
-						h.Attribute("stroke-linecap", "round"),
-						h.Attribute("stroke-linejoin", "round"),
-						h.Attribute("d", "M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"),
-					),
-				),
-			),
-			h.Div(
-				h.Class("hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200"),
-				h.Attribute("aria-hidden", "true"),
-			),
+			h.Class("flex gap-2 items-center"),
+			h.If(user != nil, h.Div(
+				h.Class("flex-shrink-0"),
+				h.Pf("%s", user.Email),
+			)),
 		),
 	)
 }
@@ -175,7 +155,7 @@ func SidebarPage(ctx *h.RequestContext, children ...h.Ren) *h.Page {
 				ui.MainSidebar(ctx),
 				h.Div(
 					h.Class("lg:pl-60"),
-					NavBar(),
+					NavBar(ctx),
 					h.Main(
 						h.Class("py-10"),
 						h.Div(
